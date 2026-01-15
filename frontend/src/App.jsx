@@ -5,6 +5,7 @@ import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import LinkedInCallback from "./pages/LinkedInCallback";
+import ResumeGen from "./pages/ResumeGen";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
+        <Route path="/resume-gen" element={<ResumeGen />} />
       </Routes>
     </Router>
   );
