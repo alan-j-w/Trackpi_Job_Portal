@@ -15,11 +15,15 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        profileCompleted: {
+            type: Boolean,
+            default: false
+        },
         role: {
             type: String,
-            enum: ["user", "admin"],
-            default: "user",
-        },
+            enum: ["user", "jobseeker", "recruiter", "admin"],
+            default: "jobseeker"
+        }
     },
     { timestamps: true }
 );

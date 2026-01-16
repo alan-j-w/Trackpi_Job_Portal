@@ -1,35 +1,54 @@
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 
 /* Assets */
 import loginIllustration from "../assets/illustrations/login-illustration.png";
 
 const Login = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
+    /* ---------------- AUTO REDIRECT IF ALREADY LOGGED IN ---------------- */
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            redirectAfterLogin(navigate);
+        }
+    }, [navigate]);
 
     /* ---------------- GOOGLE LOGIN ---------------- */
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
+                setLoading(true);
+
                 const res = await axios.post("http://localhost:8000/api/auth/google", {
                     access_token: tokenResponse.access_token,
                 });
 
+                // Save auth data
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
 
-                navigate("/");
+                // 🔥 Redirect based on profile status
+                await redirectAfterLogin(navigate);
             } catch (error) {
                 console.error("Google login failed:", error.response?.data || error.message);
                 alert("Google login failed");
+            } finally {
+                setLoading(false);
             }
         },
         onError: () => alert("Google login failed"),
     });
 
-    /* ---------------- LINKEDIN LOGIN (OPENID CONNECT) ---------------- */
+    /* ---------------- LINKEDIN LOGIN ---------------- */
     const handleLinkedInAuth = () => {
+        if (loading) return;
+
         const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID;
         const redirectUri = "http://localhost:5173/linkedin/callback";
         const scope = "openid profile email";
@@ -93,13 +112,14 @@ const Login = () => {
                     {/* GOOGLE */}
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full py-2 flex justify-center gap-3 font-semibold"
+                        disabled={loading}
+                        className="w-full py-2 flex justify-center gap-3 font-semibold disabled:opacity-50"
                     >
                         <img
                             src="https://www.svgrepo.com/show/475656/google-color.svg"
                             className="w-5 h-5"
                         />
-                        Sign in with Google
+                        {loading ? "Signing in..." : "Sign in with Google"}
                     </button>
 
                     <div className="flex items-center gap-4 my-8">
@@ -111,7 +131,8 @@ const Login = () => {
                     {/* LINKEDIN */}
                     <button
                         onClick={handleLinkedInAuth}
-                        className="w-full py-2 flex justify-center gap-3 font-semibold"
+                        disabled={loading}
+                        className="w-full py-2 flex justify-center gap-3 font-semibold disabled:opacity-50"
                     >
                         <img
                             src="https://www.svgrepo.com/show/475661/linkedin-color.svg"
