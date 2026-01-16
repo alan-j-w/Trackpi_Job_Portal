@@ -6,16 +6,24 @@ import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import LinkedInCallback from "./pages/LinkedInCallback";
+import CreateProfile from "./pages/CreateProfile";
+import Profile from "./pages/Profile";
+
+/* Route Protection */
+import ProtectedRoute from "./components/ProtectedRoute";
 import ResumeGen from "./pages/ResumeGen";
 import About from "./pages/About";
 import Testimonials from "./pages/Testimonials";
 import TalentLeague from "./pages/TalentLeague";
 import Creators from "./pages/Creators";
+=========
 import CreateProfile from "./pages/CreateProfile";
 import Profile from "./pages/Profile";
 
 /* Route Protection */
-import ProtectedRoute from "./components/ProtectedRoute"
+import ProtectedRoute from "./components/ProtectedRoute";
+>>>>>>>>> Temporary merge branch 2
+
 function App() {
   return (
     <Router>
@@ -26,11 +34,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
+<<<<<<<<< Temporary merge branch 1
         <Route path="/resume-gen" element={<ResumeGen />} />
         <Route path="/about" element={<About />} />
-        <Route path="/testimonials" element={<Testimonials />} />
-        <Route path="/talent-league" element={<TalentLeague />} />
-        <Route path="/creators" element={<Creators />} />
+        <Route path ="/testimonials" element={<Testimonials />} />
+        <Route path ="/talent-league" element={<TalentLeague />} />
+        <Route path ="/creators" element={<Creators />} />
+
 
         {/* ========== Protected Routes ========== */}
         <Route
@@ -50,6 +60,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+>>>>>>>>> Temporary merge branch 2
       </Routes>
     </Router>
   );
