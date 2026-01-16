@@ -6,6 +6,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import LinkedInCallback from "./pages/LinkedInCallback";
 import ResumeGen from "./pages/ResumeGen";
+import About from "./pages/About";
+import Testimonials from "./pages/Testimonials";
+import TalentLeague from "./pages/TalentLeague";
+import Creators from "./pages/Creators";
 
 function App() {
   return (
@@ -17,6 +21,11 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
         <Route path="/resume-gen" element={<ResumeGen />} />
+        <Route path="/about" element={<About />} />
+        <Route path ="/testimonials" element={<Testimonials />} />
+        <Route path ="/talent-league" element={<TalentLeague />} />
+        <Route path ="/creators" element={<Creators />} />
+        
       </Routes>
     </Router>
   );
