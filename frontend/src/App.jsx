@@ -11,6 +11,11 @@ import Profile from "./pages/Profile";
 
 /* Route Protection */
 import ProtectedRoute from "./components/ProtectedRoute";
+import ResumeGen from "./pages/ResumeGen";
+import About from "./pages/About";
+import Testimonials from "./pages/Testimonials";
+import TalentLeague from "./pages/TalentLeague";
+import Creators from "./pages/Creators";
 
 function App() {
   return (
@@ -41,6 +46,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/resume-gen" element={<ResumeGen />} />
+        <Route path="/about" element={<About />} />
+        <Route path ="/testimonials" element={<Testimonials />} />
+        <Route path ="/talent-league" element={<TalentLeague />} />
+        <Route path ="/creators" element={<Creators />} />
+        
       </Routes>
     </Router>
   );
