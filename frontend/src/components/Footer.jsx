@@ -1,4 +1,5 @@
-// src/components/Footer.jsx
+// src/components/Footer.
+import {Link} from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import logo from "../assets/logo.png";
 
@@ -33,14 +34,25 @@ const Footer = () => {
         <div>
           <h3 className="font-extrabold text-lg mb-4 text-black">Links</h3>
           <ul className="space-y-2 text-gray-700 text-sm">
-            <li className="cursor-pointer hover:text-[#FFB300]">Home</li>
-            <li className="cursor-pointer hover:text-[#FFB300]">About</li>
-            <li className="cursor-pointer hover:text-[#FFB300]">Connect Us</li>
-            <li className="cursor-pointer hover:text-[#FFB300]">Creators</li>
+            <li>
+              <Link to="" className="cursor-pointer hover:text-[#FFB300]">
+              Home
+            </Link>
+            </li>
+            <li>
+              <Link to="/about" className="cursor-pointer hover:text-[#FFB300]">
+              About
+              </Link></li>
+            <li>
+              <Link to="/connect" className="cursor-pointer hover:text-[#FFB300]">Connect Us</Link></li>
+            <li>
+              <Link to="/creators" className="hover:text-[#FFB300]">
+                Creators
+              </Link>
+            </li>
             <li className="cursor-pointer hover:text-[#FFB300]">Terms & Conditions</li>
           </ul>
         </div>
-
         {/* 🛠 Services */}
         <div>
           <h3 className="font-extrabold text-lg mb-4 text-black">Services</h3>
