@@ -1,11 +1,20 @@
 // src/components/Navbar.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import logo from "../assets/logo.png";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  // Handle Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user"); // Clear user info if stored
+    navigate("/login");
+  };
 
   return (
     <header className="w-full fixed top-0 left-0 bg-white shadow-md z-50">
@@ -34,18 +43,37 @@ const Navbar = () => {
 
           {/* 🟡 AUTH BUTTONS (DESKTOP) */}
           <div className="hidden md:flex gap-3 items-center">
-            <Link
-              to="/login"
-              className="px-6 py-2 hover:text-[#FFB300] transition"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="px-6 py-2 bg-[#FFB300] rounded-full text-black font-semibold shadow hover:bg-[#ffca2c] transition"
-            >
-              Get started
-            </Link>
+            {token ? (
+              <>
+                <Link
+                  to="/user/dashboard" // Or /admin/dashboard based on role, but safe default or profile
+                  className="px-6 py-2 hover:text-[#FFB300] transition"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-6 py-2 bg-red-500 rounded-full text-white font-semibold shadow hover:bg-red-600 transition"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-6 py-2 hover:text-[#FFB300] transition"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-6 py-2 bg-[#FFB300] rounded-full text-black font-semibold shadow hover:bg-[#ffca2c] transition"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* 📱 MOBILE MENU BUTTON */}
@@ -73,16 +101,40 @@ const Navbar = () => {
           </ul>
 
           <div className="flex flex-col gap-3 pt-4">
-            <Link
-              to="/login"
-              className="px-6 py-2 border rounded-full font-medium text-center hover:bg-gray-100">
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="px-6 py-2 bg-[#FFB300] text-center rounded-full font-semibold hover:bg-[#ffca2c]">
-              Get started
-            </Link>
+            {token ? (
+              <>
+                <Link
+                  to="/user/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="px-6 py-2 border rounded-full font-medium text-center hover:bg-gray-100">
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setOpen(false);
+                  }}
+                  className="px-6 py-2 bg-red-500 text-center rounded-full text-white font-semibold hover:bg-red-600">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="px-6 py-2 border rounded-full font-medium text-center hover:bg-gray-100">
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setOpen(false)}
+                  className="px-6 py-2 bg-[#FFB300] text-center rounded-full font-semibold hover:bg-[#ffca2c]">
+                  Get started
+                </Link>
+              </>
+            )}
+
           </div>
         </div>
       )}
