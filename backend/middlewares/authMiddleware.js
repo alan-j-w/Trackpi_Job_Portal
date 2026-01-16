@@ -38,4 +38,26 @@ const protect = async (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+/**
+ * Admin Middleware - Allows Admin and SuperAdmin
+ */
+const isAdmin = (req, res, next) => {
+    if (req.user && (req.user.role === "admin" || req.user.role === "superadmin")) {
+        next();
+    } else {
+        res.status(403).json({ message: "Not authorized as an admin" });
+    }
+};
+
+/**
+ * SuperAdmin Middleware - Allows only SuperAdmin
+ */
+const isSuperAdmin = (req, res, next) => {
+    if (req.user && req.user.role === "superadmin") {
+        next();
+    } else {
+        res.status(403).json({ message: "Not authorized as a superadmin" });
+    }
+};
+
+module.exports = { protect, isAdmin, isSuperAdmin };
