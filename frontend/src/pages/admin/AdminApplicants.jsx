@@ -81,12 +81,12 @@ const AdminApplicants = () => {
                 const formattedData = data.map(user => ({
                     id: user._id,
                     name: user.name,
-                    role: user.profile?.jobTitle || "UI UX Designer", // Fallback for demo
-                    phone: user.profile?.phone || "9735276590",     // Fallback for demo
+                    role: user.profile?.jobTitle || "N/A",
+                    phone: user.profile?.phone || "N/A",
                     email: user.email,
-                    gender: user.profile?.gender || "Male",         // Fallback for demo
+                    gender: user.profile?.gender || "N/A",
                     resume: user.profile?.resumeUrl,
-                    progress: calculateProgress(user, user.profile) || 75, // Fallback for pretty UI
+                    progress: calculateProgress(user, user.profile),
                 }));
 
                 setCandidates(formattedData);
@@ -190,41 +190,42 @@ const AdminApplicants = () => {
             )}
 
             {/* Table */}
-            <div className="overflow-x-auto border-t border-[#FFB300]">
+            <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b-2 border-[#FFB300] text-gray-900 font-bold text-[15px]">
-                            <th className="p-4 min-w-[180px] text-left text-[#FFB300]">Applicants Name</th> {/* Used as primary column */}
-                            <th className="p-4 text-[#FFB300]">Job role</th>
-                            <th className="p-4 text-[#FFB300]">Phone Number</th>
-                            <th className="p-4 text-[#FFB300]">Email</th>
-                            <th className="p-4 text-[#FFB300]">Gender</th>
-                            <th className="p-4 text-[#FFB300] text-center">Resume</th>
-                            <th className="p-4 text-[#FFB300] text-center">Action</th>
-                            <th className="p-4 text-[#FFB300] text-center">Progress Bar</th>
+                        <tr className="border border-[#FFB300] text-black text-[15px] text-center">
+                            <th className="p-4 w-[50px] text-left"></th> {/* Checkbox Column */}
+                            <th className="p-4 min-w-[150px] font-normal text-center">Applicants Name</th>
+                            <th className="p-4 font-normal text-center">Job role</th>
+                            <th className="p-4 font-normal text-center">Phone Number</th>
+                            <th className="p-4 font-normal text-center">Email</th>
+                            <th className="p-4 font-normal text-center">Gender</th>
+                            <th className="p-4 font-normal text-center">Resume</th>
+                            <th className="p-4 font-normal text-center">Action</th>
+                            <th className="p-4 font-normal text-center">Progress Bar</th>
                         </tr>
                     </thead>
                     <tbody className="text-black text-sm font-medium">
                         {loading ? (
-                            <tr><td colSpan="8" className="p-10 text-center text-gray-500">Loading candidates...</td></tr>
+                            <tr><td colSpan="9" className="p-10 text-center text-gray-500">Loading candidates...</td></tr>
                         ) : filteredCandidates.length === 0 ? (
-                            <tr><td colSpan="8" className="p-10 text-center text-gray-500">No candidates found</td></tr>
+                            <tr><td colSpan="9" className="p-10 text-center text-gray-500">No candidates found</td></tr>
                         ) : (
                             filteredCandidates.map((candidate) => (
                                 <tr key={candidate.id} className="border-b border-gray-200 hover:bg-yellow-50/10 transition group">
-                                    <td className="p-4 flex items-center gap-3">
+                                    <td className="p-4 text-left">
                                         <input
                                             type="checkbox"
                                             className="w-4 h-4 rounded border-gray-400 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer"
                                             checked={selectedIds.includes(candidate.id)}
                                             onChange={() => handleSelectOne(candidate.id)}
                                         />
-                                        <span className="text-gray-900 font-semibold">{candidate.name}</span>
                                     </td>
-                                    <td className="p-4 text-gray-800">{candidate.role}</td>
-                                    <td className="p-4 text-gray-800 font-medium">{candidate.phone}</td>
-                                    <td className="p-4 text-gray-800">{candidate.email}</td>
-                                    <td className="p-4 text-gray-800">{candidate.gender}</td>
+                                    <td className="p-4 text-gray-900 font-semibold text-center">{candidate.name}</td>
+                                    <td className="p-4 text-gray-800 text-center">{candidate.role}</td>
+                                    <td className="p-4 text-gray-800 font-medium text-center">{candidate.phone}</td>
+                                    <td className="p-4 text-gray-800 text-center">{candidate.email}</td>
+                                    <td className="p-4 text-gray-800 text-center">{candidate.gender}</td>
                                     <td className="p-4 text-center">
                                         <div className="flex justify-center">
                                             {candidate.resume ? (
