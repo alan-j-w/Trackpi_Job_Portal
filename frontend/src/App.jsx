@@ -55,56 +55,20 @@ function App() {
             }
           />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/resume-gen" element={<ResumeGen />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/talent-league" element={<TalentLeague />} />
-          <Route path="/creators" element={<Creators />} />
-
-          {/* Job Seeker Dashboard */}
-          <Route
-            path="/user/dashboard"
-            element={
-              <ProtectedRoute>
-                <UserDashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
-
-        {/* ========== Admin Routes ========== */}
         <Route
-          path="/admin"
+          path="/profile"
           element={
-            <ProtectedAdminRoute>
-              <AdminLayout />
-            </ProtectedAdminRoute>
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
           }
-        >
-          {/* General Dashboard */}
-          <Route path="dashboard" element={<AdminDashboard />} />
-
-          {/* Permission Protected Routes */}
-          <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><AdminJobs /></ProtectedAdminRoute>} />
-          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AdminApplicants /></ProtectedAdminRoute>} />
-
-          {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
-          <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_CANDIDATES}><AdminApplicants /></ProtectedAdminRoute>} />
-
-          {/* Super Admin Routes */}
-          <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
-          {/* Placeholder routes for others to prevent crashes if clicked */}
-          <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
-        </Route>
-
+        />
+        <Route path="/resume-gen" element={<ResumeGen />} />
+        <Route path="/about" element={<About />} />
+        <Route path ="/testimonials" element={<Testimonials />} />
+        <Route path ="/talent-league" element={<TalentLeague />} />
+        <Route path ="/creators" element={<Creators />} />
+        
       </Routes>
     </Router>
   );

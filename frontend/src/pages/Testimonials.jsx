@@ -19,10 +19,10 @@ function TestimonialRow({ reverse }) {
       } items-center gap-6 lg:gap-10 pb-8 lg:pb-12 border-b border-gray-300`}
     >
       {/* PROFILE CARD */}
-      <div className="relative w-full sm:w-64 bg-black text-white rounded-3xl overflow-hidden">
+      <div className="relative w-full sm:w-64  bg-black text-white rounded-3xl overflow-hidden">
         <img
           src={paulwakerImg}
-          className="w-full h-56 sm:h-64 object-cover"
+          className="w-full h-64 sm:h-64 object-cover"
           alt="Paul Walker"
         />
 
@@ -76,7 +76,7 @@ function TestimonialRow({ reverse }) {
   );
 }
 
-export default function Testimonials() {
+ export default function Testimonials() {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 4;
 
