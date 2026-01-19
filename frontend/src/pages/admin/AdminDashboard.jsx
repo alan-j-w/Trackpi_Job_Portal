@@ -1,8 +1,29 @@
+import { useState, useEffect } from "react";
 import { Users, Briefcase, FileText, CheckCircle } from "lucide-react";
 
 const AdminDashboard = () => {
+    const [candidateCount, setCandidateCount] = useState(0);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch("http://localhost:8000/api/admin/candidates", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setCandidateCount(data.length);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats:", error);
+            }
+        };
+        fetchStats();
+    }, []);
+
     const stats = [
-        { title: "Total Candidates", count: "1,240", icon: Users, color: "bg-blue-500" },
+        { title: "Total Candidates", count: candidateCount, icon: Users, color: "bg-blue-500" },
         { title: "Active Jobs", count: "45", icon: Briefcase, color: "bg-green-500" },
         { title: "Resumes Built", count: "892", icon: FileText, color: "bg-purple-500" },
         { title: "Hired", count: "128", icon: CheckCircle, color: "bg-yellow-500" },
@@ -13,7 +34,7 @@ const AdminDashboard = () => {
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
-                <p className="text-gray-500 mt-2">Welcome back! Here's what's happening today.</p>
+                <p className="text-gray-500 mt-2">Welcome back!</p>
             </div>
 
             {/* Stats Grid */}
@@ -29,17 +50,13 @@ const AdminDashboard = () => {
                                 <stat.icon size={24} />
                             </div>
                         </div>
-                        <div className="mt-4 flex items-center text-sm text-green-500">
-                            <span>+4.5%</span>
-                            <span className="text-gray-400 ml-2">from last month</span>
-                        </div>
                     </div>
                 ))}
             </div>
 
             {/* Recent Activity Section Placeholder */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-96 flex items-center justify-center text-gray-400">
-                Chart or Recent Activity Table will go here
+                Activity Table will go here
             </div>
         </div>
     );
