@@ -15,11 +15,25 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        profileCompleted: {
+            type: Boolean,
+            default: false
+        },
         role: {
             type: String,
-            enum: ["user", "admin"],
-            default: "user",
+            enum: ["jobseeker", "admin", "superadmin", "user"], // 'user' kept for legacy support until migration
+            default: "jobseeker"
         },
+        permissions: {
+            type: [String],
+            default: []
+        },
+        googleId: {
+            type: String
+        },
+        linkedinId: {
+            type: String
+        }
     },
     { timestamps: true }
 );
