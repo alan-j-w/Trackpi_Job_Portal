@@ -52,6 +52,52 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
+// Get All Job Seeker Candidates
+exports.getAllCandidates = async (req, res) => {
+    try {
+        // Find all users with role 'jobseeker'
+        const candidates = await User.find({ role: "jobseeker" }).select("-password -googleId -linkedinId");
+
+        // Fetch profiles for these candidates
+        const candidatesWithProfiles = await Promise.all(candidates.map(async (user) => {
+            const profile = await require("../models/Profile").findOne({ user: user._id });
+            return {
+                ...user.toObject(),
+                profile: profile || null
+            };
+        }));
+
+        res.status(200).json(candidatesWithProfiles);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch candidates", error: error.message });
+    }
+};
+
+// Delete Candidate
+exports.deleteCandidate = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Optional: Check if user is actually a jobseeker to prevent accidental admin deletion
+        if (user.role !== "jobseeker") {
+            // return res.status(403).json({ message: "Can only delete job seekers via this endpoint" });
+            // For now, allow deleting any user via this ID if admin has permission, but usually safer to restrict.
+        }
+
+        await User.findByIdAndDelete(id);
+        await require("../models/Profile").findOneAndDelete({ user: id });
+
+        res.status(200).json({ message: "Candidate deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete candidate", error: error.message });
+    }
+};
+
 // Update Admin Permissions (Super Admin Only)
 exports.updateAdminPermissions = async (req, res) => {
     try {

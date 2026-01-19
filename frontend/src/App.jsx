@@ -96,6 +96,9 @@ function App() {
           <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><AdminJobs /></ProtectedAdminRoute>} />
           <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AdminApplicants /></ProtectedAdminRoute>} />
 
+          {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
+          <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_CANDIDATES}><AdminApplicants /></ProtectedAdminRoute>} />
+
           {/* Super Admin Routes */}
           <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
           {/* Placeholder routes for others to prevent crashes if clicked */}

@@ -11,6 +11,12 @@ router.use(authorize("admin", "superadmin"));
 // Dashboard Stats
 router.get("/dashboard-stats", adminController.getDashboardStats);
 
+// Get All Candidates (Job Seekers)
+router.get("/candidates", adminController.getAllCandidates);
+
+// Delete Candidate
+router.delete("/candidates/:id", adminController.deleteCandidate);
+
 // Super Admin Only: Manage Admins
 router.post(
     "/create-admin",
