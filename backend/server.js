@@ -1,38 +1,35 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
 
-const connectDB = require("./config/db");
-const jobRoutes = require("./routes/jobRoutes");
-const authRoutes = require("./routes/authRoutes");
-const profileRoutes = require("./routes/profileRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-
+import connectDB from "./config/db.js";
+import jobRoutes from "./routes/jobRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import testimonialRoutes from "./routes/testimonialsRoutes.js"; // <-- ES import
 
 dotenv.config();
 
 const app = express();
 
-/* -------------------- Database -------------------- */
+/* Database */
 connectDB();
 
-/* -------------------- Middlewares -------------------- */
+/* Middlewares */
 app.use(cors());
 app.use(express.json());
 
-/* -------------------- Routes -------------------- */
+/* Routes */
 app.use("/api/jobs", jobRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/testimonials", testimonialRoutes);
 
-/* -------------------- Health Check -------------------- */
+/* Health Check */
 app.get("/", (req, res) => {
   res.status(200).send("🚀 TrackPI Backend Running Successfully");
 });
 
-/* -------------------- Server -------------------- */
+/* Server */
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`🔥 TrackPI server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🔥 TrackPI server running on port ${PORT}`));
