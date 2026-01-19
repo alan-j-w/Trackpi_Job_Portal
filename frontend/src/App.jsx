@@ -51,6 +51,7 @@ function App() {
         <Route path ="/testimonials" element={<Testimonials />} />
         <Route path ="/talent-league" element={<TalentLeague />} />
         <Route path ="/creators" element={<Creators />} />
+    
         
       </Routes>
     </Router>
