@@ -1,12 +1,13 @@
-const User = require("../models/User");
-const Job = require("../models/Job");
-const Application = require("../models/Application");
-const AuditLog = require("../models/AuditLog");
-const bcrypt = require("bcryptjs");
-const PERMISSIONS = require("../config/permissions");
+import User from "../models/User.js";
+import Job from "../models/Job.js";
+import Application from "../models/Application.js";
+import AuditLog from "../models/AuditLog.js";
+import Profile from "../models/Profile.js"; // Added explicit import for Profile
+import bcrypt from "bcryptjs";
+import PERMISSIONS from "../config/permissions.js";
 
 // Create Admin (Super Admin Only)
-exports.createAdmin = async (req, res) => {
+export const createAdmin = async (req, res) => {
     try {
         const { name, email, password, permissions } = req.body;
 
@@ -41,7 +42,7 @@ exports.createAdmin = async (req, res) => {
 };
 
 // Get All Users (Super Admin & Admin with permission)
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
     try {
         // Simple filter example
         const { role } = req.query;
@@ -55,14 +56,14 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // Get All Job Seeker Candidates
-exports.getAllCandidates = async (req, res) => {
+export const getAllCandidates = async (req, res) => {
     try {
         // Find all users with role 'jobseeker'
         const candidates = await User.find({ role: "jobseeker" }).select("-password -googleId -linkedinId");
 
         // Fetch profiles for these candidates
         const candidatesWithProfiles = await Promise.all(candidates.map(async (user) => {
-            const profile = await require("../models/Profile").findOne({ user: user._id });
+            const profile = await Profile.findOne({ user: user._id });
             return {
                 ...user.toObject(),
                 profile: profile || null
@@ -76,7 +77,7 @@ exports.getAllCandidates = async (req, res) => {
 };
 
 // Delete Candidate
-exports.deleteCandidate = async (req, res) => {
+export const deleteCandidate = async (req, res) => {
     try {
         const { id } = req.params;
         const user = await User.findById(id);
@@ -92,7 +93,7 @@ exports.deleteCandidate = async (req, res) => {
         }
 
         await User.findByIdAndDelete(id);
-        await require("../models/Profile").findOneAndDelete({ user: id });
+        await Profile.findOneAndDelete({ user: id });
 
         res.status(200).json({ message: "Candidate deleted successfully" });
     } catch (error) {
@@ -101,7 +102,7 @@ exports.deleteCandidate = async (req, res) => {
 };
 
 // Update Admin Permissions (Super Admin Only)
-exports.updateAdminPermissions = async (req, res) => {
+export const updateAdminPermissions = async (req, res) => {
     try {
         const { userId, permissions } = req.body;
 
@@ -133,7 +134,7 @@ exports.updateAdminPermissions = async (req, res) => {
 };
 
 // Get System Stats (Example for Dashboard)
-exports.getDashboardStats = async (req, res) => {
+export const getDashboardStats = async (req, res) => {
     try {
         const candidateCount = await User.countDocuments({ role: "jobseeker" });
         const adminCount = await User.countDocuments({ role: "admin" });
@@ -152,7 +153,7 @@ exports.getDashboardStats = async (req, res) => {
 };
 
 // Get All Jobs for Admin (with applicant counts)
-exports.getAdminJobs = async (req, res) => {
+export const getAdminJobs = async (req, res) => {
     try {
         const jobs = await Job.find().sort({ createdAt: -1 });
 

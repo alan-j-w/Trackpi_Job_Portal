@@ -1,8 +1,9 @@
-const express = require("express");
+import express from "express";
+import * as adminController from "../controllers/adminController.js";
+import { protect, authorize, checkPermission } from "../middleware/authMiddleware.js";
+import PERMISSIONS from "../config/permissions.js";
+
 const router = express.Router();
-const adminController = require("../controllers/adminController");
-const { protect, authorize, checkPermission } = require("../middleware/authMiddleware");
-const PERMISSIONS = require("../config/permissions");
 
 // All admin routes are protected and require admin or superadmin role
 router.use(protect);
@@ -39,4 +40,4 @@ router.get(
     adminController.getAllUsers
 );
 
-module.exports = router;
+export default router;

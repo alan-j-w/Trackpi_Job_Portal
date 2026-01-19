@@ -1,6 +1,6 @@
-const Job = require("../models/Job");
+import Job from "../models/Job.js";
 
-exports.createJob = async (req, res) => {
+export const createJob = async (req, res) => {
     try {
         const job = await Job.create(req.body);
         res.status(201).json(job);
@@ -9,7 +9,7 @@ exports.createJob = async (req, res) => {
     }
 };
 
-exports.getAllJobs = async (req, res) => {
+export const getAllJobs = async (req, res) => {
     try {
         const jobs = await Job.find();
         res.status(200).json(jobs);
@@ -18,7 +18,7 @@ exports.getAllJobs = async (req, res) => {
     }
 };
 
-exports.getJobById = async (req, res) => {
+export const getJobById = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id);
 

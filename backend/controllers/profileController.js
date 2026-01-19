@@ -1,8 +1,8 @@
-const Profile = require("../models/Profile");
-const User = require("../models/User");
+import Profile from "../models/Profile.js";
+import User from "../models/User.js";
 
 // ✅ Create or Update Profile
-exports.createOrUpdateProfile = async (req, res) => {
+export const createOrUpdateProfile = async (req, res) => {
     try {
         const userId = req.user._id; // from auth middleware
 
@@ -48,7 +48,7 @@ exports.createOrUpdateProfile = async (req, res) => {
 };
 
 // ✅ Get My Profile
-exports.getMyProfile = async (req, res) => {
+export const getMyProfile = async (req, res) => {
     try {
         const userId = req.user._id;
 
@@ -78,7 +78,7 @@ exports.getMyProfile = async (req, res) => {
 };
 
 // ✅ Check if my profile exists(optional helper)
-exports.checkProfileStatus = async (req, res) => {
+export const checkProfileStatus = async (req, res) => {
     try {
         const userId = req.user._id;
 

@@ -1,12 +1,12 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const {
+import {
     registerUser,
     loginUser,
     googleAuth,
     linkedinAuth,
-} = require("../controllers/authController");
+} from "../controllers/authController.js";
 
 // Auth routes
 router.post("/register", registerUser);
@@ -14,4 +14,4 @@ router.post("/login", loginUser);
 router.post("/google", googleAuth);
 router.post("/linkedin", linkedinAuth);
 
-module.exports = router;
+export default router;
