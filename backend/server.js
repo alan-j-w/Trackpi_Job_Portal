@@ -5,6 +5,9 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const jobRoutes = require("./routes/jobRoutes");
 const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+
 
 dotenv.config();
 
@@ -20,6 +23,8 @@ app.use(express.json());
 /* -------------------- Routes -------------------- */
 app.use("/api/jobs", jobRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/admin", adminRoutes);
 
 /* -------------------- Health Check -------------------- */
 app.get("/", (req, res) => {
