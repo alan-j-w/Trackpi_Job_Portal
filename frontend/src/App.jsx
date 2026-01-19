@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom
 /* Pages */
 import Home from "./pages/Home";
 /* Admin Pages */
-/* Admin Pages */
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminJobs from "./pages/admin/AdminJobs";
@@ -11,7 +10,6 @@ import AdminApplicants from "./pages/admin/AdminApplicants";
 import AdminManagement from "./pages/admin/AdminManagement";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
 import UserDashboard from "./pages/user/UserDashboard";
-import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 
 import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";

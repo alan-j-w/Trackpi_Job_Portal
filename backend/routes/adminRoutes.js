@@ -14,6 +14,9 @@ router.get("/dashboard-stats", adminController.getDashboardStats);
 // Get All Candidates (Job Seekers)
 router.get("/candidates", adminController.getAllCandidates);
 
+// Get All Jobs (Admin View)
+router.get("/jobs", adminController.getAdminJobs);
+
 // Delete Candidate
 router.delete("/candidates/:id", adminController.deleteCandidate);
 

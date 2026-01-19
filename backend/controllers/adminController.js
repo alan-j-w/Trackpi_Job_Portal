@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Job = require("../models/Job");
+const Application = require("../models/Application");
 const AuditLog = require("../models/AuditLog");
 const bcrypt = require("bcryptjs");
 const PERMISSIONS = require("../config/permissions");
@@ -146,5 +148,29 @@ exports.getDashboardStats = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch stats" });
+    }
+};
+
+// Get All Jobs for Admin (with applicant counts)
+exports.getAdminJobs = async (req, res) => {
+    try {
+        const jobs = await Job.find().sort({ createdAt: -1 });
+
+        const jobsWithStats = await Promise.all(jobs.map(async (job) => {
+            const totalApplicants = await Application.countDocuments({ jobId: job._id });
+            const pendingApplicants = await Application.countDocuments({ jobId: job._id, status: 'applied' });
+
+            return {
+                ...job.toObject(),
+                school_id: undefined, // remove if not needed, just cleaning up
+                applicantsCount: totalApplicants,
+                pendingApplicantsCount: pendingApplicants
+            };
+        }));
+
+        res.status(200).json(jobsWithStats);
+    } catch (error) {
+        console.error("Error fetching admin jobs:", error);
+        res.status(500).json({ message: "Failed to fetch admin jobs", error: error.message });
     }
 };
