@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const testimonialSchema = new mongoose.Schema(
   {
@@ -11,11 +11,11 @@ const testimonialSchema = new mongoose.Schema(
       required: true,
     },
     image: {
-      type: String, // profile image URL
+      type: String, // image URL
       required: true,
     },
     video: {
-      type: String, // VIMEO LINK
+      type: String, // Vimeo / YouTube embed URL
       required: true,
     },
     description: {
@@ -26,4 +26,4 @@ const testimonialSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Testimonial", testimonialSchema);
+module.exports = mongoose.model("Testimonial", testimonialSchema);

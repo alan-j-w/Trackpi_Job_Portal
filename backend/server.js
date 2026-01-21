@@ -1,35 +1,34 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
 
-import connectDB from "./config/db.js";
-import jobRoutes from "./routes/jobRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
-import profileRoutes from "./routes/profileRoutes.js";
-import testimonialRoutes from "./routes/testimonialsRoutes.js"; // <-- ES import
+const connectDB = require("./config/db.js");
+const testimonialRoutes = require("./routes/testimonialsRoutes.js");
+const authRoutes = require("./routes/authRoutes.js");
+const jobRoutes = require("./routes/jobRoutes.js");
+const adminRoutes = require("./routes/adminRoutes.js");
+const profileRoutes = require("./routes/profileRoutes.js");
 
 dotenv.config();
 
 const app = express();
 
-/* Database */
 connectDB();
 
-/* Middlewares */
 app.use(cors());
 app.use(express.json());
 
-/* Routes */
-app.use("/api/jobs", jobRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/profile", profileRoutes);
+app.use("/api/jobs", jobRoutes);
 app.use("/api/testimonials", testimonialRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/profile", profileRoutes);
 
-/* Health Check */
 app.get("/", (req, res) => {
-  res.status(200).send("🚀 TrackPI Backend Running Successfully");
+  res.send("🚀 Backend Running");
 });
 
-/* Server */
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => console.log(`🔥 TrackPI server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🔥 Server running on port ${PORT}`)
+);

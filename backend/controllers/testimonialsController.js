@@ -1,33 +1,41 @@
-import Testimonial from "../models/Testimonial.js";
+const Testimonial = require("../models/Testimonial.js");
 
-// ADMIN: add testimonial
-export const createTestimonial = async (req, res) => {
+// Create a new testimonial
+const createTestimonial = async (req, res) => {
   try {
-    const testimonial = await Testimonial.create(req.body);
+    const testimonial = new Testimonial(req.body);
+    await testimonial.save();
     res.status(201).json(testimonial);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Get all testimonials with pagination
+const getTestimonials = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
+
+    const testimonials = await Testimonial.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Testimonial.countDocuments();
+
+    res.status(200).json({
+      testimonials,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// USER: get testimonials (with pagination)
-export const getTestimonials = async (req, res) => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 2;
-    const skip = (page - 1) * limit;
-
-    const total = await Testimonial.countDocuments();
-    const data = await Testimonial.find()
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    res.json({
-      data,
-      totalPages: Math.ceil(total / limit),
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+module.exports = {
+  createTestimonial,
+  getTestimonials,
 };
