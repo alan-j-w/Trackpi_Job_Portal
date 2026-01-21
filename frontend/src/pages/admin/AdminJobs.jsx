@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Edit, Eye, Search, ToggleLeft, ToggleRight, Users, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const AdminJobs = () => {
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -34,10 +36,30 @@ const AdminJobs = () => {
         job.company.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Generic function to update job status
+    const updateJobStatus = async (id, newStatus) => {
+        // Optimistic update
+        const originalJobs = [...jobs];
+        setJobs(jobs.map(job => job._id === id ? { ...job, status: newStatus } : job));
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(`http://localhost:8000/api/jobs/${id}`,
+                { status: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } catch (error) {
+            console.error("Error updating job status:", error);
+            // Revert changes on error
+            setJobs(originalJobs);
+            alert("Failed to update job status");
+        }
+    };
+
     // Toggle Status (Open/Closed)
     const handleStatusChange = (newStatus, id) => {
-        setJobs(jobs.map(job => job._id === id ? { ...job, status: newStatus === "Open" ? "new" : "closed" } : job));
-        // TODO: Call API to persist change
+        const mappedStatus = newStatus === "Open" ? "new" : "closed";
+        updateJobStatus(id, mappedStatus);
     };
 
     return (
@@ -54,7 +76,9 @@ const AdminJobs = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <button className="bg-[#FFB300] hover:bg-[#ffca2c] text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm text-black">
+                <button
+                    onClick={() => window.location.href = "/admin/jobs/post"}
+                    className="bg-[#FFB300] hover:bg-[#ffca2c] text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm text-black">
                     Post jobs
                 </button>
             </div>
@@ -172,13 +196,12 @@ const AdminJobs = () => {
                                         {/* New/Urgent - Toggle */}
                                         <td className="p-4">
                                             <button
+                                                disabled={job.status === 'closed'}
                                                 onClick={() => {
                                                     const newStatus = job.status === 'urgent' ? 'new' : 'urgent';
-                                                    // Optimistic update
-                                                    setJobs(jobs.map(j => j._id === job._id ? { ...j, status: newStatus } : j));
-                                                    // TODO: connect to API
+                                                    updateJobStatus(job._id, newStatus);
                                                 }}
-                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.status === 'urgent' ? 'bg-red-500' : 'bg-green-500'}`}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.status === 'urgent' ? 'bg-red-500' : 'bg-green-500'} ${job.status === 'closed' ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
                                             >
                                                 <span className="sr-only">Toggle Urgent</span>
                                                 <span
@@ -190,10 +213,14 @@ const AdminJobs = () => {
                                         {/* Actions */}
                                         <td className="p-4 pr-6 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <button className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
+                                                <button
+                                                    onClick={() => navigate(`/admin/jobs/view/${job._id}`)}
+                                                    className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
                                                     <Eye size={16} />
                                                 </button>
-                                                <button className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
+                                                <button
+                                                    onClick={() => navigate(`/admin/jobs/edit/${job._id}`)}
+                                                    className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
                                                     <Edit size={16} />
                                                 </button>
                                             </div>

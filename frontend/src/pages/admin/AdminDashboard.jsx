@@ -2,18 +2,28 @@ import { useState, useEffect } from "react";
 import { Users, Briefcase, FileText, CheckCircle } from "lucide-react";
 
 const AdminDashboard = () => {
-    const [candidateCount, setCandidateCount] = useState(0);
+    const [statsData, setStatsData] = useState({
+        candidates: 0,
+        activeJobs: 0,
+        resumes: 0,
+        hired: 0
+    });
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch("http://localhost:8000/api/admin/candidates", {
+                const response = await fetch("http://localhost:8000/api/admin/dashboard-stats", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    setCandidateCount(data.length);
+                    setStatsData({
+                        candidates: data.candidates || 0,
+                        activeJobs: data.activeJobs || 0,
+                        resumes: data.resumes || 0,
+                        hired: data.hired || 0
+                    });
                 }
             } catch (error) {
                 console.error("Failed to fetch dashboard stats:", error);
@@ -23,10 +33,10 @@ const AdminDashboard = () => {
     }, []);
 
     const stats = [
-        { title: "Total Candidates", count: candidateCount, icon: Users, color: "bg-blue-500" },
-        { title: "Active Jobs", count: "45", icon: Briefcase, color: "bg-green-500" },
-        { title: "Resumes Built", count: "892", icon: FileText, color: "bg-purple-500" },
-        { title: "Hired", count: "128", icon: CheckCircle, color: "bg-yellow-500" },
+        { title: "Total Candidates", count: statsData.candidates, icon: Users, color: "bg-blue-500" },
+        { title: "Active Jobs", count: statsData.activeJobs, icon: Briefcase, color: "bg-green-500" },
+        { title: "Resumes Built", count: statsData.resumes, icon: FileText, color: "bg-purple-500" },
+        { title: "Hired", count: statsData.hired, icon: CheckCircle, color: "bg-yellow-500" },
     ];
 
     return (

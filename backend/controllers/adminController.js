@@ -139,15 +139,25 @@ export const getDashboardStats = async (req, res) => {
         const candidateCount = await User.countDocuments({ role: "jobseeker" });
         const adminCount = await User.countDocuments({ role: "admin" });
 
-        // Add Job model counts here when Job model is integrated
-        // const jobCount = await Job.countDocuments({});
+        // Active Jobs (status is not closed)
+        const activeJobsCount = await Job.countDocuments({ status: { $ne: "closed" } });
+
+        // Hired Candidates (Applications with status 'hired')
+        // Check if Application model has 'hired' status. Assuming standard status flows.
+        const hiredCount = await Application.countDocuments({ status: "hired" });
+
+        // Resumes/Profiles Built
+        const resumesCount = await Profile.countDocuments({});
 
         res.status(200).json({
             candidates: candidateCount,
             admins: adminCount,
-            // jobs: jobCount
+            activeJobs: activeJobsCount,
+            hired: hiredCount,
+            resumes: resumesCount
         });
     } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
         res.status(500).json({ message: "Failed to fetch stats" });
     }
 };
