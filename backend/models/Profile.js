@@ -40,6 +40,13 @@ const profileSchema = new mongoose.Schema(
             city: { type: String, default: "" },
         },
 
+        permanentLocation: {
+            pincode: { type: String, default: "" },
+            country: { type: String, default: "" },
+            state: { type: String, default: "" },
+            city: { type: String, default: "" },
+        },
+
         dateOfBirth: {
             type: String, // or Date
             default: "",
@@ -75,12 +82,35 @@ const profileSchema = new mongoose.Schema(
             }
         ],
 
-        // Kept from previous (might be used in Step 2/3)
-        jobTitle: { type: String, default: "" },
-        education: { type: String, default: "" },
-        skills: { type: [String], default: [] },
-        expectedSalary: { type: String, default: "" },
-        workMode: { type: String, default: "" },
+        // ================= STEP 2: PROFESSIONAL INFO =================
+        languages: [{
+            name: { type: String, required: true },
+            proficiency: { type: String, default: "beginner" } // beginner, intermediate, expert
+        }],
+
+        preferredLocations: [{ type: String }],
+
+        willRelocate: {
+            type: Boolean,
+            default: false
+        },
+
+        preferredWorkMode: {
+            type: String,
+            enum: ["onsite", "remote", "hybrid", "field", ""],
+            default: ""
+        },
+
+        education: [{
+            degree: String,
+            institution: String,
+            year: String,
+            description: String
+        }],
+
+        // Legacy fields kept for safety, but Step 2 uses the above now
+        // jobTitle: { type: String, default: "" }, 
+        // skills: { type: [String], default: [] },
 
         // ================= ASSETS =================
         resumeUrl: {
@@ -102,9 +132,14 @@ const profileSchema = new mongoose.Schema(
         socialLinks: {
             linkedin: { type: String, default: "" },
             github: { type: String, default: "" },
+            behance: { type: String, default: "" },
+            facebook: { type: String, default: "" },
             portfolio: { type: String, default: "" },
             twitter: { type: String, default: "" },
         },
+
+        // Driving License (Multiple selection possible)
+        drivingLicenses: [{ type: String }], // "two_wheeler", "four_wheeler"
     },
     { timestamps: true }
 );

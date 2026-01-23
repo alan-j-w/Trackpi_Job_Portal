@@ -3,7 +3,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
+// ============================
 // GOOGLE AUTH
+// ============================
 exports.googleAuth = async (req, res) => {
     try {
         const { access_token } = req.body;
@@ -11,24 +13,22 @@ exports.googleAuth = async (req, res) => {
         const googleRes = await axios.get(
             `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
         );
+
         const { email, name, sub } = googleRes.data;
 
-        // Check if user exists by email
         let user = await User.findOne({ email });
 
         if (user) {
-            // If user exists but no googleId, link it
             if (!user.googleId) {
                 user.googleId = sub;
                 await user.save();
             }
         } else {
-            // Create new user
             user = await User.create({
                 name,
                 email,
                 googleId: sub,
-                password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
+                password: await bcrypt.hash(Math.random().toString(36), 10),
                 role: "jobseeker",
                 permissions: []
             });
@@ -46,8 +46,8 @@ exports.googleAuth = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role,
-            },
+                role: user.role
+            }
         });
     } catch (error) {
         console.error("Google Auth Error:", error);
@@ -55,15 +55,17 @@ exports.googleAuth = async (req, res) => {
     }
 };
 
+// ============================
 // LINKEDIN AUTH
+// ============================
 exports.linkedinAuth = async (req, res) => {
     try {
         const { code } = req.body;
+
         const clientId = process.env.LINKEDIN_CLIENT_ID;
         const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
         const redirectUri = "http://localhost:5173/linkedin/callback";
 
-        // 1. Exchange code for access token
         const tokenRes = await axios.post(
             "https://www.linkedin.com/oauth/v2/accessToken",
             new URLSearchParams({
@@ -71,16 +73,15 @@ exports.linkedinAuth = async (req, res) => {
                 code,
                 redirect_uri: redirectUri,
                 client_id: clientId,
-                client_secret: clientSecret,
+                client_secret: clientSecret
             }),
             { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
         );
 
         const { access_token } = tokenRes.data;
 
-        // 2. Get User Info
         const userRes = await axios.get("https://api.linkedin.com/v2/userinfo", {
-            headers: { Authorization: `Bearer ${access_token}` },
+            headers: { Authorization: `Bearer ${access_token}` }
         });
 
         const { email, name, sub } = userRes.data;
@@ -115,17 +116,18 @@ exports.linkedinAuth = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role,
-            },
+                role: user.role
+            }
         });
-
     } catch (error) {
         console.error("LinkedIn Auth Error:", error.response?.data || error.message);
         res.status(500).json({ message: "LinkedIn authentication failed" });
     }
 };
 
+// ============================
 // REGISTER
+// ============================
 exports.registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -140,19 +142,21 @@ exports.registerUser = async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password: hashedPassword,
+            password: hashedPassword
         });
 
         res.status(201).json({
             message: "User registered successfully",
-            user,
+            user
         });
     } catch (error) {
         res.status(500).json({ message: "Registration failed" });
     }
 };
 
+// ============================
 // LOGIN
+// ============================
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -167,7 +171,6 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,
@@ -180,10 +183,100 @@ exports.loginUser = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role,
-            },
+                role: user.role
+            }
         });
     } catch (error) {
         res.status(500).json({ message: "Login failed" });
+    }
+};
+
+// ============================
+// OTP SYSTEM (DEV MODE)
+// ============================
+
+// { "9999999999": { otp: "1234", expires: 123456789 } }
+const otpStore = {};
+
+// SEND OTP
+exports.sendOtp = async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) {
+            return res.status(400).json({ success: false, message: "Phone number is required" });
+        }
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        otpStore[phone] = {
+            otp,
+            expires: Date.now() + 5 * 60 * 1000 // 5 minutes
+        };
+
+        console.log(`📲 [OTP SENT] Phone: ${phone}, OTP: ${otp}`);
+
+        // TODO: Integrate SMS gateway here
+
+        res.status(200).json({
+            success: true,
+            message: "OTP sent successfully"
+        });
+    } catch (error) {
+        console.error("Send OTP Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to send OTP"
+        });
+    }
+};
+
+// VERIFY OTP
+exports.verifyOtp = async (req, res) => {
+    try {
+        const { phone, otp } = req.body;
+        if (!phone || !otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone and OTP are required"
+            });
+        }
+
+        const record = otpStore[phone];
+
+        if (!record) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP expired or not found"
+            });
+        }
+
+        if (Date.now() > record.expires) {
+            delete otpStore[phone];
+            return res.status(400).json({
+                success: false,
+                message: "OTP expired"
+            });
+        }
+
+        if (record.otp !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP"
+            });
+        }
+
+        // Success
+        delete otpStore[phone];
+
+        res.status(200).json({
+            success: true,
+            message: "Phone verified successfully"
+        });
+    } catch (error) {
+        console.error("Verify OTP Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Verification failed"
+        });
     }
 };

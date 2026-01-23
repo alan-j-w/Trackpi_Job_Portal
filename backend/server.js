@@ -7,7 +7,8 @@ const jobRoutes = require("./routes/jobRoutes");
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
+const skillRoutes = require("./routes/skillRoutes");
+const languageRoutes = require("./routes/languageRoutes");
 
 dotenv.config();
 
@@ -25,6 +26,9 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/skills", skillRoutes);
+app.use("/api/languages", languageRoutes);
+app.use("/api/education", require("./routes/educationRoutes"));
 
 /* -------------------- Health Check -------------------- */
 app.get("/", (req, res) => {

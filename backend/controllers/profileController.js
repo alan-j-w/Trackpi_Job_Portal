@@ -95,3 +95,57 @@ exports.checkProfileStatus = async (req, res) => {
         });
     }
 };
+
+// ✅ Save Step 1 (Partial Profile)
+exports.saveStep1 = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const {
+            fullName, phone, altPhone, email,
+            pincode, country, state, city,
+            permanentLocation, isSameAddress,
+            dob, gender, maritalStatus, workStatus,
+            resumeUrl, profileImage
+        } = req.body;
+
+        // Map flat location fields to nested structure
+        const location = {
+            pincode, country, state, city
+        };
+
+        const updateData = {
+            fullName, phone, alternatePhone: altPhone, email,
+            location,
+            permanentLocation,
+            dateOfBirth: dob,
+            gender,
+            maritalStatus,
+            workStatus,
+            resumeUrl,
+            profileImage,
+            // We usually don't set profileCompleted=true here since it's just step 1
+        };
+
+        const profile = await Profile.findOneAndUpdate(
+            { user: userId },
+            {
+                $set: updateData,
+                $setOnInsert: { user: userId } // Ensure user field is set on create
+            },
+            { new: true, upsert: true } // Create if not exists
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Step 1 saved successfully",
+            profile
+        });
+
+    } catch (error) {
+        console.error("Save Step 1 error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to save Step 1"
+        });
+    }
+};

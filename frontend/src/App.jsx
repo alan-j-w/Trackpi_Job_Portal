@@ -55,7 +55,7 @@ function App() {
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/linkedin/callback" element={<LinkedInCallback />} />
+          <Route path="/linkedin/callba ck" element={<LinkedInCallback />} />
 
           {/* ========== Protected Routes ========== */}
           <Route
