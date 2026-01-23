@@ -1,0 +1,187 @@
+import User from "../models/User.js";
+import Job from "../models/Job.js";
+import Application from "../models/Application.js";
+import AuditLog from "../models/AuditLog.js";
+import Profile from "../models/Profile.js"; // Added explicit import for Profile
+import bcrypt from "bcryptjs";
+import PERMISSIONS from "../config/permissions.js";
+
+// Create Admin (Super Admin Only)
+export const createAdmin = async (req, res) => {
+    try {
+        const { name, email, password, permissions } = req.body;
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newAdmin = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: "admin",
+            permissions: permissions || [], // Array of permission strings
+        });
+
+        // Audit Log
+        await AuditLog.create({
+            action: "CREATE_ADMIN",
+            adminId: req.user._id,
+            targetId: newAdmin._id,
+            details: { name: newAdmin.name, email: newAdmin.email },
+            ipAddress: req.ip
+        });
+
+        res.status(201).json({ message: "Admin created successfully", admin: newAdmin });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to create admin", error: error.message });
+    }
+};
+
+// Get All Users (Super Admin & Admin with permission)
+export const getAllUsers = async (req, res) => {
+    try {
+        // Simple filter example
+        const { role } = req.query;
+        const query = role ? { role } : {};
+
+        const users = await User.find(query).select("-password -googleId -linkedinId");
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch users", error: error.message });
+    }
+};
+
+// Get All Job Seeker Candidates
+export const getAllCandidates = async (req, res) => {
+    try {
+        // Find all users with role 'jobseeker'
+        const candidates = await User.find({ role: "jobseeker" }).select("-password -googleId -linkedinId");
+
+        // Fetch profiles for these candidates
+        const candidatesWithProfiles = await Promise.all(candidates.map(async (user) => {
+            const profile = await Profile.findOne({ user: user._id });
+            return {
+                ...user.toObject(),
+                profile: profile || null
+            };
+        }));
+
+        res.status(200).json(candidatesWithProfiles);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch candidates", error: error.message });
+    }
+};
+
+// Delete Candidate
+export const deleteCandidate = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Optional: Check if user is actually a jobseeker to prevent accidental admin deletion
+        if (user.role !== "jobseeker") {
+            // return res.status(403).json({ message: "Can only delete job seekers via this endpoint" });
+            // For now, allow deleting any user via this ID if admin has permission, but usually safer to restrict.
+        }
+
+        await User.findByIdAndDelete(id);
+        await Profile.findOneAndDelete({ user: id });
+
+        res.status(200).json({ message: "Candidate deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete candidate", error: error.message });
+    }
+};
+
+// Update Admin Permissions (Super Admin Only)
+export const updateAdminPermissions = async (req, res) => {
+    try {
+        const { userId, permissions } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role !== "admin") {
+            return res.status(400).json({ message: "Can only update permissions for admins" });
+        }
+
+        user.permissions = permissions;
+        await user.save();
+
+        // Audit Log
+        await AuditLog.create({
+            action: "UPDATE_PERMISSIONS",
+            adminId: req.user._id,
+            targetId: user._id,
+            details: { newPermissions: permissions },
+            ipAddress: req.ip
+        });
+
+        res.status(200).json({ message: "Permissions updated", user });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update permissions", error: error.message });
+    }
+};
+
+// Get System Stats (Example for Dashboard)
+export const getDashboardStats = async (req, res) => {
+    try {
+        const candidateCount = await User.countDocuments({ role: "jobseeker" });
+        const adminCount = await User.countDocuments({ role: "admin" });
+
+        // Active Jobs (status is not closed)
+        const activeJobsCount = await Job.countDocuments({ status: { $ne: "closed" } });
+
+        // Hired Candidates (Applications with status 'hired')
+        // Check if Application model has 'hired' status. Assuming standard status flows.
+        const hiredCount = await Application.countDocuments({ status: "hired" });
+
+        // Resumes/Profiles Built
+        const resumesCount = await Profile.countDocuments({});
+
+        res.status(200).json({
+            candidates: candidateCount,
+            admins: adminCount,
+            activeJobs: activeJobsCount,
+            hired: hiredCount,
+            resumes: resumesCount
+        });
+    } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+        res.status(500).json({ message: "Failed to fetch stats" });
+    }
+};
+
+// Get All Jobs for Admin (with applicant counts)
+export const getAdminJobs = async (req, res) => {
+    try {
+        const jobs = await Job.find().sort({ createdAt: -1 });
+
+        const jobsWithStats = await Promise.all(jobs.map(async (job) => {
+            const totalApplicants = await Application.countDocuments({ jobId: job._id });
+            const pendingApplicants = await Application.countDocuments({ jobId: job._id, status: 'applied' });
+
+            return {
+                ...job.toObject(),
+                school_id: undefined, // remove if not needed, just cleaning up
+                applicantsCount: totalApplicants,
+                pendingApplicantsCount: pendingApplicants
+            };
+        }));
+
+        res.status(200).json(jobsWithStats);
+    } catch (error) {
+        console.error("Error fetching admin jobs:", error);
+        res.status(500).json({ message: "Failed to fetch admin jobs", error: error.message });
+    }
+};

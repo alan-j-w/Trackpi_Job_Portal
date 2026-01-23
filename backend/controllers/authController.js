@@ -1,10 +1,10 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const axios = require("axios");
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import axios from "axios";
 
 // GOOGLE AUTH
-exports.googleAuth = async (req, res) => {
+export const googleAuth = async (req, res) => {
     try {
         const { access_token } = req.body;
 
@@ -13,15 +13,24 @@ exports.googleAuth = async (req, res) => {
         );
         const { email, name, sub } = googleRes.data;
 
+        // Check if user exists by email
         let user = await User.findOne({ email });
 
-        if (!user) {
+        if (user) {
+            // If user exists but no googleId, link it
+            if (!user.googleId) {
+                user.googleId = sub;
+                await user.save();
+            }
+        } else {
+            // Create new user
             user = await User.create({
                 name,
                 email,
                 googleId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
-                role: "jobseeker", // Default role
+                role: "jobseeker",
+                permissions: []
             });
         }
 
@@ -47,7 +56,7 @@ exports.googleAuth = async (req, res) => {
 };
 
 // LINKEDIN AUTH
-exports.linkedinAuth = async (req, res) => {
+export const linkedinAuth = async (req, res) => {
     try {
         const { code } = req.body;
         const clientId = process.env.LINKEDIN_CLIENT_ID;
@@ -62,7 +71,7 @@ exports.linkedinAuth = async (req, res) => {
                 code,
                 redirect_uri: redirectUri,
                 client_id: clientId,
-                client_secret: process.env.LINKEDIN_CLIENT_SECRET, // Assuming env variable names
+                client_secret: clientSecret,
             }),
             { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
         );
@@ -74,17 +83,23 @@ exports.linkedinAuth = async (req, res) => {
             headers: { Authorization: `Bearer ${access_token}` },
         });
 
-        const { email, name, sub } = userRes.data; // Ensure these fields match LinkedIn response
+        const { email, name, sub } = userRes.data;
 
         let user = await User.findOne({ email });
 
-        if (!user) {
+        if (user) {
+            if (!user.linkedinId) {
+                user.linkedinId = sub;
+                await user.save();
+            }
+        } else {
             user = await User.create({
                 name,
                 email,
                 linkedinId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10),
                 role: "jobseeker",
+                permissions: []
             });
         }
 
@@ -111,7 +126,7 @@ exports.linkedinAuth = async (req, res) => {
 };
 
 // REGISTER
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
@@ -138,7 +153,7 @@ exports.registerUser = async (req, res) => {
 };
 
 // LOGIN
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 // 📌 Import Images
 import meeting from "../../assets/hero/meeting.png";
@@ -8,6 +9,7 @@ import mobile from "../../assets/hero/mobile.png";
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const sectionRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleMouseMove = (e) => {
     if (sectionRef.current) {
@@ -49,7 +51,10 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
-            <button className="bg-[#FFB300] px-8 py-3.5 rounded-xl font-bold text-black text-lg shadow-md hover:bg-[#ffca2c] hover:shadow-lg transform active:scale-95 transition-all duration-200">
+            <button
+              onClick={() => navigate("/resume-gen")}
+              className="bg-[#FFB300] px-8 py-3.5 rounded-xl font-bold text-black text-lg shadow-md hover:bg-[#ffca2c] hover:shadow-lg transform active:scale-95 transition-all duration-200"
+            >
               Resume Generator
             </button>
             <button className="border-2 border-black px-8 py-3.5 rounded-xl font-bold text-lg text-black hover:bg-black hover:text-white transform active:scale-95 transition-all duration-200">

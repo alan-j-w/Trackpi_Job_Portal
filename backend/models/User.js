@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
     {
@@ -21,11 +21,21 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["user", "jobseeker", "recruiter", "admin"],
+            enum: ["jobseeker", "admin", "superadmin", "user"], // 'user' kept for legacy support until migration
             default: "jobseeker"
+        },
+        permissions: {
+            type: [String],
+            default: []
+        },
+        googleId: {
+            type: String
+        },
+        linkedinId: {
+            type: String
         }
     },
     { timestamps: true }
 );
 
-module.exports = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);
