@@ -56,7 +56,10 @@ export const createAdmin = async (req, res) => {
         }
 
         // CREATE NEW ADMIN
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Generate random password if not provided (since admins use social login)
+        const finalPassword = password || Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(finalPassword, 10);
+
         const newAdmin = await User.create({
             name,
             email,

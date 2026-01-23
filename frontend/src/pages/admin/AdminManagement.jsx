@@ -107,7 +107,9 @@ const AdminManagement = () => {
             alert("Admin added/promoted successfully!");
             setIsModalOpen(false);
             setFormData({ name: "", email: "", password: "", roleId: "" });
+            setFormData({ name: "", email: "", password: "", roleId: "" });
             fetchAdmins(); // Refresh list
+            fetchRoles(); // Refresh roles to show updated user counts/associations
         } catch (error) {
             console.error("Error creating admin:", error);
             alert(error.response?.data?.message || "Failed to add admin");
@@ -150,10 +152,10 @@ const AdminManagement = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-[#FFB300] text-gray-800 font-bold text-sm">
-                                <th className="p-4 w-12 text-center">SI No</th>
+                                <th className="p-4 w-12 text-center whitespace-nowrap">SI No</th>
                                 <th className="p-4">Username</th>
                                 <th className="p-4">Email ID</th>
-                                <th className="p-4">Password</th>
+                                {/* <th className="p-4">Password</th> */}
                                 <th className="p-4">Admin Type</th>
                                 <th className="p-4 text-center">Edit</th>
                                 <th className="p-4 text-center">Status</th>
@@ -192,12 +194,14 @@ const AdminManagement = () => {
                                             <td className="p-4 text-center font-medium">{index + 1}</td>
                                             <td className="p-4 font-medium">{admin.name}</td>
                                             <td className="p-4 text-gray-600">{admin.email}</td>
+                                            {/* 
                                             <td className="p-4">
                                                 <div className="flex items-center gap-2 text-gray-500">
                                                     <span>Password</span>
                                                     <Copy size={14} className="cursor-pointer hover:text-[#FFB300]" onClick={() => handleCopy("Cannot copy actual password")} />
                                                 </div>
                                             </td>
+                                            */}
                                             <td className="p-4">{adminType}</td>
                                             <td className="p-4 text-center">
                                                 <div className="flex justify-center gap-2">
@@ -255,34 +259,35 @@ const AdminManagement = () => {
                     <div className="bg-white rounded-3xl p-10 w-full max-w-2xl shadow-2xl relative">
                         <h2 className="text-2xl font-bold text-center mb-8">Add Admin</h2>
 
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-md mx-auto w-full">
                             {/* Username */}
-                            <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700">User Name</label>
+                            <div className="flex flex-col gap-2 w-full">
+                                <label className="font-bold text-gray-700 text-center md:text-left">User Name</label>
                                 <input
                                     type="text"
                                     name="name"
                                     placeholder="Username"
                                     value={formData.name}
                                     onChange={handleInputChange}
-                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none"
+                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none text-center md:text-left"
                                 />
                             </div>
 
                             {/* Email */}
-                            <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700">Email ID</label>
+                            <div className="flex flex-col gap-2 w-full">
+                                <label className="font-bold text-gray-700 text-center md:text-left">Email ID</label>
                                 <input
                                     type="email"
                                     name="email"
                                     placeholder="Email ID"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none"
+                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none text-center md:text-left"
                                 />
                             </div>
 
-                            {/* Password */}
+                            {/* Password - REMOVED per user request (Auto-generated on backend) */}
+                            {/* 
                             <div className="flex flex-col gap-2">
                                 <label className="font-bold text-gray-700">Password</label>
                                 <input
@@ -294,16 +299,17 @@ const AdminManagement = () => {
                                     className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none"
                                 />
                             </div>
+                            */}
 
                             {/* Admin Type */}
-                            <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700">Admin Type</label>
+                            <div className="flex flex-col gap-2 w-full">
+                                <label className="font-bold text-gray-700 text-center md:text-left">Admin Type</label>
                                 <div className="relative">
                                     <select
                                         name="roleId"
                                         value={formData.roleId}
                                         onChange={handleInputChange}
-                                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none appearance-none bg-white"
+                                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none appearance-none bg-white text-center md:text-left"
                                     >
                                         <option value="">Select Admin Type</option>
                                         {roles.map(role => (
@@ -319,17 +325,17 @@ const AdminManagement = () => {
                             </div>
 
                             {/* Buttons */}
-                            <div className="col-span-1 md:col-span-2 flex justify-center gap-6 mt-6">
+                            <div className="flex justify-center gap-6 mt-6">
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-12 py-3 bg-[#FFA500] hover:bg-[#ffb733] text-white font-bold rounded-xl transition shadow-md disabled:opacity-50 text-lg">
+                                    className="px-12 py-3 bg-[#FFA500] hover:bg-[#ffb733] text-white font-bold rounded-xl transition shadow-md disabled:opacity-50 text-lg w-full md:w-auto">
                                     {isSubmitting ? "Submitting..." : "Submit"}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-12 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition shadow-md text-lg">
+                                    className="px-12 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition shadow-md text-lg w-full md:w-auto">
                                     Cancel
                                 </button>
                             </div>
