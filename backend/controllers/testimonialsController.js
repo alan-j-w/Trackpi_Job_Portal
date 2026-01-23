@@ -1,7 +1,7 @@
-const Testimonial = require("../models/Testimonial.js");
+import Testimonial from "../models/Testimonial.js";
 
 // Create a new testimonial
-const createTestimonial = async (req, res) => {
+export const createTestimonial = async (req, res) => {
   try {
     const testimonial = new Testimonial(req.body);
     await testimonial.save();
@@ -12,7 +12,7 @@ const createTestimonial = async (req, res) => {
 };
 
 // Get all testimonials with pagination
-const getTestimonials = async (req, res) => {
+export const getTestimonials = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 4;
@@ -33,9 +33,4 @@ const getTestimonials = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
-
-module.exports = {
-  createTestimonial,
-  getTestimonials,
 };
