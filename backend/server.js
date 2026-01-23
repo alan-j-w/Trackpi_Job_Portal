@@ -1,15 +1,16 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
 
-const connectDB = require("./config/db");
-const jobRoutes = require("./routes/jobRoutes");
-const authRoutes = require("./routes/authRoutes");
-const profileRoutes = require("./routes/profileRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const skillRoutes = require("./routes/skillRoutes");
-const languageRoutes = require("./routes/languageRoutes");
-const testimonialsRoutes = require("./routes/testimonialsRoutes");
+import connectDB from "./config/db.js";
+import jobRoutes from "./routes/jobRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import skillRoutes from "./routes/skillRoutes.js";
+import languageRoutes from "./routes/languageRoutes.js";
+import testimonialsRoutes from "./routes/testimonialsRoutes.js";
+import educationRoutes from "./routes/educationRoutes.js";
 
 dotenv.config();
 
@@ -28,7 +29,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/languages", languageRoutes);
-app.use("/api/education", require("./routes/educationRoutes"));
+app.use("/api/education", educationRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend Running");

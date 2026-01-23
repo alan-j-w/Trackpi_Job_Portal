@@ -1,9 +1,9 @@
-const Language = require('../models/Language');
+import Language from "../models/Language.js";
 
 // @desc    Search languages
 // @route   GET /api/languages/search
 // @access  Public
-const searchLanguages = async (req, res) => {
+export const searchLanguages = async (req, res) => {
     try {
         const { query } = req.query;
 
@@ -18,7 +18,6 @@ const searchLanguages = async (req, res) => {
             // Just return these for now as "Popular" defaults
             const languageNames = languages.map(lang => lang.name);
             // Ensure the order matches somewhat if possible, or just return found
-            // To strictly order: 
             const orderedNames = defaultLanguages.filter(d => languageNames.includes(d));
             return res.json(orderedNames);
         }
@@ -37,8 +36,4 @@ const searchLanguages = async (req, res) => {
         console.error('Search Languages Error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
-
-module.exports = {
-    searchLanguages
 };

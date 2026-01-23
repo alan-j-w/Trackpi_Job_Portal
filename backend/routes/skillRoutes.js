@@ -1,7 +1,8 @@
-const express = require('express');
+import express from "express";
+import { searchSkills } from "../controllers/skillController.js";
+
 const router = express.Router();
-const { searchSkills } = require('../controllers/skillController');
 
 router.get('/search', searchSkills);
 
-module.exports = router;
+export default router;

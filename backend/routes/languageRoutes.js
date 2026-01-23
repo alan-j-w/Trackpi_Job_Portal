@@ -1,7 +1,8 @@
-const express = require('express');
+import express from "express";
+import { searchLanguages } from "../controllers/languageController.js";
+
 const router = express.Router();
-const { searchLanguages } = require('../controllers/languageController');
 
 router.get('/search', searchLanguages);
 
-module.exports = router;
+export default router;

@@ -1,8 +1,8 @@
-const Course = require("../models/Course");
-const University = require("../models/University");
-const axios = require("axios");
+import Course from "../models/Course.js";
+import University from "../models/University.js";
+import axios from "axios";
 
-exports.searchCourses = async (req, res) => {
+export const searchCourses = async (req, res) => {
     try {
         const { query, level } = req.query;
         let filter = {};
@@ -27,7 +27,7 @@ exports.searchCourses = async (req, res) => {
     }
 };
 
-exports.searchUniversities = async (req, res) => {
+export const searchUniversities = async (req, res) => {
     try {
         const { query } = req.query;
         if (!query) {

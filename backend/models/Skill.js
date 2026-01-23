@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const skillSchema = new mongoose.Schema({
     name: {
@@ -12,4 +12,4 @@ const skillSchema = new mongoose.Schema({
 // Index for search capabilities
 skillSchema.index({ name: 'text' });
 
-module.exports = mongoose.model('Skill', skillSchema);
+export default mongoose.model('Skill', skillSchema);

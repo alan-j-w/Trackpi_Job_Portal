@@ -97,7 +97,7 @@ export const checkProfileStatus = async (req, res) => {
 };
 
 // ✅ Save Step 1 (Partial Profile)
-exports.saveStep1 = async (req, res) => {
+export const saveStep1 = async (req, res) => {
     try {
         const userId = req.user._id;
         const {
