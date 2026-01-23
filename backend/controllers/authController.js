@@ -34,8 +34,9 @@ export const googleAuth = async (req, res) => {
             });
         }
 
+        console.log(`[DEBUG] Google Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
@@ -103,8 +104,9 @@ export const linkedinAuth = async (req, res) => {
             });
         }
 
+        console.log(`[DEBUG] LinkedIn Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
@@ -168,8 +170,9 @@ export const loginUser = async (req, res) => {
         }
 
 
+        console.log(`[DEBUG] Login Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
