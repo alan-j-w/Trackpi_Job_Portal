@@ -8,7 +8,7 @@ const ProtectedAdminRoute = ({ children, requiredPermission }) => {
     const userPermissions = decodedToken?.permissions || [];
 
     if (!token) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/admin/login" replace />;
     }
 
     if (role === "superadmin") {
@@ -24,7 +24,11 @@ const ProtectedAdminRoute = ({ children, requiredPermission }) => {
         return children;
     } else {
         // User is logged in but not an admin
-        return <Navigate to="/" replace />;
+        // Redirect to admin login to show "Unauthorized" or let them login as admin if they have another account
+        // Or redirect to home. User asked for "only allowed mail id".
+        // If we redirect to /admin/login, the page logic I wrote will check role and show error if not admin.
+        // So passing them to /admin/login is safer/better UX for "wrong account".
+        return <Navigate to="/admin/login" replace />;
     }
 };
 

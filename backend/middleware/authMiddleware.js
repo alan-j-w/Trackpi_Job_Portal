@@ -23,6 +23,10 @@ export const protect = async (req, res, next) => {
                 return res.status(401).json({ message: "Not authorized, user not found" });
             }
 
+            if (req.user.status === 'inactive') {
+                return res.status(403).json({ message: "Account is inactive. Please contact support." });
+            }
+
             next();
         } catch (error) {
             console.error(error);

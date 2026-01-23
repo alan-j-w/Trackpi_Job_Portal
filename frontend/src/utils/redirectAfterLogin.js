@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getUserRole } from "./auth";
 
 export const redirectAfterLogin = async (navigate) => {
     const token = localStorage.getItem("token");
@@ -7,6 +8,15 @@ export const redirectAfterLogin = async (navigate) => {
         navigate("/login");
         return;
     }
+
+    const role = getUserRole();
+
+    // REMOVED: Auto-redirect admins to dashboard
+    // If they login via normal site, they should go to normal profile/home.
+    // if (role === "superadmin" || role === "admin") {
+    //    navigate("/admin/dashboard");
+    //    return;
+    // }
 
     try {
         const res = await axios.get("http://localhost:8000/api/profile/status", {
@@ -29,4 +39,5 @@ export const redirectAfterLogin = async (navigate) => {
         navigate("/login");
     }
 };
+
 
