@@ -1,12 +1,15 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   createTestimonial,
   getTestimonials,
-} = require("../controllers/testimonialsController.js");
+} from "../controllers/testimonialsController.js";
 
 const router = express.Router();
 
-router.post("/", createTestimonial); // Admin
-router.get("/", getTestimonials); // Frontend
+// Admin
+router.post("/", createTestimonial);
 
-module.exports = router;
+// Frontend
+router.get("/", getTestimonials);
+
+export default router;
