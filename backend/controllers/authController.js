@@ -3,6 +3,24 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 
+// TEMPORARY: Default permissions to sync with Frontend if missing in DB
+const DEFAULT_REPAIR_PERMISSIONS = [
+    "dashboard.view",
+    "jobs.post", "jobs.status", "jobs.view", "jobs.pending", "jobs.all", "jobs.urgent", "jobs.edit",
+    "signup.resume", "signup.view", "signup.delete",
+    "applicants.resume", "applicants.view", "applicants.delete",
+    "resume.download", "resume.delete",
+    "partners.add", "partners.view", "partners.edit", "partners.delete",
+    "testimonials.add", "testimonials.view", "testimonials.edit", "testimonials.delete",
+    "admin.add", "admin.edit", "admin.status",
+    "roles.edit", "roles.delete",
+    "users.edit", "users.delete",
+    "forms.manage",
+    "competition.add", "competition.edit", "competition.testimonials", "competition.candidates",
+    "video.add", "video.edit", "video.delete",
+    "winners.add", "winners.edit", "winners.delete"
+];
+
 // GOOGLE AUTH
 export const googleAuth = async (req, res) => {
     try {
@@ -22,6 +40,11 @@ export const googleAuth = async (req, res) => {
                 user.googleId = sub;
                 await user.save();
             }
+
+            // Check Status - Block if inactive
+            if (user.role === 'admin' && user.status === 'inactive') {
+                return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
+            }
         } else {
             // Create new user
             user = await User.create({
@@ -34,7 +57,12 @@ export const googleAuth = async (req, res) => {
             });
         }
 
-        console.log(`[DEBUG] Google Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
+        if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
+            user.permissions = DEFAULT_REPAIR_PERMISSIONS;
+            await user.save();
+            console.log("Auto-repaired admin permissions");
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
@@ -93,6 +121,10 @@ export const linkedinAuth = async (req, res) => {
                 user.linkedinId = sub;
                 await user.save();
             }
+            // Check Status - Block if inactive
+            if (user.role === 'admin' && user.status === 'inactive') {
+                return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
+            }
         } else {
             user = await User.create({
                 name,
@@ -104,7 +136,12 @@ export const linkedinAuth = async (req, res) => {
             });
         }
 
-        console.log(`[DEBUG] LinkedIn Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
+        if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
+            user.permissions = DEFAULT_REPAIR_PERMISSIONS;
+            await user.save();
+            console.log("Auto-repaired admin permissions");
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
@@ -169,8 +206,18 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
+        // Check Status - Block if inactive
+        if (user.role === 'admin' && user.status === 'inactive') {
+            return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
+        }
 
-        console.log(`[DEBUG] Login Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
+        // Auto Repair Permissions
+        if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
+            user.permissions = DEFAULT_REPAIR_PERMISSIONS;
+            await user.save();
+            console.log("Auto-repaired admin permissions");
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
