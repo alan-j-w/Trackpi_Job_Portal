@@ -133,6 +133,12 @@ const AdminLayout = () => {
                         <LogOut size={20} />
                         {isSidebarOpen && <span className="font-medium text-sm">Logout</span>}
                     </button>
+                    {/* DEBUG INFO - REMOVE LATER */}
+                    {isSidebarOpen && (
+                        <div className="mt-2 text-[10px] text-gray-400 text-center">
+                            {role} | {userPermissions.length} Perms
+                        </div>
+                    )}
                 </div>
             </aside>
 
