@@ -13,6 +13,10 @@ import AdminManagement from "./pages/admin/AdminManagement";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
 import UserDashboard from "./pages/user/UserDashboard";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
+import PermissionManagement from "./pages/admin/PermissionManagement";
+import CreatePermission from "./pages/admin/CreatePermission";
+import AdminLogin from "./pages/admin/AdminLogin";
+
 
 import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";
@@ -82,6 +86,8 @@ function App() {
         </Route>
 
         {/* ========== Admin Routes ========== */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
         <Route
           path="/admin"
           element={
@@ -91,20 +97,25 @@ function App() {
           }
         >
           {/* General Dashboard */}
-          <Route path="dashboard" element={<AdminDashboard />} />
+          {/* Dashboard Route */}
+          <Route path="dashboard" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}><AdminDashboard /></ProtectedAdminRoute>} />
 
           {/* Permission Protected Routes */}
-          <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><AdminJobs /></ProtectedAdminRoute>} />
-          <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
-          <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
-          <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
-          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AdminApplicants /></ProtectedAdminRoute>} />
+          {/* Permission Protected Routes */}
+          <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><AdminJobs /></ProtectedAdminRoute>} />
+          <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_POST}><PostJob /></ProtectedAdminRoute>} />
+          <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_EDIT}><PostJob /></ProtectedAdminRoute>} />
+          <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><PostJob /></ProtectedAdminRoute>} />
+          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
-          <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_CANDIDATES}><AdminApplicants /></ProtectedAdminRoute>} />
+          <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Super Admin Routes */}
           <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
+          <Route path="permissions" element={<ProtectedAdminRoute requiredRole="superadmin"><PermissionManagement /></ProtectedAdminRoute>} />
+          <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
+          <Route path="permissions/edit/:id" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
           {/* Placeholder routes for others to prevent crashes if clicked */}
           <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
         </Route>
