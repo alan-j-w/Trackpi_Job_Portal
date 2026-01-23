@@ -40,4 +40,14 @@ router.get(
     adminController.getAllUsers
 );
 
+// Role Management (Super Admin Only)
+router.post("/permissions", authorize("superadmin"), adminController.createRole);
+router.get("/permissions", authorize("superadmin"), adminController.getAllRoles);
+router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
+router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
+router.delete("/permissions/:id", authorize("superadmin"), adminController.deleteRole);
+
+// Manage Admin Status
+router.put("/admin-status/:id", authorize("superadmin"), adminController.toggleAdminStatus);
+
 export default router;

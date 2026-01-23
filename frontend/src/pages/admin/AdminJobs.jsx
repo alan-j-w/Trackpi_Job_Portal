@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Edit, Eye, Search, ToggleLeft, ToggleRight, Users, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { hasPermission } from "../../utils/auth";
+import { PERMISSIONS } from "../../constants/permissions";
+
 
 const AdminJobs = () => {
     const navigate = useNavigate();
@@ -76,11 +79,13 @@ const AdminJobs = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <button
-                    onClick={() => window.location.href = "/admin/jobs/post"}
-                    className="bg-[#FFB300] hover:bg-[#ffca2c] text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm text-black">
-                    Post jobs
-                </button>
+                {hasPermission(PERMISSIONS.JOBS_POST) && (
+                    <button
+                        onClick={() => window.location.href = "/admin/jobs/post"}
+                        className="bg-[#FFB300] hover:bg-[#ffca2c] text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm text-black">
+                        Post jobs
+                    </button>
+                )}
             </div>
 
             <h2 className="text-xl font-bold mb-6 text-gray-800">Jobs</h2>
@@ -148,16 +153,19 @@ const AdminJobs = () => {
                                         <td className="p-4">
                                             <div className="relative">
                                                 <button
+                                                    disabled={!hasPermission(PERMISSIONS.JOBS_STATUS)} // Disable if no permission
                                                     onClick={() => setOpenDropdownId(openDropdownId === job._id ? null : job._id)}
-                                                    className="flex items-center justify-between w-28 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none transition-colors"
+                                                    className={`flex items-center justify-between w-28 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 transition-colors ${hasPermission(PERMISSIONS.JOBS_STATUS) ? 'hover:border-gray-400 focus:outline-none cursor-pointer' : 'cursor-not-allowed opacity-70'}`}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span className={`w-2 h-2 rounded-full ${job.status !== 'closed' ? 'bg-green-500' : 'bg-red-500'}`}></span>
                                                         <span>{job.status !== 'closed' ? 'Open' : 'Closed'}</span>
                                                     </div>
-                                                    <svg className={`w-4 h-4 text-gray-500 transition-transform ${openDropdownId === job._id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                                    </svg>
+                                                    {hasPermission(PERMISSIONS.JOBS_STATUS) && (
+                                                        <svg className={`w-4 h-4 text-gray-500 transition-transform ${openDropdownId === job._id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    )}
                                                 </button>
 
                                                 {openDropdownId === job._id && (
@@ -196,12 +204,12 @@ const AdminJobs = () => {
                                         {/* New/Urgent - Toggle */}
                                         <td className="p-4">
                                             <button
-                                                disabled={job.status === 'closed'}
+                                                disabled={job.status === 'closed' || !hasPermission(PERMISSIONS.JOBS_URGENT)}
                                                 onClick={() => {
                                                     const newStatus = job.status === 'urgent' ? 'new' : 'urgent';
                                                     updateJobStatus(job._id, newStatus);
                                                 }}
-                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.status === 'urgent' ? 'bg-red-500' : 'bg-green-500'} ${job.status === 'closed' ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.status === 'urgent' ? 'bg-red-500' : 'bg-green-500'} ${job.status === 'closed' || !hasPermission(PERMISSIONS.JOBS_URGENT) ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
                                             >
                                                 <span className="sr-only">Toggle Urgent</span>
                                                 <span
@@ -218,11 +226,13 @@ const AdminJobs = () => {
                                                     className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
                                                     <Eye size={16} />
                                                 </button>
-                                                <button
-                                                    onClick={() => navigate(`/admin/jobs/edit/${job._id}`)}
-                                                    className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
-                                                    <Edit size={16} />
-                                                </button>
+                                                {hasPermission(PERMISSIONS.JOBS_EDIT) && (
+                                                    <button
+                                                        onClick={() => navigate(`/admin/jobs/edit/${job._id}`)}
+                                                        className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
+                                                        <Edit size={16} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

@@ -39,22 +39,22 @@ const AdminLayout = () => {
     };
 
     const menuItems = [
-        { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard }, // Anyone with access to layout can see generic dashboard
-        { name: "Jobs", path: "/admin/jobs", icon: Briefcase, permission: PERMISSIONS.MANAGE_JOBS },
-        { name: "Signup candidates", path: "/admin/candidates/signup", icon: UserPlus, permission: PERMISSIONS.VIEW_CANDIDATES },
-        { name: "Job applicants", path: "/admin/candidates/applicants", icon: Users, permission: PERMISSIONS.VIEW_APPLICATIONS },
-        { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.VIEW_RESUMES },
-        { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.MANAGE_PARTNERS },
-        { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.MANAGE_TESTIMONIALS },
-        { name: "Admin management", path: "/admin/admin-management", icon: ShieldCheck, superAdminOnly: true },
+        { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_VIEW },
+        { name: "Jobs", path: "/admin/jobs", icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
+        { name: "Signup candidates", path: "/admin/candidates/signup", icon: UserPlus, permission: PERMISSIONS.SIGNUP_VIEW },
+        { name: "Job applicants", path: "/admin/candidates/applicants", icon: Users, permission: PERMISSIONS.APPLICANTS_VIEW },
+        { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_DOWNLOAD }, // Adjust if better view key
+        { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
+        { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
+        { name: "Admin management", path: "/admin/management", icon: ShieldCheck, superAdminOnly: true },
         { name: "User permission", path: "/admin/permissions", icon: Lock, superAdminOnly: true },
-        { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.MANAGE_USERS },
-        { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.MANAGE_FORMS },
-        { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.MANAGE_COMPETITIONS },
-        { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.MANAGE_COMPETITIONS },
-        { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.MANAGE_COMPETITIONS },
-        { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.MANAGE_VIDEOS },
-        { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.MANAGE_COMPETITIONS },
+        { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_EDIT },
+        { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
+        { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_ADD }, // No view key?
+        { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS },
+        { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES },
+        { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.VIDEO_ADD },
+        { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.WINNERS_ADD },
     ];
 
     return (
