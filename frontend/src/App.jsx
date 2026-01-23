@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminJobs from "./pages/admin/AdminJobs";
+import PostJob from "./pages/admin/PostJob";
 import AdminApplicants from "./pages/admin/AdminApplicants";
 import AdminManagement from "./pages/admin/AdminManagement";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
@@ -94,6 +95,9 @@ function App() {
 
           {/* Permission Protected Routes */}
           <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><AdminJobs /></ProtectedAdminRoute>} />
+          <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
+          <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
+          <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
           <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}

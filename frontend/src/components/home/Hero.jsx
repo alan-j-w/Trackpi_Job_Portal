@@ -52,7 +52,7 @@ const Hero = () => {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
             <button
-              onClick={() => navigate('/resume-gen')}
+              onClick={() => navigate("/resume-gen")}
               className="bg-[#FFB300] px-8 py-3.5 rounded-xl font-bold text-black text-lg shadow-md hover:bg-[#ffca2c] hover:shadow-lg transform active:scale-95 transition-all duration-200"
             >
               Resume Generator

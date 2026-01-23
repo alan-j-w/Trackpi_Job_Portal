@@ -60,11 +60,13 @@ const JobSection = () => {
         const res = await fetch("http://localhost:8000/api/jobs");
         const data = await res.json();
         // Mocking 'views' and 'createdAt' for demonstration if missing
-        const enrichedData = Array.isArray(data) ? data.map((job, index) => ({
-          ...job,
-          views: job.views || Math.floor(Math.random() * 1000) + 50, // Mock views key
-          createdAt: job.createdAt || new Date(Date.now() - index * 86400000).toISOString() // Mock date
-        })) : [];
+        const enrichedData = Array.isArray(data) ? data
+          .filter(job => job.status !== 'closed')
+          .map((job, index) => ({
+            ...job,
+            views: job.views || Math.floor(Math.random() * 1000) + 50, // Mock views key
+            createdAt: job.createdAt || new Date(Date.now() - index * 86400000).toISOString() // Mock date
+          })) : [];
         setJobs(enrichedData);
       } catch (error) {
         console.error("Failed to fetch jobs", error);

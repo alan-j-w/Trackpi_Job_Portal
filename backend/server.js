@@ -6,8 +6,8 @@ const connectDB = require("./config/db.js");
 const testimonialRoutes = require("./routes/testimonialsRoutes.js");
 const authRoutes = require("./routes/authRoutes.js");
 const jobRoutes = require("./routes/jobRoutes.js");
-const adminRoutes = require("./routes/adminRoutes.js");
 const profileRoutes = require("./routes/profileRoutes.js");
+import connectDB from "./config/db.js";
 
 dotenv.config();
 

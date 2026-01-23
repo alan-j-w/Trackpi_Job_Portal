@@ -1,8 +1,8 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 // Protect Routes
-exports.protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
     let token;
 
     if (
@@ -36,7 +36,7 @@ exports.protect = async (req, res, next) => {
 };
 
 // Authorize Roles
-exports.authorize = (...roles) => {
+export const authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user || !roles.includes(req.user.role)) {
             return res.status(403).json({
@@ -50,7 +50,7 @@ exports.authorize = (...roles) => {
 // Check Permissions (Admin Only)
 // Superadmin always bypasses this check due to authorize('superadmin', 'admin') logic usually preceding this,
 // or we can explicitly handle it here.
-exports.checkPermission = (requiredPermission) => {
+export const checkPermission = (requiredPermission) => {
     return (req, res, next) => {
         const user = req.user;
 
