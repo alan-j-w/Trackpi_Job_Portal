@@ -114,12 +114,9 @@ const PermissionManagement = () => {
                             <tr className="border-b-2 border-[#FFB300]/20 bg-gray-50/50">
                                 <th className="p-5 pl-8 w-14">
                                     <div className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            className="w-5 h-5 rounded-[4px] border-gray-300 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer transition-all"
-                                            checked={selectedRoles.length === filteredRoles.length && filteredRoles.length > 0}
-                                            onChange={handleSelectAll}
-                                        />
+                                        <div className="flex items-center">
+                                            <span className="text-[#FFB300] font-bold">#</span>
+                                        </div>
                                     </div>
                                 </th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Role Name</th>

@@ -82,20 +82,23 @@ const AdminLogin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-[#FFD54F] flex flex-col items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 md:p-12 text-center">
                 <div className="flex justify-center mb-6">
                     {/* Placeholder for Logo */}
-                    <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                        TP
-                    </div>
+                    {/* Logo */}
+                    <img
+                        src={logo}
+                        alt="TrackPi Logo"
+                        className="h-16 w-auto mb-2"
+                    />
                 </div>
 
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">Admin Portal</h2>
-                <p className="text-gray-500 mb-8">Restricted access for authorized personnel only.</p>
+                <h2 className="text-3xl font-bold text-black mb-2">Admin Portal</h2>
+                <p className="text-black/80 mb-8">Restricted access for authorized personnel only.</p>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-100">
+                    <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm mb-6 border border-red-200">
                         {error}
                     </div>
                 )}
@@ -130,8 +133,8 @@ const AdminLogin = () => {
                     </button>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-gray-100">
-                    <p className="text-xs text-gray-400">
+                <div className="mt-8 pt-6 border-t border-black/10">
+                    <p className="text-xs text-black/60">
                         By signing in, you agree to the internal security protocols.
                     </p>
                 </div>
