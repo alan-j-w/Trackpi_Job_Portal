@@ -1,12 +1,11 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const axios = require("axios");
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import axios from "axios";
 
 // ============================
 // GOOGLE AUTH
-// ============================
-exports.googleAuth = async (req, res) => {
+export const googleAuth = async (req, res) => {
     try {
         const { access_token } = req.body;
 
@@ -57,8 +56,7 @@ exports.googleAuth = async (req, res) => {
 
 // ============================
 // LINKEDIN AUTH
-// ============================
-exports.linkedinAuth = async (req, res) => {
+export const linkedinAuth = async (req, res) => {
     try {
         const { code } = req.body;
 
@@ -127,8 +125,7 @@ exports.linkedinAuth = async (req, res) => {
 
 // ============================
 // REGISTER
-// ============================
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
@@ -156,8 +153,7 @@ exports.registerUser = async (req, res) => {
 
 // ============================
 // LOGIN
-// ============================
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -199,7 +195,7 @@ exports.loginUser = async (req, res) => {
 const otpStore = {};
 
 // SEND OTP
-exports.sendOtp = async (req, res) => {
+export const sendOtp = async (req, res) => {
     try {
         const { phone } = req.body;
         if (!phone) {
@@ -231,7 +227,7 @@ exports.sendOtp = async (req, res) => {
 };
 
 // VERIFY OTP
-exports.verifyOtp = async (req, res) => {
+export const verifyOtp = async (req, res) => {
     try {
         const { phone, otp } = req.body;
         if (!phone || !otp) {

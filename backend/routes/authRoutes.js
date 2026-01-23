@@ -1,14 +1,14 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const {
+import {
     registerUser,
     loginUser,
     googleAuth,
     linkedinAuth,
     sendOtp,
     verifyOtp
-} = require("../controllers/authController");
+} from "../controllers/authController.js";
 
 // Auth routes
 router.post("/register", registerUser);
@@ -18,4 +18,4 @@ router.post("/linkedin", linkedinAuth);
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
 
-module.exports = router;
+export default router;

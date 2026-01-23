@@ -13,4 +13,4 @@ const PERMISSIONS = {
     VIEW_LOGS: "view_logs"
 };
 
-module.exports = PERMISSIONS;
+export default PERMISSIONS;
