@@ -1,10 +1,13 @@
-const User = require("../models/User");
-const AuditLog = require("../models/AuditLog");
-const bcrypt = require("bcryptjs");
-const PERMISSIONS = require("../config/permissions");
+import User from "../models/User.js";
+import Job from "../models/Job.js";
+import Application from "../models/Application.js";
+import AuditLog from "../models/AuditLog.js";
+import Profile from "../models/Profile.js"; // Added explicit import for Profile
+import bcrypt from "bcryptjs";
+import PERMISSIONS from "../config/permissions.js";
 
 // Create Admin (Super Admin Only)
-exports.createAdmin = async (req, res) => {
+export const createAdmin = async (req, res) => {
     try {
         const { name, email, password, permissions } = req.body;
 
@@ -39,7 +42,7 @@ exports.createAdmin = async (req, res) => {
 };
 
 // Get All Users (Super Admin & Admin with permission)
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
     try {
         // Simple filter example
         const { role } = req.query;
@@ -53,14 +56,14 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // Get All Job Seeker Candidates
-exports.getAllCandidates = async (req, res) => {
+export const getAllCandidates = async (req, res) => {
     try {
         // Find all users with role 'jobseeker'
         const candidates = await User.find({ role: "jobseeker" }).select("-password -googleId -linkedinId");
 
         // Fetch profiles for these candidates
         const candidatesWithProfiles = await Promise.all(candidates.map(async (user) => {
-            const profile = await require("../models/Profile").findOne({ user: user._id });
+            const profile = await Profile.findOne({ user: user._id });
             return {
                 ...user.toObject(),
                 profile: profile || null
@@ -74,7 +77,7 @@ exports.getAllCandidates = async (req, res) => {
 };
 
 // Delete Candidate
-exports.deleteCandidate = async (req, res) => {
+export const deleteCandidate = async (req, res) => {
     try {
         const { id } = req.params;
         const user = await User.findById(id);
@@ -90,7 +93,7 @@ exports.deleteCandidate = async (req, res) => {
         }
 
         await User.findByIdAndDelete(id);
-        await require("../models/Profile").findOneAndDelete({ user: id });
+        await Profile.findOneAndDelete({ user: id });
 
         res.status(200).json({ message: "Candidate deleted successfully" });
     } catch (error) {
@@ -99,7 +102,7 @@ exports.deleteCandidate = async (req, res) => {
 };
 
 // Update Admin Permissions (Super Admin Only)
-exports.updateAdminPermissions = async (req, res) => {
+export const updateAdminPermissions = async (req, res) => {
     try {
         const { userId, permissions } = req.body;
 
@@ -131,20 +134,54 @@ exports.updateAdminPermissions = async (req, res) => {
 };
 
 // Get System Stats (Example for Dashboard)
-exports.getDashboardStats = async (req, res) => {
+export const getDashboardStats = async (req, res) => {
     try {
         const candidateCount = await User.countDocuments({ role: "jobseeker" });
         const adminCount = await User.countDocuments({ role: "admin" });
 
-        // Add Job model counts here when Job model is integrated
-        // const jobCount = await Job.countDocuments({});
+        // Active Jobs (status is not closed)
+        const activeJobsCount = await Job.countDocuments({ status: { $ne: "closed" } });
+
+        // Hired Candidates (Applications with status 'hired')
+        // Check if Application model has 'hired' status. Assuming standard status flows.
+        const hiredCount = await Application.countDocuments({ status: "hired" });
+
+        // Resumes/Profiles Built
+        const resumesCount = await Profile.countDocuments({});
 
         res.status(200).json({
             candidates: candidateCount,
             admins: adminCount,
-            // jobs: jobCount
+            activeJobs: activeJobsCount,
+            hired: hiredCount,
+            resumes: resumesCount
         });
     } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
         res.status(500).json({ message: "Failed to fetch stats" });
+    }
+};
+
+// Get All Jobs for Admin (with applicant counts)
+export const getAdminJobs = async (req, res) => {
+    try {
+        const jobs = await Job.find().sort({ createdAt: -1 });
+
+        const jobsWithStats = await Promise.all(jobs.map(async (job) => {
+            const totalApplicants = await Application.countDocuments({ jobId: job._id });
+            const pendingApplicants = await Application.countDocuments({ jobId: job._id, status: 'applied' });
+
+            return {
+                ...job.toObject(),
+                school_id: undefined, // remove if not needed, just cleaning up
+                applicantsCount: totalApplicants,
+                pendingApplicantsCount: pendingApplicants
+            };
+        }));
+
+        res.status(200).json(jobsWithStats);
+    } catch (error) {
+        console.error("Error fetching admin jobs:", error);
+        res.status(500).json({ message: "Failed to fetch admin jobs", error: error.message });
     }
 };
