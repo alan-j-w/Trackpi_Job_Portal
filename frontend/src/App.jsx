@@ -16,7 +16,6 @@ import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import PermissionManagement from "./pages/admin/PermissionManagement";
 import CreatePermission from "./pages/admin/CreatePermission";
 import AdminLogin from "./pages/admin/AdminLogin";
-import ResumeCandidates from "./pages/admin/ResumeCandidates";
 
 
 import ContactUs from "./pages/ContactUs";
@@ -103,17 +102,14 @@ function App() {
 
           {/* Permission Protected Routes */}
           {/* Permission Protected Routes */}
-          <Route path="jobs" element={<ProtectedAdminRoute><AdminJobs /></ProtectedAdminRoute>} />
+          <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><AdminJobs /></ProtectedAdminRoute>} />
           <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_POST}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_EDIT}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><PostJob /></ProtectedAdminRoute>} />
           <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
-          <Route path="candidates/signup" element={<ProtectedAdminRoute><AdminApplicants /></ProtectedAdminRoute>} />
-
-          {/* Resume Candidates */}
-          <Route path="candidates/resume" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.RESUME_DOWNLOAD}><ResumeCandidates /></ProtectedAdminRoute>} />
+          <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Super Admin Routes */}
           <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
