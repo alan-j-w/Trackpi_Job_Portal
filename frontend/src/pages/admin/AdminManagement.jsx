@@ -17,6 +17,7 @@ const AdminManagement = () => {
         roleId: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingAdminId, setEditingAdminId] = useState(null);
 
     useEffect(() => {
         fetchAdmins();
@@ -55,19 +56,42 @@ const AdminManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to remove this admin?")) return;
-        // API call to delete (adminController needs deleteUser logic or repurpose deleteCandidate)
-        // For now, assuming we can delete user via same endpoint if perm allows
+        if (!window.confirm("Are you sure you want to remove this admin? They will be demoted to a Job Seeker.")) return;
+
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8000/api/admin/candidates/${id}`, { // Using candidates endpoint for user delete for now based on previous file exploration
+            // Use PUT to demote/remove admin instead of DELETE
+            await axios.put(`http://localhost:8000/api/admin/remove-admin/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setAdmins(admins.filter(a => a._id !== id));
+            alert("Admin removed and demoted successfully.");
         } catch (error) {
             console.error("Error deleting admin:", error);
-            alert("Failed to delete admin");
+            alert("Failed to remove admin");
         }
+    };
+
+    const handleEdit = (admin) => {
+        // Find role based on user permissions or other logic if needed, 
+        // essentially reverse engineering roleId from permissions if we don't have it.
+        // But for now, let's try to match the user's permissions to a role.
+        let matchedRoleId = "";
+
+        // Find role that has this user in its users list
+        const foundRole = roles.find(r => r.users.some(u => u._id === admin._id || u === admin._id));
+        if (foundRole) {
+            matchedRoleId = foundRole._id;
+        }
+
+        setFormData({
+            name: admin.name,
+            email: admin.email,
+            password: "", // Password update not supported here or kept blank
+            roleId: matchedRoleId
+        });
+        setEditingAdminId(admin._id);
+        setIsModalOpen(true);
     };
 
     const handleStatusToggle = async (id, newStatus) => {
@@ -93,29 +117,52 @@ const AdminManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.email || !formData.roleId) {
-            alert("Email and Role are required");
+        // Password is optional for edit, but maybe we shouldn't even send it if empty
+        if (!formData.name || !formData.email) {
+            alert("Name and Email are required");
             return;
         }
 
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/admin/create-admin", formData, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            alert("Admin added/promoted successfully!");
+
+            if (editingAdminId) {
+                // Update implementation
+                await axios.put(`http://localhost:8000/api/admin/users/${editingAdminId}`, formData, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                alert("Admin details updated successfully!");
+            } else {
+                // Create implementation
+                if (!formData.roleId) {
+                    alert("Role is required for new admin");
+                    setIsSubmitting(false);
+                    return;
+                }
+                await axios.post("http://localhost:8000/api/admin/create-admin", formData, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                alert("Admin added/promoted successfully!");
+            }
+
             setIsModalOpen(false);
             setFormData({ name: "", email: "", password: "", roleId: "" });
-            setFormData({ name: "", email: "", password: "", roleId: "" });
+            setEditingAdminId(null);
             fetchAdmins(); // Refresh list
-            fetchRoles(); // Refresh roles to show updated user counts/associations
+            fetchRoles(); // Refresh roles
         } catch (error) {
-            console.error("Error creating admin:", error);
-            alert(error.response?.data?.message || "Failed to add admin");
+            console.error("Error saving admin:", error);
+            alert(error.response?.data?.message || "Failed to save admin");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setFormData({ name: "", email: "", password: "", roleId: "" });
+        setEditingAdminId(null);
     };
 
     const filteredAdmins = admins.filter(admin =>
@@ -138,7 +185,11 @@ const AdminManagement = () => {
                     />
                 </div>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        setEditingAdminId(null);
+                        setFormData({ name: "", email: "", password: "", roleId: "" });
+                        setIsModalOpen(true);
+                    }}
                     className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-black px-6 py-3 rounded-lg font-bold transition shadow-sm">
                     Add admin <Plus size={18} />
                 </button>
@@ -205,7 +256,9 @@ const AdminManagement = () => {
                                             <td className="p-4">{adminType}</td>
                                             <td className="p-4 text-center">
                                                 <div className="flex justify-center gap-2">
-                                                    <button className="p-2 bg-gray-200 rounded hover:bg-gray-300">
+                                                    <button
+                                                        onClick={() => handleEdit(admin)}
+                                                        className="p-2 bg-gray-200 rounded hover:bg-gray-300">
                                                         <Edit size={16} className="text-gray-600" />
                                                     </button>
                                                     <button
@@ -257,7 +310,7 @@ const AdminManagement = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-3xl p-10 w-full max-w-2xl shadow-2xl relative">
-                        <h2 className="text-2xl font-bold text-center mb-8">Add Admin</h2>
+                        <h2 className="text-2xl font-bold text-center mb-8">{editingAdminId ? "Edit Admin" : "Add Admin"}</h2>
 
                         <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-md mx-auto w-full">
                             {/* Username */}
@@ -334,7 +387,7 @@ const AdminManagement = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setIsModalOpen(false)}
+                                    onClick={closeModal}
                                     className="px-12 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition shadow-md text-lg w-full md:w-auto">
                                     Cancel
                                 </button>
