@@ -32,6 +32,12 @@ const profileSchema = new mongoose.Schema(
             trim: true,
         },
 
+        summary: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+
         // Location Details
         location: {
             pincode: { type: String, default: "" },

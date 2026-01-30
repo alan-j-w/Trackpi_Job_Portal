@@ -17,7 +17,7 @@ export const createOrUpdateProfile = async (req, res) => {
             'skills', 'languages',
             'preferredLocations', 'willRelocate', 'preferredWorkMode', // Step 2 fields
             'expectedSalary', 'drivingLicenses', 'hasTwoWheeler', 'hasLaptop', 'socialLinks',
-            'resumeUrl', 'profileImage'
+            'resumeUrl', 'profileImage', 'summary'
         ];
 
         // Filter bodyData to only allowed fields
