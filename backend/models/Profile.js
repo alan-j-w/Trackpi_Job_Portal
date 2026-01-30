@@ -108,9 +108,12 @@ const profileSchema = new mongoose.Schema(
             description: String
         }],
 
+        // ================= STEP 3: EXPERIENCE & ASSETS =================
+        expectedSalary: { type: String, default: "" },
+
         // Legacy fields kept for safety, but Step 2 uses the above now
-        // jobTitle: { type: String, default: "" }, 
-        // skills: { type: [String], default: [] },
+        jobTitle: { type: String, default: "" },
+        skills: { type: [String], default: [] },
 
         // ================= ASSETS =================
         resumeUrl: {
@@ -140,6 +143,11 @@ const profileSchema = new mongoose.Schema(
 
         // Driving License (Multiple selection possible)
         drivingLicenses: [{ type: String }], // "two_wheeler", "four_wheeler"
+
+        profileCompleted: {
+            type: Boolean,
+            default: false
+        }
     },
     { timestamps: true }
 );

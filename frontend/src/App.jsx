@@ -41,28 +41,24 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* ========== Public Routes ========== */}
-        <Route path="/" element={<Home />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/linkedin/callback" element={<LinkedInCallback />} />
-        <Route path="/resume-gen" element={<ResumeGen />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/testimonials" element={<Testimonials />} />
-        <Route path="/talent-league" element={<TalentLeague />} />
-        <Route path="/creators" element={<Creators />} />
-
-        {/* ========== Non-Admin Routes (Redirect Super Admin) ========== */}
+        {/* ========== Public Routes (Accessible to everyone) ========== */}
+        {/* These should NOT be wrapped in RedirectIfSuperAdmin if that component BLOCKS access. 
+            However, typically we want SA to be redirected from these to Dashboard.
+            Assuming RedirectIfSuperAdmin renders Outlet if NOT SA.
+        */}
         <Route element={<RedirectIfSuperAdmin><Outlet /></RedirectIfSuperAdmin>}>
-          {/* ========== Public Routes ========== */}
           <Route path="/" element={<Home />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/linkedin/callba ck" element={<LinkedInCallback />} />
+          <Route path="/linkedin/callback" element={<LinkedInCallback />} />
+          <Route path="/resume-gen" element={<ResumeGen />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/testimonials" element={<Testimonials />} />
+          <Route path="/talent-league" element={<TalentLeague />} />
+          <Route path="/creators" element={<Creators />} />
 
-          {/* ========== Protected Routes ========== */}
+          {/* ========== Protected User Routes ========== */}
           <Route
             path="/create-profile"
             element={
@@ -80,19 +76,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/resume-gen" element={<ResumeGen />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/talent-league" element={<TalentLeague />} />
-          <Route path="/creators" element={<Creators />} />
 
           {/* Job Seeker Dashboard */}
           <Route
@@ -116,11 +99,9 @@ function App() {
             </ProtectedAdminRoute>
           }
         >
-          {/* General Dashboard */}
           {/* Dashboard Route */}
           <Route path="dashboard" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}><AdminDashboard /></ProtectedAdminRoute>} />
 
-          {/* Permission Protected Routes */}
           {/* Permission Protected Routes */}
           <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><AdminJobs /></ProtectedAdminRoute>} />
           <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_POST}><PostJob /></ProtectedAdminRoute>} />
@@ -128,7 +109,7 @@ function App() {
           <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><PostJob /></ProtectedAdminRoute>} />
           <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
-          {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
+          {/* Signup Candidates */}
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Super Admin Routes */}
@@ -136,7 +117,7 @@ function App() {
           <Route path="permissions" element={<ProtectedAdminRoute requiredRole="superadmin"><PermissionManagement /></ProtectedAdminRoute>} />
           <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
           <Route path="permissions/edit/:id" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
-          {/* Placeholder routes for others to prevent crashes if clicked */}
+
           <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
         </Route>
 

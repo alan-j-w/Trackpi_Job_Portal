@@ -2,42 +2,79 @@ import Profile from "../models/Profile.js";
 import User from "../models/User.js";
 
 // ✅ Create or Update Profile
+// ✅ Create or Update Profile
 export const createOrUpdateProfile = async (req, res) => {
     try {
         const userId = req.user._id; // from auth middleware
+        const { isFinalSubmission, ...bodyData } = req.body;
 
-        // Check if profile already exists
-        let profile = await Profile.findOne({ user: userId });
+        // 1. Safety Whitelist
+        const allowedFields = [
+            'fullName', 'jobTitle', 'phone', 'altPhone', 'email',
+            'country', 'state', 'city', 'pincode', 'location', // Added location object and flattened fields
+            'dob', 'gender', 'maritalStatus', 'workStatus',
+            'education', 'workExperience', // Arrays
+            'skills', 'languages',
+            'preferredLocations', 'willRelocate', 'preferredWorkMode', // Step 2 fields
+            'expectedSalary', 'drivingLicenses', 'hasTwoWheeler', 'hasLaptop', 'socialLinks',
+            'resumeUrl', 'profileImage'
+        ];
 
-        if (profile) {
-            // Update existing profile
-            profile = await Profile.findOneAndUpdate(
-                { user: userId },
-                { ...req.body },
-                { new: true }
-            );
+        // Filter bodyData to only allowed fields
+        const safeUpdates = {};
+        Object.keys(bodyData).forEach(key => {
+            if (allowedFields.includes(key)) {
+                safeUpdates[key] = bodyData[key];
+            }
+        });
 
-            return res.status(200).json({
-                success: true,
-                message: "Profile updated successfully",
-                profile,
-            });
+        // Handle Location Mapping (Flat -> Nested)
+        // If flat fields exist, merge them into location object
+        if (bodyData.country || bodyData.state || bodyData.city || bodyData.pincode) {
+            safeUpdates.location = {
+                ...safeUpdates.location, // Preserve specific location updates if any
+                country: bodyData.country || safeUpdates.location?.country,
+                state: bodyData.state || safeUpdates.location?.state,
+                city: bodyData.city || safeUpdates.location?.city,
+                pincode: bodyData.pincode || safeUpdates.location?.pincode
+            };
+
+            // Remove flat fields from root to avoid schema validation errors if strict is true
+            delete safeUpdates.country;
+            delete safeUpdates.state;
+            delete safeUpdates.city;
+            delete safeUpdates.pincode;
         }
 
-        // Create new profile
-        const newProfile = await Profile.create({
+        const profileFields = {
             user: userId,
-            ...req.body,
-        });
+            ...safeUpdates
+        };
 
-        // Mark user profile as completed
-        await User.findByIdAndUpdate(userId, { profileCompleted: true });
+        // 2. Profile Completion Logic
+        // Only set profileCompleted if this is a final submission
+        if (isFinalSubmission) {
+            profileFields.profileCompleted = true;
+        }
 
-        res.status(201).json({
+        // Use findOneAndUpdate with upsert to handle both create and update
+        const profile = await Profile.findOneAndUpdate(
+            { user: userId },
+            { $set: profileFields },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+
+        // Also update User model ONLY if final submission
+        if (isFinalSubmission) {
+            await User.findByIdAndUpdate(userId, { profileCompleted: true });
+        }
+
+        return res.status(200).json({
             success: true,
-            message: "Profile created successfully",
-            profile: newProfile,
+            message: "Profile saved successfully",
+            profile,
         });
+
     } catch (error) {
         console.error("Profile create/update error:", error);
         res.status(500).json({
@@ -96,56 +133,4 @@ export const checkProfileStatus = async (req, res) => {
     }
 };
 
-// ✅ Save Step 1 (Partial Profile)
-export const saveStep1 = async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const {
-            fullName, phone, altPhone, email,
-            pincode, country, state, city,
-            permanentLocation, isSameAddress,
-            dob, gender, maritalStatus, workStatus,
-            resumeUrl, profileImage
-        } = req.body;
 
-        // Map flat location fields to nested structure
-        const location = {
-            pincode, country, state, city
-        };
-
-        const updateData = {
-            fullName, phone, alternatePhone: altPhone, email,
-            location,
-            permanentLocation,
-            dateOfBirth: dob,
-            gender,
-            maritalStatus,
-            workStatus,
-            resumeUrl,
-            profileImage,
-            // We usually don't set profileCompleted=true here since it's just step 1
-        };
-
-        const profile = await Profile.findOneAndUpdate(
-            { user: userId },
-            {
-                $set: updateData,
-                $setOnInsert: { user: userId } // Ensure user field is set on create
-            },
-            { new: true, upsert: true } // Create if not exists
-        );
-
-        res.status(200).json({
-            success: true,
-            message: "Step 1 saved successfully",
-            profile
-        });
-
-    } catch (error) {
-        console.error("Save Step 1 error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to save Step 1"
-        });
-    }
-};

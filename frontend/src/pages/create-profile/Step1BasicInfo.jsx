@@ -4,6 +4,7 @@ import { Country, State, City } from "country-state-city";
 import fresherIcon from "../../assets/fresher_icon.png";
 import experiencedIcon from "../../assets/experienced_icon.png";
 import SearchableDropdown from "./components/SearchableDropdown";
+import { fetchLocationDetails } from "../../utils/locationUtils";
 
 const Step1BasicInfo = ({
     formData,
@@ -91,6 +92,51 @@ const Step1BasicInfo = ({
         setFormData(prev => ({ ...prev, city: cityName }));
     };
 
+    // Auto-fill location by Pincode
+    const handlePincodeChange = async (e) => {
+        const value = e.target.value;
+        const newFormData = { ...formData, pincode: value };
+
+        // Update form data first to show typing
+        setFormData(newFormData);
+
+        // If 6 digits, fetch location
+        if (value.length === 6) {
+            try {
+                const details = await fetchLocationDetails(value);
+                if (details) {
+                    const countryCode = "IN"; // API is India only
+
+                    // Logic from handleCountryChange but without conflicting state updates
+                    const stateList = State.getStatesOfCountry(countryCode);
+                    const matchedState = stateList.find(s => s.name.toLowerCase() === details.state.toLowerCase());
+
+                    if (matchedState) {
+                        setStates(stateList);
+                        const cityList = City.getCitiesOfState(countryCode, matchedState.isoCode);
+                        setCities(cityList);
+
+                        const matchedCity = cityList.find(c => c.name.toLowerCase() === details.city.toLowerCase());
+
+                        setFormData(prev => ({
+                            ...prev,
+                            country: countryCode,
+                            state: matchedState.isoCode,
+                            city: matchedCity ? matchedCity.name : details.city,
+                            pincode: value // ensure pincode stays
+                        }));
+                    } else {
+                        // Fallback if state match fails
+                        setFormData(prev => ({ ...prev, country: countryCode }));
+                        setStates(stateList);
+                    }
+                }
+            } catch (err) {
+                console.error("Pincode fetch failed", err);
+            }
+        }
+    };
+
     // OTP Functions
     const sendOtp = async () => {
         try {
@@ -125,44 +171,27 @@ const Step1BasicInfo = ({
     };
 
     // Validation
-    const isStep1Valid = () => {
+    // Validation (Logic Only - Minimal)
+    const canProceed = () => {
+        // Minimal validation as requested
         return (
-            formData.fullName.trim() !== ""
+            formData.fullName.trim() !== "" &&
+            formData.phone.trim() !== "" &&
+            formData.email.trim() !== ""
+            // Add other critical fields if strictly required, but usually name/contact is bare minimum to start
         );
     };
 
     const saveStep1AndContinue = async () => {
         // Validation Check with Feedback
-        if (!isStep1Valid()) {
-            alert("Please enter your Name to proceed.");
+        if (!canProceed()) {
+            // Logic only, minimal feedback or just block
+            alert("Please fill required fields (Name, Phone, Email) to proceed.");
             return;
         }
 
-        try {
-            const token = localStorage.getItem("token");
-
-            // Convert Codes to Names for Backend
-            const countryName = Country.getCountryByCode(formData.country)?.name || formData.country;
-            const stateName = State.getStateByCodeAndCountry(formData.state, formData.country)?.name || formData.state;
-
-            const payload = {
-                ...formData,
-                country: countryName,
-                state: stateName,
-                // city is already name
-                phone: `${primaryPhoneCode}${formData.phone}`,
-                altPhone: formData.altPhone ? `${altPhoneCode}${formData.altPhone}` : ""
-            };
-
-            await axios.post("http://localhost:8000/api/profile/step1", payload, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            onNext();
-        } catch (err) {
-            console.error(err);
-            alert("Failed to save step 1");
-        }
+        // Proceed to next step without saving to DB
+        onNext();
     };
 
     return (
@@ -389,7 +418,13 @@ const Step1BasicInfo = ({
                     </div>
                     <label className="block text-sm font-semibold text-black mb-4">Location <span className="text-[#FF0000]">*</span></label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input className="bg-white px-4 py-3 rounded-xl shadow-sm text-sm outline-none focus:ring-1 focus:ring-[#FFB300] placeholder-[#827E7E]" name="pincode" placeholder="Pin Code" value={formData.pincode} onChange={handleChange} />
+                        <input
+                            className="bg-white px-4 py-3 rounded-xl shadow-sm text-sm outline-none focus:ring-1 focus:ring-[#FFB300] placeholder-[#827E7E]"
+                            name="pincode"
+                            placeholder="Pin Code"
+                            value={formData.pincode}
+                            onChange={handlePincodeChange}
+                        />
                         <SearchableDropdown
                             options={countries}
                             value={formData.country}
@@ -512,7 +547,7 @@ const Step1BasicInfo = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Fresher Card */}
                         <div
-                            onClick={() => setFormData(prev => ({ ...prev, workStatus: 'fresher' }))}
+                            onClick={() => setFormData(prev => ({ ...prev, workStatus: 'fresher', workExperiences: [] }))}
                             className={`relative group cursor-pointer`}
                         >
                             <div className={`bg-white rounded-[24px] p-6 pr-32 h-[100px] flex items-center border-2 transition-all ${formData.workStatus === 'fresher' ? 'border-[#FFB300] shadow-md' : 'border-transparent'}`}>
@@ -585,6 +620,29 @@ const Step1BasicInfo = ({
                                     <p className="text-xs text-gray-500">
                                         {exp.startDate} - {exp.currentlyWorking ? "Present" : exp.endDate}
                                     </p>
+                                    <div className="mt-2 flex gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setEditingExperienceIndex(index);
+                                                setExperienceForm(exp);
+                                                setShowExperienceModal(true);
+                                            }}
+                                            className="text-xs font-bold text-[#FFB300] hover:underline"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    workExperiences: prev.workExperiences.filter((_, i) => i !== index)
+                                                }));
+                                            }}
+                                            className="text-xs font-bold text-red-500 hover:underline"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             {formData.workExperiences.length === 0 && (
@@ -758,17 +816,25 @@ const Step1BasicInfo = ({
                                 <button
                                     className="bg-[#FFB300] text-black font-bold px-10 py-2.5 rounded-lg hover:bg-[#ffaa00] transition shadow-md"
                                     onClick={() => {
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            workExperiences: [...prev.workExperiences, experienceForm]
-                                        }));
+                                        if (editingExperienceIndex !== null) {
+                                            setFormData(prev => {
+                                                const newExp = [...prev.workExperiences];
+                                                newExp[editingExperienceIndex] = experienceForm;
+                                                return { ...prev, workExperiences: newExp };
+                                            });
+                                        } else {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                workExperiences: [...prev.workExperiences, experienceForm]
+                                            }));
+                                        }
                                         setShowExperienceModal(false);
+                                        setEditingExperienceIndex(null); // Reset index
                                     }}
                                 >
                                     Save
                                 </button>
                             </div>
-
                         </div>
                     </div>
                 )}

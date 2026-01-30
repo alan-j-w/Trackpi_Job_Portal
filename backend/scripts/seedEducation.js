@@ -1,10 +1,15 @@
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const Course = require("../models/Course");
-const University = require("../models/University");
-const connectDB = require("../config/db");
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import Course from "../models/Course.js";
+import University from "../models/University.js";
+import connectDB from "../config/db.js";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '../.env') });
 
 const courses = [
 

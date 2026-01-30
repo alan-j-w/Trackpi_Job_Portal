@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Country, State } from "country-state-city";
 import LoadingIllustration from '../assets/illustrations/loading-illustration.png'; // Make sure this path is correct based on where we copied it
 import { useNavigate } from "react-router-dom";
 import step1Illustration from "../assets/profile/step1_illustration.png";
@@ -13,6 +14,29 @@ const CreateProfile = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+
+    // Check if profile already exists
+    useEffect(() => {
+        const checkProfile = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            try {
+                // If profile exists, redirect to /profile
+                await axios.get("http://localhost:8000/api/profile/me", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                navigate("/profile");
+            } catch (err) {
+                // 404 means no profile, so we stay here
+                if (err.response?.status !== 404) {
+                    console.error("Profile check error:", err);
+                }
+            }
+        };
+
+        checkProfile();
+    }, [navigate]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -102,6 +126,36 @@ const CreateProfile = () => {
             if (payload.altPhone) {
                 payload.altPhone = `${altPhoneCode}${payload.altPhone}`;
             }
+
+            // Convert Codes to Names for Backend (Moved from Step 1)
+            const countryName = Country.getCountryByCode(formData.country)?.name || formData.country;
+            const stateName = State.getStateByCodeAndCountry(formData.state, formData.country)?.name || formData.state;
+
+            payload.country = countryName;
+            payload.state = stateName;
+
+            // Map Frontend Fields to Backend Schema
+            payload.education = formData.educationList?.map(edu => ({
+                degree: edu.level,
+                institution: edu.university,
+                year: edu.endYear, // Taking end year as main year
+                description: `${edu.course} (${edu.courseType})`
+            })) || [];
+
+            payload.workExperience = formData.workExperiences?.map(exp => ({
+                jobTitle: exp.jobTitle,
+                company: exp.company,
+                startDate: exp.startDate,
+                endDate: exp.endDate,
+                description: exp.description
+            })) || [];
+
+            // Backend Safety Flag
+            payload.isFinalSubmission = true;
+
+            // Remove frontend-only list keys to keep payload clean
+            delete payload.educationList;
+            delete payload.workExperiences;
 
             console.log("Submitting Profile:", payload);
 
