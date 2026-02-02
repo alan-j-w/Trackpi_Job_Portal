@@ -40,8 +40,8 @@ const AdminLayout = () => {
 
     const menuItems = [
         { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_VIEW },
-        { name: "Jobs", path: "/admin/jobs", icon: Briefcase }, // Visible to all admins, specific actions protected
-        { name: "Signup candidates", path: "/admin/candidates/signup", icon: UserPlus },
+        { name: "Jobs", path: "/admin/jobs", icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
+        { name: "Signup candidates", path: "/admin/candidates/signup", icon: UserPlus, permission: PERMISSIONS.SIGNUP_VIEW },
         { name: "Job applicants", path: "/admin/candidates/applicants", icon: Users, permission: PERMISSIONS.APPLICANTS_VIEW },
         { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_DOWNLOAD }, // Adjust if better view key
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },

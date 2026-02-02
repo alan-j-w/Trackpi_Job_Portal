@@ -111,10 +111,7 @@ function App() {
           <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
-          <Route path="candidates/signup" element={<ProtectedAdminRoute><AdminApplicants /></ProtectedAdminRoute>} />
-
-          {/* Resume Candidates */}
-          <Route path="candidates/resume" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.RESUME_DOWNLOAD}><ResumeCandidates /></ProtectedAdminRoute>} />
+          <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Super Admin Routes */}
           <Route path="management" element={<ProtectedAdminRoute><AdminManagement /></ProtectedAdminRoute>} />

@@ -41,24 +41,17 @@ router.put(
     adminController.updateAdminPermissions
 );
 
-// Get All Users (Super Admin & Admin with permission)
 router.get(
     "/users",
     checkPermission(PERMISSIONS.MANAGE_USERS),
     adminController.getAllUsers
 );
 
-// Update Admin (Super Admin Only)
-router.put("/users/:id", authorize("superadmin"), adminController.updateAdmin);
-
-// Demote Admin (Super Admin Only)
-router.put("/remove-admin/:id", authorize("superadmin"), adminController.demoteAdmin);
-
 // Role Management (Super Admin Only)
 router.post("/permissions", authorize("superadmin"), adminController.createRole);
 router.get("/permissions", authorize("superadmin", "admin"), adminController.getAllRoles);
 router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
-// router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole); // Remove duplicate
+router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
 router.delete("/permissions/:id", authorize("superadmin"), adminController.deleteRole);
 
 // Manage Admin Status

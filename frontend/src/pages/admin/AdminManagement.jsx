@@ -100,8 +100,9 @@ const AdminManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to remove this admin? They will be demoted to a Job Seeker.")) return;
-
+        if (!window.confirm("Are you sure you want to remove this admin?")) return;
+        // API call to delete (adminController needs deleteUser logic or repurpose deleteCandidate)
+        // For now, assuming we can delete user via same endpoint if perm allows
         try {
             const token = localStorage.getItem("token");
             await axios.put(`${API_URL}/api/admin/remove-admin/${id}`, {}, {
@@ -176,8 +177,8 @@ const AdminManagement = () => {
             }
             closeModal();
         } catch (error) {
-            console.error("Error saving admin:", error);
-            alert(error.response?.data?.message || "Failed to save admin");
+            console.error("Error creating admin:", error);
+            alert(error.response?.data?.message || "Failed to add admin");
         } finally {
             setIsSubmitting(false);
         }

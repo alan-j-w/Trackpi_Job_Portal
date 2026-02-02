@@ -227,13 +227,11 @@ const AdminJobs = () => {
                                         {/* Actions */}
                                         <td className="p-4 pr-6 text-right">
                                             <div className="flex justify-end gap-2">
-                                                {hasPermission(PERMISSIONS.JOBS_VIEW) && (
-                                                    <button
-                                                        onClick={() => navigate(`/admin/jobs/view/${job._id}`)}
-                                                        className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
-                                                        <Eye size={16} />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={() => navigate(`/admin/jobs/view/${job._id}`)}
+                                                    className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
+                                                    <Eye size={16} />
+                                                </button>
                                                 {hasPermission(PERMISSIONS.JOBS_EDIT) && (
                                                     <button
                                                         onClick={() => navigate(`/admin/jobs/edit/${job._id}`)}

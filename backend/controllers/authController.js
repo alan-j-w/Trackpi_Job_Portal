@@ -3,24 +3,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 
-// TEMPORARY: Default permissions to sync with Frontend if missing in DB
-const DEFAULT_REPAIR_PERMISSIONS = [
-    "dashboard.view",
-    "jobs.post", "jobs.status", "jobs.view", "jobs.pending", "jobs.all", "jobs.urgent", "jobs.edit",
-    "signup.resume", "signup.view", "signup.delete",
-    "applicants.resume", "applicants.view", "applicants.delete",
-    "resume.download", "resume.delete",
-    "partners.add", "partners.view", "partners.edit", "partners.delete",
-    "testimonials.add", "testimonials.view", "testimonials.edit", "testimonials.delete",
-    "admin.add", "admin.edit", "admin.status",
-    "roles.edit", "roles.delete",
-    "users.edit", "users.delete",
-    "forms.manage",
-    "competition.add", "competition.edit", "competition.testimonials", "competition.candidates",
-    "video.add", "video.edit", "video.delete",
-    "winners.add", "winners.edit", "winners.delete"
-];
-
 // GOOGLE AUTH
 export const googleAuth = async (req, res) => {
     try {
