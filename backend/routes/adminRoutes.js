@@ -5,9 +5,9 @@ import PERMISSIONS from "../config/permissions.js";
 
 const router = express.Router();
 
-// All admin routes are protected and require admin or superadmin role
+// All admin routes are protected and require admin, superadmin, or superuser role
 router.use(protect);
-router.use(authorize("admin", "superadmin"));
+router.use(authorize("admin", "superadmin", "superuser"));
 
 // Dashboard Stats
 router.get("/dashboard-stats", adminController.getDashboardStats);
@@ -21,11 +21,18 @@ router.get("/jobs", adminController.getAdminJobs);
 // Delete Candidate
 router.delete("/candidates/:id", adminController.deleteCandidate);
 
-// Super Admin Only: Manage Admins
+// Super Admin Only: Manage Admins (Full Admins)
 router.post(
     "/create-admin",
     authorize("superadmin"),
     adminController.createAdmin
+);
+
+// Admin & Super Admin: Manage Super Users (Restricted Staff)
+router.post(
+    "/create-superuser",
+    authorize("superadmin", "admin"),
+    adminController.createSuperUser
 );
 
 router.put(
@@ -49,7 +56,7 @@ router.put("/remove-admin/:id", authorize("superadmin"), adminController.demoteA
 
 // Role Management (Super Admin Only)
 router.post("/permissions", authorize("superadmin"), adminController.createRole);
-router.get("/permissions", authorize("superadmin"), adminController.getAllRoles);
+router.get("/permissions", authorize("superadmin", "admin"), adminController.getAllRoles);
 router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
 // router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole); // Remove duplicate
 router.delete("/permissions/:id", authorize("superadmin"), adminController.deleteRole);

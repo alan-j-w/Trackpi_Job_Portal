@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Trash2, Edit, CheckCircle, XCircle, Copy, Eye, EyeOff } from "lucide-react";
+import { Users, Shield, Edit, Trash2, Search, X, Copy } from "lucide-react";
 import axios from "axios";
+import { API_URL } from "../../config";
+import { getUserRole } from "../../utils/auth";
 
 const AdminManagement = () => {
     const [admins, setAdmins] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-
-    // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingAdminId, setEditingAdminId] = useState(null);
+    const [selectedAdmins, setSelectedAdmins] = useState([]);
+    const [itemsPerPage, setItemsPerPage] = useState(7);
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -17,7 +20,9 @@ const AdminManagement = () => {
         roleId: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [editingAdminId, setEditingAdminId] = useState(null);
+
+    const currentUserRole = getUserRole();
+    const isSuperAdmin = currentUserRole === "superadmin";
 
     useEffect(() => {
         fetchAdmins();
@@ -27,10 +32,12 @@ const AdminManagement = () => {
     const fetchAdmins = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8000/api/admin/users?role=admin", {
-                headers: { Authorization: `Bearer ${token}` },
+            const response = await axios.get(`${API_URL}/api/admin/users?role=admin,superadmin`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            setAdmins(response.data);
+            // Backend now filters for us
+            const adminUsers = response.data;
+            setAdmins(adminUsers);
         } catch (error) {
             console.error("Error fetching admins:", error);
         } finally {
@@ -41,8 +48,8 @@ const AdminManagement = () => {
     const fetchRoles = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8000/api/admin/permissions", {
-                headers: { Authorization: `Bearer ${token}` },
+            const response = await axios.get(`${API_URL}/api/admin/roles`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             setRoles(response.data);
         } catch (error) {
@@ -50,9 +57,46 @@ const AdminManagement = () => {
         }
     };
 
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text);
-        alert("Copied directly to clipboard!");
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleEdit = (admin) => {
+        // Find role based on user permissions or if backend sends roleId
+        let matchedRoleId = "";
+        if (roles.length > 0) matchedRoleId = roles[0]._id; // Default fallback
+
+        setFormData({
+            name: admin.name,
+            email: admin.email,
+            password: "", // Don't show password
+            roleId: matchedRoleId
+        });
+        setEditingAdminId(admin._id);
+        setIsModalOpen(true);
+    };
+
+    const handleStatusToggle = async (id, currentStatus) => {
+        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+        // Optimistic update
+        setAdmins(admins.map(admin => admin._id === id ? { ...admin, status: newStatus } : admin));
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(`${API_URL}/api/admin/admin-status/${id}`, { status: newStatus }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error("Error updating status:", error);
+            // Revert on error
+            setAdmins(admins.map(admin => admin._id === id ? { ...admin, status: currentStatus } : admin));
+            alert("Failed to update status");
+        }
+    };
+
+    const handleCopyPassword = () => {
+        navigator.clipboard.writeText("********");
+        alert("Password copied to clipboard (Mock)");
     };
 
     const handleDelete = async (id) => {
@@ -60,64 +104,49 @@ const AdminManagement = () => {
 
         try {
             const token = localStorage.getItem("token");
-            // Use PUT to demote/remove admin instead of DELETE
-            await axios.put(`http://localhost:8000/api/admin/remove-admin/${id}`, {}, {
+            await axios.put(`${API_URL}/api/admin/remove-admin/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setAdmins(admins.filter(a => a._id !== id));
-            alert("Admin removed and demoted successfully.");
+            setSelectedAdmins(selectedAdmins.filter(adminId => adminId !== id));
         } catch (error) {
             console.error("Error deleting admin:", error);
             alert("Failed to remove admin");
         }
     };
 
-    const handleEdit = (admin) => {
-        // Find role based on user permissions or other logic if needed, 
-        // essentially reverse engineering roleId from permissions if we don't have it.
-        // But for now, let's try to match the user's permissions to a role.
-        let matchedRoleId = "";
+    const handleBulkDelete = async () => {
+        if (selectedAdmins.length === 0) return;
+        if (!window.confirm(`Are you sure you want to remove ${selectedAdmins.length} admins?`)) return;
 
-        // Find role that has this user in its users list
-        const foundRole = roles.find(r => r.users.some(u => u._id === admin._id || u === admin._id));
-        if (foundRole) {
-            matchedRoleId = foundRole._id;
+        // Implement bulk delete logic (calls single delete for now or bulk API if exists)
+        // For efficiency, we should have a bulk API, but loop is okay for now.
+        for (const id of selectedAdmins) {
+            await handleDelete(id); // Use the existing function but maybe suppress alerts or optimise?
         }
-
-        setFormData({
-            name: admin.name,
-            email: admin.email,
-            password: "", // Password update not supported here or kept blank
-            roleId: matchedRoleId
-        });
-        setEditingAdminId(admin._id);
-        setIsModalOpen(true);
+        // Ideally: await axios.post('/api/admin/bulk-remove', { ids: selectedAdmins }) ...
+        setSelectedAdmins([]);
     };
 
-    const handleStatusToggle = async (id, newStatus) => {
-        try {
-            const token = localStorage.getItem("token");
-            await axios.put(`http://localhost:8000/api/admin/admin-status/${id}`,
-                { status: newStatus },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            // Update local state
-            setAdmins(admins.map(admin =>
-                admin._id === id ? { ...admin, status: newStatus } : admin
-            ));
-        } catch (error) {
-            console.error("Error updating status:", error);
-            alert(error.response?.data?.message || "Failed to update status");
+    const handleSelectAll = (e) => {
+        if (e.target.checked || e.type === 'click') { // checkbox or link click
+            const ids = filteredAdmins.map(a => a._id);
+            setSelectedAdmins(ids);
+        } else {
+            setSelectedAdmins([]);
         }
     };
 
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleSelectOne = (id) => {
+        if (selectedAdmins.includes(id)) {
+            setSelectedAdmins(selectedAdmins.filter(aid => aid !== id));
+        } else {
+            setSelectedAdmins([...selectedAdmins, id]);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Password is optional for edit, but maybe we shouldn't even send it if empty
         if (!formData.name || !formData.email) {
             alert("Name and Email are required");
             return;
@@ -128,29 +157,24 @@ const AdminManagement = () => {
             const token = localStorage.getItem("token");
 
             if (editingAdminId) {
-                // Update implementation
-                await axios.put(`http://localhost:8000/api/admin/users/${editingAdminId}`, formData, {
+                await axios.put(`${API_URL}/api/admin/users/${editingAdminId}`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 alert("Admin details updated successfully!");
+                fetchAdmins();
             } else {
-                // Create implementation
                 if (!formData.roleId) {
                     alert("Role is required for new admin");
                     setIsSubmitting(false);
                     return;
                 }
-                await axios.post("http://localhost:8000/api/admin/create-admin", formData, {
+                await axios.post(`${API_URL}/api/admin/create-admin`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                alert("Admin added/promoted successfully!");
+                alert("Admin created successfully!");
+                fetchAdmins();
             }
-
-            setIsModalOpen(false);
-            setFormData({ name: "", email: "", password: "", roleId: "" });
-            setEditingAdminId(null);
-            fetchAdmins(); // Refresh list
-            fetchRoles(); // Refresh roles
+            closeModal();
         } catch (error) {
             console.error("Error saving admin:", error);
             alert(error.response?.data?.message || "Failed to save admin");
@@ -161,234 +185,256 @@ const AdminManagement = () => {
 
     const closeModal = () => {
         setIsModalOpen(false);
-        setFormData({ name: "", email: "", password: "", roleId: "" });
         setEditingAdminId(null);
+        setFormData({ name: "", email: "", password: "", roleId: "" });
     };
 
     const filteredAdmins = admins.filter(admin =>
-        admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        admin.email.toLowerCase().includes(searchQuery.toLowerCase())
+        admin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        admin.email?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Pagination logic (Mock for now, just slicing if needed or visual)
+    // For now showing all filteredAdmins but adhering to "7 items" selector visual
+
     return (
-        <div className="p-6 bg-white min-h-screen">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div className="relative w-full md:w-96">
+        <div className="p-8 bg-gray-50 min-h-screen font-sans">
+            <div className="flex justify-between items-center mb-8">
+                {/* Search Bar */}
+                <div className="relative w-96">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Search for admins..."
-                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFB300] focus:border-[#FFB300] outline-none"
+                        placeholder="Search for candidates"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#FFB300] shadow-sm"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingAdminId(null);
-                        setFormData({ name: "", email: "", password: "", roleId: "" });
-                        setIsModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-black px-6 py-3 rounded-lg font-bold transition shadow-sm">
-                    Add admin <Plus size={18} />
-                </button>
+
+                {/* Add Admin Button - Super Admin Only */}
+                {isSuperAdmin && (
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-white border text-black px-6 py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center min-w-[140px]"
+                        style={{ boxShadow: "0px 2px 4px rgba(0,0,0,0.05)" }}
+                    >
+                        Add admin +
+                    </button>
+                )}
             </div>
 
-            <h2 className="text-xl font-bold mb-4">Admin management</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-black">Admin management</h2>
+                {isSuperAdmin && (
+                    <button
+                        onClick={() => handleSelectAll({ target: { checked: true }, type: 'click' })}
+                        className="text-[#FFB300] font-medium hover:underline text-sm flex items-center"
+                    >
+                        Select all <span className="ml-1">→</span>
+                    </button>
+                )}
+            </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-[#FFB300] text-gray-800 font-bold text-sm">
-                                <th className="p-4 w-12 text-center whitespace-nowrap">SI No</th>
-                                <th className="p-4">Username</th>
-                                <th className="p-4">Email ID</th>
-                                {/* <th className="p-4">Password</th> */}
-                                <th className="p-4">Admin Type</th>
-                                <th className="p-4 text-center">Edit</th>
-                                <th className="p-4 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr><td colSpan="7" className="p-8 text-center text-gray-500">Loading...</td></tr>
-                            ) : filteredAdmins.length === 0 ? (
-                                <tr><td colSpan="7" className="p-8 text-center text-gray-500">No admins found.</td></tr>
-                            ) : (
-                                filteredAdmins.map((admin, index) => {
-                                    // Try to determine role name. Assuming permissions match a role or user has role string
-                                    // Since we assign permissions directly, mapping back to a role name is tricky unless we store roleId in user.
-                                    // For now, let's look for a role that matches the permissions length/content or just show "Custom" if not found.
-                                    // Ideally, User model should store 'adminRoleId' ref. 
-                                    // The controller we wrote just sets permissions.
-                                    // Let's just show "Admin" or check if superadmin.
-                                    // Determine Admin Type
-                                    let adminType = "Admin";
-                                    if (admin.role === "superadmin") {
-                                        adminType = "Super Admin";
-                                    } else {
-                                        // Find which role this user belongs to
-                                        // roles state contains all AdminRoles with populated users
-                                        const foundRole = roles.find(r => r.users.some(u => u._id === admin._id || u === admin._id));
-                                        if (foundRole) {
-                                            adminType = foundRole.name;
-                                        } else {
-                                            adminType = "Custom / No Role";
-                                        }
-                                    }
+            <div className="bg-white rounded-xl border border-[#FFB300] overflow-hidden shadow-sm">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-white text-gray-900 font-semibold text-sm">
+                            <th className="p-4 w-12 text-center text-gray-500">Sl No</th>
+                            <th className="p-4 font-semibold">Username</th>
+                            <th className="p-4 font-semibold">Email ID</th>
+                            <th className="p-4 font-semibold">Admin Type</th>
+                            {isSuperAdmin && <th className="p-4 text-center font-semibold">Action</th>}
+                            {isSuperAdmin && <th className="p-4 text-center font-semibold">Status</th>}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {loading ? (
+                            <tr><td colSpan="7" className="p-8 text-center text-gray-500">Loading...</td></tr>
+                        ) : filteredAdmins.length === 0 ? (
+                            <tr><td colSpan="7" className="p-8 text-center text-gray-500">No admins found.</td></tr>
+                        ) : (
+                            filteredAdmins.map((admin, index) => (
+                                <tr key={admin._id} className="hover:bg-gray-50 transition text-sm group">
+                                    <td className="p-4 align-middle">
+                                        <div className="flex items-center gap-3">
+                                            {isSuperAdmin && (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedAdmins.includes(admin._id)}
+                                                    onChange={() => handleSelectOne(admin._id)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-[#FFB300] focus:ring-[#FFB300]"
+                                                />
+                                            )}
+                                            <span className="text-gray-900 font-medium">{index + 1}</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-gray-900 font-medium align-middle">{admin.name}</td>
+                                    <td className="p-4 text-gray-600 align-middle">{admin.email}</td>
+                                    <td className="p-4 text-gray-700 align-middle">
+                                        {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                    </td>
+                                    {isSuperAdmin && (
+                                        <td className="p-4 text-center align-middle">
+                                            <div className="flex justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleEdit(admin)}
+                                                    className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-gray-600 transition"
+                                                    title="Edit"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(admin._id)}
+                                                    className="w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 rounded text-red-500 transition"
+                                                    title="Remove"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
+                                    {isSuperAdmin && (
+                                        <td className="p-4 text-center align-middle">
+                                            <div className="inline-flex rounded-full border border-gray-200 p-0.5 bg-white">
+                                                <button
+                                                    onClick={() => handleStatusToggle(admin._id, admin.status)}
+                                                    disabled={admin.status === 'active'}
+                                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${admin.status === 'active'
+                                                        ? 'bg-[#FFB300] text-white shadow-sm'
+                                                        : 'text-gray-500 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    Activate
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStatusToggle(admin._id, admin.status)}
+                                                    disabled={admin.status === 'inactive'}
+                                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${admin.status === 'inactive'
+                                                        ? 'bg-red-600 text-white shadow-sm'
+                                                        : 'text-gray-500 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    Deactivate
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
-                                    return (
-                                        <tr key={admin._id} className="hover:bg-yellow-50/20 transition">
-                                            <td className="p-4 text-center font-medium">{index + 1}</td>
-                                            <td className="p-4 font-medium">{admin.name}</td>
-                                            <td className="p-4 text-gray-600">{admin.email}</td>
-                                            {/* 
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-2 text-gray-500">
-                                                    <span>Password</span>
-                                                    <Copy size={14} className="cursor-pointer hover:text-[#FFB300]" onClick={() => handleCopy("Cannot copy actual password")} />
-                                                </div>
-                                            </td>
-                                            */}
-                                            <td className="p-4">{adminType}</td>
-                                            <td className="p-4 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(admin)}
-                                                        className="p-2 bg-gray-200 rounded hover:bg-gray-300">
-                                                        <Edit size={16} className="text-gray-600" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(admin._id)}
-                                                        className="p-2 bg-red-100 rounded hover:bg-red-200">
-                                                        <Trash2 size={16} className="text-red-500" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <div className="flex justify-center items-center">
-                                                    <div className="inline-flex rounded-full shadow-sm border border-gray-200 p-0.5 bg-gray-50">
-                                                        <button
-                                                            onClick={() => handleStatusToggle(admin._id, 'active')}
-                                                            className={`px-4 py-1.5 text-xs font-bold rounded-l-full transition-all duration-200 ${admin.status === 'active'
-                                                                ? 'bg-[#FFB300] text-black shadow-sm'
-                                                                : 'bg-transparent text-gray-400 hover:text-gray-600'
-                                                                }`}
-                                                        >
-                                                            Activate
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleStatusToggle(admin._id, 'inactive')}
-                                                            className={`px-4 py-1.5 text-xs font-bold rounded-r-full transition-all duration-200 ${admin.status === 'inactive'
-                                                                ? 'bg-red-500 text-white shadow-sm'
-                                                                : 'bg-transparent text-gray-400 hover:text-gray-600'
-                                                                }`}
-                                                        >
-                                                            Deactivate
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
+            {/* Footer with Bulk Actions and Pagination */}
+            <div className="flex justify-between items-center mt-4">
+                <div className="flex items-center gap-2">
+                    {isSuperAdmin && (
+                        <>
+                            <span className="text-sm text-gray-600">Selected <span className="font-bold text-[#FFB300]">{selectedAdmins.length}</span> items</span>
+                            {selectedAdmins.length > 0 && (
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="text-[#FFB300] text-sm hover:underline flex items-center"
+                                >
+                                    Delete <span className="ml-1">→</span>
+                                </button>
                             )}
-                        </tbody>
-                    </table>
+                        </>
+                    )}
+                </div>
+
+                <div className="relative">
+                    <select
+                        value={itemsPerPage}
+                        onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                        className="appearance-none bg-white border border-gray-300 text-gray-700 py-1 pl-3 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
+                    >
+                        <option value={7}>7</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                    </div>
                 </div>
             </div>
 
-            {/* Footer Pagination Mock */}
-            <div className="mt-4 text-gray-500 text-sm">
-                Selected <span className="text-[#FFB300] font-bold">0</span> items
-            </div>
-
-            {/* Add Admin Modal */}
+            {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-3xl p-10 w-full max-w-2xl shadow-2xl relative">
-                        <h2 className="text-2xl font-bold text-center mb-8">{editingAdminId ? "Edit Admin" : "Add Admin"}</h2>
+                <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative border border-gray-100">
+                        {/* Close button removed as per design image usually doesn't have top-right X if Cancel button exists, but keeping for UX or making hidden if strictly following image. Image doesn't show X, but Cancel button. I'll keep X for accessibility but maybe cleaner to rely on Cancel. Let's remove X to match "pop this" image style strictly? No, X is always good. I'll keep it subtle or remove if requested. Image doesn't show it. Let's remove it and rely on Cancel. */}
 
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-md mx-auto w-full">
-                            {/* Username */}
-                            <div className="flex flex-col gap-2 w-full">
-                                <label className="font-bold text-gray-700 text-center md:text-left">User Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Username"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none text-center md:text-left"
-                                />
-                            </div>
+                        <h3 className="text-2xl font-bold mb-8 text-center text-gray-900">{editingAdminId ? "Edit Admin" : "Add Admin"}</h3>
 
-                            {/* Email */}
-                            <div className="flex flex-col gap-2 w-full">
-                                <label className="font-bold text-gray-700 text-center md:text-left">Email ID</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email ID"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none text-center md:text-left"
-                                />
-                            </div>
-
-                            {/* Password - REMOVED per user request (Auto-generated on backend) */}
-                            {/* 
-                            <div className="flex flex-col gap-2">
-                                <label className="font-bold text-gray-700">Password</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    placeholder="Password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none"
-                                />
-                            </div>
-                            */}
-
-                            {/* Admin Type */}
-                            <div className="flex flex-col gap-2 w-full">
-                                <label className="font-bold text-gray-700 text-center md:text-left">Admin Type</label>
-                                <div className="relative">
-                                    <select
-                                        name="roleId"
-                                        value={formData.roleId}
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-6">
+                                {/* Username */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-900 mb-2">User Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        placeholder="Username"
+                                        value={formData.name}
                                         onChange={handleInputChange}
-                                        className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FFB300] outline-none appearance-none bg-white text-center md:text-left"
-                                    >
-                                        <option value="">Select Admin Type</option>
-                                        {roles.map(role => (
-                                            <option key={role._id} value={role._id}>{role.name}</option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FFB300] focus:border-transparent transition shadow-sm"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Email ID */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-900 mb-2">Email ID</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        placeholder="Email ID"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FFB300] focus:border-transparent transition shadow-sm"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Admin Type */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-900 mb-2">Admin Type</label>
+                                    <div className="relative">
+                                        <select
+                                            name="roleId"
+                                            value={formData.roleId}
+                                            onChange={handleInputChange}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 appearance-none focus:outline-none focus:ring-2 focus:ring-[#FFB300] focus:border-transparent transition shadow-sm cursor-pointer"
+                                            required={!editingAdminId}
+                                        >
+                                            <option value="" disabled>Admin Type</option>
+                                            {roles.map(role => (
+                                                <option key={role._id} value={role._id}>{role.name}</option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Buttons */}
-                            <div className="flex justify-center gap-6 mt-6">
+                            <div className="flex gap-4 justify-center mt-8 pt-4">
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-12 py-3 bg-[#FFA500] hover:bg-[#ffb733] text-white font-bold rounded-xl transition shadow-md disabled:opacity-50 text-lg w-full md:w-auto">
-                                    {isSubmitting ? "Submitting..." : "Submit"}
+                                    className="px-12 py-3 bg-[#FFB300] hover:bg-[#ffca2c] text-white font-bold rounded-lg transition transform hover:scale-105 shadow-md"
+                                >
+                                    {isSubmitting ? "Saving..." : "Submit"}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-12 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition shadow-md text-lg w-full md:w-auto">
+                                    className="px-12 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition transform hover:scale-105 shadow-md"
+                                >
                                     Cancel
                                 </button>
                             </div>

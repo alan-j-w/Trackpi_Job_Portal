@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Edit, Trash2, Search, Plus, UserCheck, Shield, Clock, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../../config";
 
 const PermissionManagement = () => {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const PermissionManagement = () => {
     const fetchRoles = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8000/api/admin/permissions", {
+            const response = await axios.get(`${API_URL}/api/admin/permissions`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setRoles(response.data);
@@ -32,7 +33,7 @@ const PermissionManagement = () => {
         if (!window.confirm("Are you sure you want to delete this permission?")) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8000/api/admin/permissions/${id}`, {
+            await axios.delete(`${API_URL}/api/admin/permissions/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setRoles(roles.filter(role => role._id !== id));

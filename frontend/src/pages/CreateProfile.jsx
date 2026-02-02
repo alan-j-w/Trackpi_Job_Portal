@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../config";
 
 const CreateProfile = () => {
     const navigate = useNavigate();
@@ -62,7 +63,7 @@ const CreateProfile = () => {
                     : []
             };
 
-            await axios.post("http://localhost:8000/api/profile", payload, {
+            await axios.post(`${API_URL}/api/profile`, payload, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

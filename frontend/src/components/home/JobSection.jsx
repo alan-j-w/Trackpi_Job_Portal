@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import JobCard from "./JobCard";
 import Pagination from "./Pagination";
 import "remixicon/fonts/remixicon.css";
+import { API_URL } from "../../config";
 
 const JobSection = () => {
   const [jobs, setJobs] = useState([]);
@@ -57,7 +58,7 @@ const JobSection = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/jobs");
+        const res = await fetch(`${API_URL}/api/jobs`);
         const data = await res.json();
         // Mocking 'views' and 'createdAt' for demonstration if missing
         const enrichedData = Array.isArray(data) ? data

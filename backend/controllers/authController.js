@@ -38,8 +38,9 @@ export const googleAuth = async (req, res) => {
             // If user exists but no googleId, link it
             if (!user.googleId) {
                 user.googleId = sub;
-                await user.save();
             }
+            user.lastLogin = new Date();
+            await user.save();
 
             // Check Status - Block if inactive
             if (user.role === 'admin' && user.status === 'inactive') {
@@ -53,7 +54,9 @@ export const googleAuth = async (req, res) => {
                 googleId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
                 role: "jobseeker",
-                permissions: []
+                role: "jobseeker",
+                permissions: [],
+                lastLogin: new Date()
             });
         }
 
@@ -119,8 +122,9 @@ export const linkedinAuth = async (req, res) => {
         if (user) {
             if (!user.linkedinId) {
                 user.linkedinId = sub;
-                await user.save();
             }
+            user.lastLogin = new Date();
+            await user.save();
             // Check Status - Block if inactive
             if (user.role === 'admin' && user.status === 'inactive') {
                 return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
@@ -132,7 +136,9 @@ export const linkedinAuth = async (req, res) => {
                 linkedinId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10),
                 role: "jobseeker",
-                permissions: []
+                role: "jobseeker",
+                permissions: [],
+                lastLogin: new Date()
             });
         }
 
@@ -217,6 +223,10 @@ export const loginUser = async (req, res) => {
             await user.save();
             console.log("Auto-repaired admin permissions");
         }
+
+        // Update Last Login
+        user.lastLogin = new Date();
+        await user.save();
 
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },

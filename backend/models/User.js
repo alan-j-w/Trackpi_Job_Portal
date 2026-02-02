@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["jobseeker", "admin", "superadmin", "user"], // 'user' kept for legacy support until migration
+            enum: ["jobseeker", "admin", "superadmin", "superuser", "user"], // 'user' kept for legacy support until migration
             default: "jobseeker"
         },
         status: {
@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema(
         },
         linkedinId: {
             type: String
+        },
+        lastLogin: {
+            type: Date,
+            default: Date.now
         }
     },
     { timestamps: true }

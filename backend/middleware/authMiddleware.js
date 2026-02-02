@@ -58,13 +58,13 @@ export const checkPermission = (requiredPermission) => {
     return (req, res, next) => {
         const user = req.user;
 
-        // Super Admin bypass
-        if (user.role === "superadmin") {
+        // Super Admin & Full Admin bypass (Admin has full access except managing admins, which is handled by route-level role checks)
+        if (user.role === "superadmin" || user.role === "admin") {
             return next();
         }
 
-        // Admin permission check
-        if (user.role === "admin") {
+        // Superuser (Restricted Admin) permission check
+        if (user.role === "superuser") {
             if (user.permissions && user.permissions.includes(requiredPermission)) {
                 return next();
             } else {
@@ -74,7 +74,6 @@ export const checkPermission = (requiredPermission) => {
             }
         }
 
-        // Jobseekers shouldn't be hitting this middleware if routing is correct, but safe fail:
         return res.status(403).json({ message: "Access forbidden." });
     };
 };

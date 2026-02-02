@@ -68,7 +68,7 @@ npm start
 backend/
 ├── config/              # Configuration files (DB connection, etc.)
 ├── controllers/         # Request handlers for routes
-├── middlewares/         # Custom middlewares (Auth, Error handling)
+├── middleware/          # Custom middlewares (Auth, Error handling)
 ├── models/              # Mongoose database models
 ├── routes/              # API route definitions
 ├── .env                 # Environment variables

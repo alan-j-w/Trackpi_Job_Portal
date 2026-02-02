@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { PERMISSIONS } from "../../constants/permissions";
+import { API_URL } from "../../config";
 
 const MODULES_CONFIG = [
     {
@@ -162,7 +163,7 @@ const CreatePermission = () => {
     const fetchAdmins = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8000/api/admin/users?role=admin", {
+            const response = await axios.get(`${API_URL}/api/admin/users?role=admin`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setAdmins(response.data);
@@ -174,7 +175,7 @@ const CreatePermission = () => {
     const fetchRoleDetails = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8000/api/admin/permissions", {
+            const response = await axios.get(`${API_URL}/api/admin/permissions`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const role = response.data.find(r => r._id === id);
@@ -244,11 +245,11 @@ const CreatePermission = () => {
             };
 
             if (isEditMode) {
-                await axios.put(`http://localhost:8000/api/admin/permissions/${id}`, payload, {
+                await axios.put(`${API_URL}/api/admin/permissions/${id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             } else {
-                await axios.post("http://localhost:8000/api/admin/permissions", payload, {
+                await axios.post(`${API_URL}/api/admin/permissions`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             }

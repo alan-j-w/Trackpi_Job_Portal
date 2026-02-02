@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
+import { API_URL } from "../../config";
 
 
 const AdminJobs = () => {
@@ -20,7 +21,7 @@ const AdminJobs = () => {
     const fetchJobs = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8000/api/admin/jobs", {
+            const response = await axios.get(`${API_URL}/api/admin/jobs`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -28,6 +29,11 @@ const AdminJobs = () => {
             setJobs(response.data);
         } catch (error) {
             console.error("Error fetching jobs:", error);
+            if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+                alert("Session expired or unauthorized. Please login as Admin.");
+                localStorage.removeItem("token");
+                navigate("/admin/login");
+            }
         } finally {
             setLoading(false);
         }
@@ -47,7 +53,7 @@ const AdminJobs = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.put(`http://localhost:8000/api/jobs/${id}`,
+            await axios.put(`${API_URL}/api/jobs/${id}`,
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

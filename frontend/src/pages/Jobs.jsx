@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "react-router-dom";
 import JobCard from "../components/JobCard";
+import { API_URL } from "../config";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -26,7 +27,7 @@ const Jobs = () => {
                 if (location) params.append("location", location);
                 if (experience) params.append("experience", experience);
 
-                const res = await axios.get(`http://localhost:8000/api/jobs?${params.toString()}`);
+                const res = await axios.get(`${API_URL}/api/jobs?${params.toString()}`);
 
                 const fetchedJobs = Array.isArray(res.data) ? res.data : [];
                 // Sort: Urgent jobs first

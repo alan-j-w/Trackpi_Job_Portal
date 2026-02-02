@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FileText, Search, Trash2 } from "lucide-react"; // Icons
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
+import { API_URL } from "../../config";
 
 const ResumeCandidates = () => {
     const [candidates, setCandidates] = useState([]);
@@ -19,7 +20,7 @@ const ResumeCandidates = () => {
     const fetchCandidates = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:8000/api/admin/candidates", {
+            const response = await fetch(`${API_URL}/api/admin/candidates`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -75,7 +76,7 @@ const ResumeCandidates = () => {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:8000/api/admin/candidates/${id}`, {
+            const response = await fetch(`${API_URL}/api/admin/candidates/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });

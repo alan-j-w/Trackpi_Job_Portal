@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { getUserRole, getDecodedToken } from "../utils/auth";
 
-const ProtectedAdminRoute = ({ children, requiredPermission }) => {
+const ProtectedAdminRoute = ({ children, requiredPermission, requiredRole }) => {
     const role = getUserRole();
     const token = localStorage.getItem("token");
     const decodedToken = getDecodedToken();
@@ -9,6 +9,12 @@ const ProtectedAdminRoute = ({ children, requiredPermission }) => {
 
     if (!token) {
         return <Navigate to="/admin/login" replace />;
+    }
+
+    // Role-based restriction (e.g., Super Admin only)
+    if (requiredRole && role !== requiredRole) {
+        // If user doesn't have the required role, redirect to dashboard or limited view
+        return <Navigate to="/admin/dashboard" replace />;
     }
 
     if (role === "superadmin") {
@@ -24,10 +30,6 @@ const ProtectedAdminRoute = ({ children, requiredPermission }) => {
         return children;
     } else {
         // User is logged in but not an admin
-        // Redirect to admin login to show "Unauthorized" or let them login as admin if they have another account
-        // Or redirect to home. User asked for "only allowed mail id".
-        // If we redirect to /admin/login, the page logic I wrote will check role and show error if not admin.
-        // So passing them to /admin/login is safer/better UX for "wrong account".
         return <Navigate to="/admin/login" replace />;
     }
 };

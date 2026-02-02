@@ -3,6 +3,7 @@ import { Eye, Trash2, FileText, Search, Filter, ArrowUpDown } from "lucide-react
 import { useLocation } from "react-router-dom";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
+import { API_URL } from "../../config";
 
 
 const CircularProgress = ({ percentage }) => {
@@ -81,7 +82,7 @@ const AdminApplicants = () => {
         const fetchCandidates = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch("http://localhost:8000/api/admin/candidates", {
+                const response = await fetch(`${API_URL}/api/admin/candidates`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -133,7 +134,7 @@ const AdminApplicants = () => {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:8000/api/admin/candidates/${id}`, {
+            const response = await fetch(`${API_URL}/api/admin/candidates/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
