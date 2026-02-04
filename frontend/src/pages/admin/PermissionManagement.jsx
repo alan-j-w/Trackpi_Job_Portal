@@ -29,18 +29,34 @@ const PermissionManagement = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this permission?")) return;
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [roleToDelete, setRoleToDelete] = useState(null);
+
+    const handleDeleteClick = (role) => {
+        setRoleToDelete(role);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!roleToDelete) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`${API_URL}/api/admin/permissions/${id}`, {
+            await axios.delete(`${API_URL}/api/admin/permissions/${roleToDelete._id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setRoles(roles.filter(role => role._id !== id));
+            setRoles(roles.filter(role => role._id !== roleToDelete._id));
+            setShowDeleteModal(false);
+            setRoleToDelete(null);
         } catch (error) {
             console.error("Error deleting role:", error);
             alert("Failed to delete permission");
+            setShowDeleteModal(false);
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setRoleToDelete(null);
     };
 
     const toggleSelect = (id) => {
@@ -197,7 +213,7 @@ const PermissionManagement = () => {
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(role._id)}
+                                                        onClick={() => handleDeleteClick(role)}
                                                         className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm"
                                                         title="Delete Role"
                                                     >
@@ -213,6 +229,49 @@ const PermissionManagement = () => {
                     </table>
                 </div>
             </div>
+            {/* Delete Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+                        {/* 3D Icon Placeholder - Using Lucide + CSS to mimic */}
+                        <div className="flex justify-center mb-6">
+                            <div className="relative">
+                                {/* Back folder part */}
+                                <div className="absolute top-0 left-0 w-16 h-12 bg-[#FFD137] rounded-lg -rotate-6 transform origin-bottom-left"></div>
+                                {/* Front folder part */}
+                                <div className="relative w-16 h-12 bg-[#FFB300] rounded-lg shadow-lg flex items-center justify-center z-10">
+                                    {/* Red delete badge */}
+                                    <div className="absolute -bottom-2 -right-2 bg-red-500 rounded-full p-1.5 shadow-md border-2 border-white">
+                                        <Trash2 size={16} className="text-white" />
+                                    </div>
+                                    <div className="w-8 h-1 bg-white/30 rounded-full mb-1"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="text-center mb-8">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Permission</h3>
+                            <p className="text-gray-500 text-sm">Sure you want to delete</p>
+                            {/* <p className="text-gray-400 text-xs mt-1">"{roleToDelete?.name}"?</p> */}
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={cancelDelete}
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-[#FFB300] text-[#FFB300] font-semibold hover:bg-yellow-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-[#FFB300] text-black font-bold shadow-md hover:shadow-lg hover:bg-[#ffca2c] transition-all"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

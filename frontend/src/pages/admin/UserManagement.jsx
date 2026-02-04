@@ -135,19 +135,54 @@ const UserManagement = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (user) => {
-        if (!window.confirm("Are you sure you want to demote this Super User to Job Seeker?")) return;
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [isBulkDelete, setIsBulkDelete] = useState(false);
+
+    const handleDeleteClick = (user) => {
+        setUserToDelete(user);
+        setIsBulkDelete(false);
+        setShowDeleteModal(true);
+    };
+
+    const handleBulkDeleteClick = () => {
+        if (selectedUsers.length === 0) return;
+        setIsBulkDelete(true);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        const token = localStorage.getItem("token");
         try {
-            const token = localStorage.getItem("token");
-            await axios.put(`${API_URL}/api/admin/remove-superuser/${user._id}`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            alert("User demoted successfully");
+            if (isBulkDelete) {
+                // Execute all demotions in parallel
+                await Promise.all(selectedUsers.map(id =>
+                    axios.put(`${API_URL}/api/admin/remove-superuser/${id}`, {}, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                ));
+                alert("Selected users demoted successfully");
+                setSelectedUsers([]);
+            } else {
+                if (!userToDelete) return;
+                await axios.put(`${API_URL}/api/admin/remove-superuser/${userToDelete._id}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                alert("User demoted successfully");
+            }
             fetchUsers();
         } catch (error) {
-            console.error("Error demoting user:", error);
-            alert("Failed to demote user");
+            console.error("Error demoting user(s):", error);
+            alert("Failed to demote user(s)");
+        } finally {
+            cancelDelete();
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setUserToDelete(null);
+        setIsBulkDelete(false);
     };
 
     const handleSubmit = async (e) => {
@@ -286,7 +321,7 @@ const UserManagement = () => {
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(user)}
+                                                        onClick={() => handleDeleteClick(user)}
                                                         className="p-1.5 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
                                                     >
                                                         <Trash2 size={16} />
@@ -308,7 +343,12 @@ const UserManagement = () => {
                             <>
                                 <span>Selected <span className="text-yellow-500 font-bold">{selectedUsers.length}</span> items</span>
                                 {selectedUsers.length > 0 && (
-                                    <button className="text-yellow-500 hover:underline">Delete &rarr;</button>
+                                    <button
+                                        onClick={handleBulkDeleteClick}
+                                        className="text-yellow-500 hover:underline"
+                                    >
+                                        Delete &rarr;
+                                    </button>
                                 )}
                             </>
                         )}
@@ -330,6 +370,49 @@ const UserManagement = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+                        {/* 3D Icon Placeholder */}
+                        <div className="flex justify-center mb-6">
+                            <div className="relative">
+                                {/* Back folder part */}
+                                <div className="absolute top-0 left-0 w-16 h-12 bg-[#FFD137] rounded-lg -rotate-6 transform origin-bottom-left"></div>
+                                {/* Front folder part */}
+                                <div className="relative w-16 h-12 bg-[#FFB300] rounded-lg shadow-lg flex items-center justify-center z-10">
+                                    {/* Red delete badge */}
+                                    <div className="absolute -bottom-2 -right-2 bg-red-500 rounded-full p-1.5 shadow-md border-2 border-white">
+                                        <Trash2 size={16} className="text-white" />
+                                    </div>
+                                    <div className="w-8 h-1 bg-white/30 rounded-full mb-1"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="text-center mb-8">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete User</h3>
+                            <p className="text-gray-500 text-sm">Sure you want to delete {isBulkDelete ? 'these users' : 'this user'}?</p>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={cancelDelete}
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-[#FFB300] text-[#FFB300] font-semibold hover:bg-yellow-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-[#FFB300] text-black font-bold shadow-md hover:shadow-lg hover:bg-[#ffca2c] transition-all"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Add User Modal */}
             {isModalOpen && (
