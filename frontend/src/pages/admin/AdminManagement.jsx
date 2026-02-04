@@ -17,16 +17,45 @@ const AdminManagement = () => {
         name: "",
         email: "",
         password: "",
-        roleId: ""
+        role: "admin" // Default to admin, replace roleId
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const currentUserRole = getUserRole();
     const isSuperAdmin = currentUserRole === "superadmin";
 
+    const handleStatusToggle = async (id, newStatus) => {
+        // Optimistic update
+        const originalAdmins = [...admins];
+        setAdmins(admins.map(admin => {
+            if (admin._id === id) {
+                if (newStatus === 'inactive') {
+                    return { ...admin, role: 'jobseeker', previousRole: admin.role };
+                } else {
+                    return { ...admin, role: admin.previousRole || 'admin', previousRole: null };
+                }
+            }
+            return admin;
+        }));
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(`${API_URL}/api/admin/admin-status/${id}`, { status: newStatus }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Re-fetch to ensure consistent state
+            fetchAdmins();
+        } catch (error) {
+            console.error("Error updating status:", error);
+            // Revert on error
+            setAdmins(originalAdmins);
+            alert("Failed to update status");
+        }
+    };
+
     useEffect(() => {
         fetchAdmins();
-        fetchRoles();
+        // fetchRoles(); // No longer needed for Admin Management
     }, []);
 
     const fetchAdmins = async () => {
@@ -35,25 +64,11 @@ const AdminManagement = () => {
             const response = await axios.get(`${API_URL}/api/admin/users?role=admin,superadmin`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Backend now filters for us
-            const adminUsers = response.data;
-            setAdmins(adminUsers);
+            setAdmins(response.data);
         } catch (error) {
             console.error("Error fetching admins:", error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchRoles = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(`${API_URL}/api/admin/roles`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setRoles(response.data);
-        } catch (error) {
-            console.error("Error fetching roles:", error);
         }
     };
 
@@ -62,77 +77,19 @@ const AdminManagement = () => {
     };
 
     const handleEdit = (admin) => {
-        // Find role based on user permissions or if backend sends roleId
-        let matchedRoleId = "";
-        if (roles.length > 0) matchedRoleId = roles[0]._id; // Default fallback
-
         setFormData({
             name: admin.name,
             email: admin.email,
-            password: "", // Don't show password
-            roleId: matchedRoleId
+            password: "",
+            role: admin.role === "superadmin" ? "superadmin" : "admin"
         });
         setEditingAdminId(admin._id);
         setIsModalOpen(true);
     };
 
-    const handleStatusToggle = async (id, currentStatus) => {
-        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-        // Optimistic update
-        setAdmins(admins.map(admin => admin._id === id ? { ...admin, status: newStatus } : admin));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.put(`${API_URL}/api/admin/admin-status/${id}`, { status: newStatus }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-        } catch (error) {
-            console.error("Error updating status:", error);
-            // Revert on error
-            setAdmins(admins.map(admin => admin._id === id ? { ...admin, status: currentStatus } : admin));
-            alert("Failed to update status");
-        }
-    };
-
-    const handleCopyPassword = () => {
-        navigator.clipboard.writeText("********");
-        alert("Password copied to clipboard (Mock)");
-    };
-
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to remove this admin?")) return;
-        // API call to delete (adminController needs deleteUser logic or repurpose deleteCandidate)
-        // For now, assuming we can delete user via same endpoint if perm allows
-        try {
-            const token = localStorage.getItem("token");
-            await axios.put(`${API_URL}/api/admin/remove-admin/${id}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setAdmins(admins.filter(a => a._id !== id));
-            setSelectedAdmins(selectedAdmins.filter(adminId => adminId !== id));
-        } catch (error) {
-            console.error("Error deleting admin:", error);
-            alert("Failed to remove admin");
-        }
-    };
-
-    const handleBulkDelete = async () => {
-        if (selectedAdmins.length === 0) return;
-        if (!window.confirm(`Are you sure you want to remove ${selectedAdmins.length} admins?`)) return;
-
-        // Implement bulk delete logic (calls single delete for now or bulk API if exists)
-        // For efficiency, we should have a bulk API, but loop is okay for now.
-        for (const id of selectedAdmins) {
-            await handleDelete(id); // Use the existing function but maybe suppress alerts or optimise?
-        }
-        // Ideally: await axios.post('/api/admin/bulk-remove', { ids: selectedAdmins }) ...
-        setSelectedAdmins([]);
-    };
-
     const handleSelectAll = (e) => {
-        if (e.target.checked || e.type === 'click') { // checkbox or link click
-            const ids = filteredAdmins.map(a => a._id);
-            setSelectedAdmins(ids);
+        if (e.target.checked || e.type === 'click') { // Handle both checkbox and button click
+            setSelectedAdmins(filteredAdmins.map(u => u._id));
         } else {
             setSelectedAdmins([]);
         }
@@ -140,9 +97,45 @@ const AdminManagement = () => {
 
     const handleSelectOne = (id) => {
         if (selectedAdmins.includes(id)) {
-            setSelectedAdmins(selectedAdmins.filter(aid => aid !== id));
+            setSelectedAdmins(selectedAdmins.filter(uid => uid !== id));
         } else {
             setSelectedAdmins([...selectedAdmins, id]);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to demote this Admin to Job Seeker? They will be removed from this list.")) return;
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(`${API_URL}/api/admin/demote-admin/${id}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert("Admin demoted successfully");
+            fetchAdmins();
+        } catch (error) {
+            console.error("Error demoting admin:", error);
+            alert("Failed to demote admin");
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedAdmins.length === 0) return;
+        if (!window.confirm(`Are you sure you want to demote ${selectedAdmins.length} admins?`)) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            // Execute all demotions in parallel
+            await Promise.all(selectedAdmins.map(id =>
+                axios.put(`${API_URL}/api/admin/demote-admin/${id}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            ));
+            alert("Selected admins demoted successfully");
+            setSelectedAdmins([]);
+            fetchAdmins();
+        } catch (error) {
+            console.error("Error batch demoting:", error);
+            alert("Failed to demote some admins");
         }
     };
 
@@ -158,17 +151,21 @@ const AdminManagement = () => {
             const token = localStorage.getItem("token");
 
             if (editingAdminId) {
-                await axios.put(`${API_URL}/api/admin/users/${editingAdminId}`, formData, {
+                // Update logic (might need specific endpoint update in controller if generic update doesn't handle role switch well, but updateAdmin usually does)
+                // Wait, updateAdmin in controller might need role vs roleId check too.
+                // adminController.updateAdmin logic handles roleId, not direct role change for admins usually.
+                // Let's assume generic update works or we use create-admin equivalent for promotion?
+                // Actually, updateAdmin (PUT /users/:id) generally handles simple updates.
+                // If we want to CHANGE role, we might need to ensure backend supports it.
+                // Let's rely on updateAdmin for now, but pass 'role' property.
+
+                await axios.put(`${API_URL}/api/admin/update-admin/${editingAdminId}`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 alert("Admin details updated successfully!");
                 fetchAdmins();
             } else {
-                if (!formData.roleId) {
-                    alert("Role is required for new admin");
-                    setIsSubmitting(false);
-                    return;
-                }
+                // Create Admin
                 await axios.post(`${API_URL}/api/admin/create-admin`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -177,8 +174,8 @@ const AdminManagement = () => {
             }
             closeModal();
         } catch (error) {
-            console.error("Error creating admin:", error);
-            alert(error.response?.data?.message || "Failed to add admin");
+            console.error("Error creating/updating admin:", error);
+            alert(error.response?.data?.message || "Failed to save admin");
         } finally {
             setIsSubmitting(false);
         }
@@ -187,7 +184,7 @@ const AdminManagement = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setEditingAdminId(null);
-        setFormData({ name: "", email: "", password: "", roleId: "" });
+        setFormData({ name: "", email: "", password: "", role: "admin" });
     };
 
     const filteredAdmins = admins.filter(admin =>
@@ -273,7 +270,10 @@ const AdminManagement = () => {
                                     <td className="p-4 text-gray-900 font-medium align-middle">{admin.name}</td>
                                     <td className="p-4 text-gray-600 align-middle">{admin.email}</td>
                                     <td className="p-4 text-gray-700 align-middle">
-                                        {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                        {admin.role === 'jobseeker'
+                                            ? <span className="text-red-500 font-medium">{admin.previousRole === 'superadmin' ? 'Super Admin' : 'Admin'} (Deactivated)</span>
+                                            : (admin.role === 'superadmin' ? 'Super Admin' : 'Admin')
+                                        }
                                     </td>
                                     {isSuperAdmin && (
                                         <td className="p-4 text-center align-middle">
@@ -299,9 +299,9 @@ const AdminManagement = () => {
                                         <td className="p-4 text-center align-middle">
                                             <div className="inline-flex rounded-full border border-gray-200 p-0.5 bg-white">
                                                 <button
-                                                    onClick={() => handleStatusToggle(admin._id, admin.status)}
-                                                    disabled={admin.status === 'active'}
-                                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${admin.status === 'active'
+                                                    onClick={() => handleStatusToggle(admin._id, 'active')}
+                                                    disabled={admin.role !== 'jobseeker'}
+                                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${admin.role !== 'jobseeker'
                                                         ? 'bg-[#FFB300] text-white shadow-sm'
                                                         : 'text-gray-500 hover:bg-gray-50'
                                                         }`}
@@ -309,9 +309,9 @@ const AdminManagement = () => {
                                                     Activate
                                                 </button>
                                                 <button
-                                                    onClick={() => handleStatusToggle(admin._id, admin.status)}
-                                                    disabled={admin.status === 'inactive'}
-                                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${admin.status === 'inactive'
+                                                    onClick={() => handleStatusToggle(admin._id, 'inactive')}
+                                                    disabled={admin.role === 'jobseeker'}
+                                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${admin.role === 'jobseeker'
                                                         ? 'bg-red-600 text-white shadow-sm'
                                                         : 'text-gray-500 hover:bg-gray-50'
                                                         }`}
@@ -405,16 +405,14 @@ const AdminManagement = () => {
                                     <label className="block text-sm font-semibold text-gray-900 mb-2">Admin Type</label>
                                     <div className="relative">
                                         <select
-                                            name="roleId"
-                                            value={formData.roleId}
+                                            name="role"
+                                            value={formData.role}
                                             onChange={handleInputChange}
                                             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 appearance-none focus:outline-none focus:ring-2 focus:ring-[#FFB300] focus:border-transparent transition shadow-sm cursor-pointer"
-                                            required={!editingAdminId}
+                                            required
                                         >
-                                            <option value="" disabled>Admin Type</option>
-                                            {roles.map(role => (
-                                                <option key={role._id} value={role._id}>{role.name}</option>
-                                            ))}
+                                            <option value="admin">Admin</option>
+                                            <option value="superadmin">Super Admin</option>
                                         </select>
                                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                                             <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>

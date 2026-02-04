@@ -10,6 +10,7 @@ const UserManagement = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [itemsPerPage, setItemsPerPage] = useState(6);
+    const [editingUser, setEditingUser] = useState(null);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,26 +24,39 @@ const UserManagement = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const currentUserRole = getUserRole();
-    const isSuperAdmin = currentUserRole === "superadmin";
     const canManage = currentUserRole === "superadmin" || currentUserRole === "admin";
 
-    const formatLastSeen = (dateString) => {
-        const date = new Date(dateString);
-        if (isNaN(date)) return "N/A";
+    const formatLastSeen = (lastActiveString) => {
+        if (!lastActiveString) return "Never";
+        const lastActive = new Date(lastActiveString);
+        if (isNaN(lastActive)) return "Never";
 
-        const day = date.getDate().toString().padStart(2, '0');
-        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        const month = months[date.getMonth()];
+        const now = new Date();
+        const timeDiff = now - lastActive; // Difference in milliseconds
+        const fiveMinutes = 5 * 60 * 1000;
 
-        let hour = date.getHours();
+        if (timeDiff < fiveMinutes) {
+            return (
+                <span className="flex items-center gap-2 text-green-600 font-medium">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Active
+                </span>
+            );
+        }
+
+        const day = lastActive.getDate().toString().padStart(2, '0');
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = months[lastActive.getMonth()];
+
+        let hour = lastActive.getHours();
         const ampm = hour >= 12 ? 'pm' : 'am';
         hour = hour % 12;
-        hour = hour ? hour : 12; // the hour '0' should be '12'
+        hour = hour ? hour : 12;
         const formattedHour = hour.toString().padStart(2, '0');
 
-        const minute = date.getMinutes().toString().padStart(2, '0');
+        const minute = lastActive.getMinutes().toString().padStart(2, '0');
 
-        return `(${day} ${month} - ${formattedHour}:${minute}${ampm})`;
+        return <span className="text-gray-500">{day} {month} {formattedHour}:{minute} {ampm}</span>;
     };
 
     useEffect(() => {
@@ -53,16 +67,16 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem("token");
-            // Filter by role=admin to exclude jobseekers
+            // Filter by role=superuser
             const response = await axios.get(`${API_URL}/api/admin/users?role=superuser`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             const mappedUsers = response.data.map(user => ({
                 ...user,
-                // Mocking visual fields for now
-                employeeId: user._id.substring(0, 8).toUpperCase(),
-                lastSeen: user.lastLogin ? formatLastSeen(user.lastLogin) : "Never",
+                // Use real employeeId or fallback
+                employeeId: user.employeeId || "",
+                lastSeen: user.lastActive ? formatLastSeen(user.lastActive) : "Never",
                 // Display first permission or role name as "Permission"
                 permission: user.permissions && user.permissions.length > 0 ? user.permissions[0] : "Admin Access"
             }));
@@ -106,34 +120,68 @@ const UserManagement = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleEdit = (user) => {
+        // Try to find a role that matches the user's current permissions/role name if possible.
+        const userRoleName = roles.find(r => r.users?.some(u => u._id === user._id))?.name;
+        const matchedRole = roles.find(r => r.name === userRoleName);
+
+        setFormData({
+            name: user.name,
+            employeeId: user.employeeId || "",
+            email: user.email,
+            permission: matchedRole ? matchedRole._id : ""
+        });
+        setEditingUser(user);
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = async (user) => {
+        if (!window.confirm("Are you sure you want to demote this Super User to Job Seeker?")) return;
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(`${API_URL}/api/admin/remove-superuser/${user._id}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert("User demoted successfully");
+            fetchUsers();
+        } catch (error) {
+            console.error("Error demoting user:", error);
+            alert("Failed to demote user");
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
-            // Mapping UI fields to Backend API
-            // 'User name' in UI -> email in Backend (as per common auth patterns)
-            // 'Full name' -> name
-            // 'Permission' dropdown -> roleId (assuming we assign a role)
-
             const payload = {
                 name: formData.name,
-                email: formData.email, // "User name" input
-                roleId: formData.permission // Assuming dropdown values are Role IDs
+                email: formData.email,
+                employeeId: formData.employeeId,
+                roleId: formData.permission
             };
 
-            await axios.post(`${API_URL}/api/admin/create-superuser`, payload, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            if (editingUser) {
+                await axios.put(`${API_URL}/api/admin/superuser/${editingUser._id}`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                alert("User updated successfully");
+            } else {
+                await axios.post(`${API_URL}/api/admin/create-superuser`, payload, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                alert("User created successfully");
+            }
 
-            alert("User created successfully");
             setIsModalOpen(false);
+            setEditingUser(null);
             fetchUsers();
             fetchRoles();
             setFormData({ name: "", employeeId: "", email: "", permission: "" });
         } catch (error) {
-            console.error("Error creating user:", error);
-            alert("Failed to create user");
+            console.error("Error saving user:", error);
+            alert(error.response?.data?.message || "Failed to save user");
         } finally {
             setIsSubmitting(false);
         }
@@ -165,7 +213,11 @@ const UserManagement = () => {
                 {/* Add User Button */}
                 {canManage && (
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => {
+                            setEditingUser(null);
+                            setFormData({ name: "", employeeId: "", email: "", permission: "" });
+                            setIsModalOpen(true);
+                        }}
                         className="bg-[#FFB300] hover:bg-[#ffca2c] text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm text-black"
                     >
                         Add user +
@@ -227,10 +279,16 @@ const UserManagement = () => {
                                         {canManage && (
                                             <td className="p-4 align-middle text-right pr-6">
                                                 <div className="flex justify-end gap-2">
-                                                    <button className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
+                                                    <button
+                                                        onClick={() => handleEdit(user)}
+                                                        className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition"
+                                                    >
                                                         <Edit size={16} />
                                                     </button>
-                                                    <button className="p-1.5 bg-red-100 rounded text-red-500 hover:bg-red-200 transition">
+                                                    <button
+                                                        onClick={() => handleDelete(user)}
+                                                        className="p-1.5 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
+                                                    >
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>
@@ -277,7 +335,7 @@ const UserManagement = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 backdrop-blur-sm">
                     <div className="bg-white rounded-lg p-8 w-full max-w-2xl shadow-2xl relative border border-gray-100">
-                        <h3 className="text-xl font-bold mb-6 text-gray-900">User information</h3>
+                        <h3 className="text-xl font-bold mb-6 text-gray-900">{editingUser ? "Edit User" : "User information"}</h3>
 
                         <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-2 gap-8 mb-6">
@@ -316,7 +374,7 @@ const UserManagement = () => {
                                 <div className="space-y-6">
                                     {/* Employee ID */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Employee I D</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Employee ID</label>
                                         <input
                                             type="text"
                                             name="employeeId"

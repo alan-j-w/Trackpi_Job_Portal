@@ -163,7 +163,7 @@ const CreatePermission = () => {
     const fetchAdmins = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`${API_URL}/api/admin/users?role=admin`, {
+            const response = await axios.get(`${API_URL}/api/admin/users?role=superuser`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setAdmins(response.data);
@@ -347,7 +347,7 @@ const CreatePermission = () => {
 
                 {/* Admin Assignment */}
                 <div className="mb-8 mt-12 bg-gray-50 p-6 rounded-xl">
-                    <h3 className="font-bold mb-4 text-gray-800">Assign Admin Users</h3>
+                    <h3 className="font-bold mb-4 text-gray-800">Assign Super Users</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {admins.map((admin) => (
                             <div key={admin._id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:border-[#FFB300] transition-colors">
@@ -365,7 +365,7 @@ const CreatePermission = () => {
                             </div>
                         ))}
                     </div>
-                    {admins.length === 0 && <p className="text-gray-500 text-sm">No admin users found.</p>}
+                    {admins.length === 0 && <p className="text-gray-500 text-sm">No Super users found.</p>}
                 </div>
 
                 {/* Buttons */}

@@ -27,6 +27,9 @@ export const protect = async (req, res, next) => {
                 return res.status(403).json({ message: "Account is inactive. Please contact support." });
             }
 
+            // Update lastActive (Fire and forget, don't await blocking)
+            User.findByIdAndUpdate(req.user._id, { lastActive: new Date() }).catch(err => console.error("Error updating lastActive:", err));
+
             next();
         } catch (error) {
             console.error(error);

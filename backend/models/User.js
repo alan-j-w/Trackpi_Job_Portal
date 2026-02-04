@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema(
             required: true,
             unique: true,
         },
+        employeeId: {
+            type: String, // Optional employee ID for staff/admins
+            unique: true,
+            sparse: true // Allows multiple null/undefined values
+        },
         password: {
             type: String,
             required: true,
@@ -23,6 +28,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             enum: ["jobseeker", "admin", "superadmin", "superuser", "user"], // 'user' kept for legacy support until migration
             default: "jobseeker"
+        },
+        previousRole: {
+            type: String, // Stores previous role when deactivated/demoted (e.g., 'admin', 'superadmin')
+            default: null
         },
         status: {
             type: String,
@@ -40,6 +49,10 @@ const userSchema = new mongoose.Schema(
             type: String
         },
         lastLogin: {
+            type: Date,
+            default: Date.now
+        },
+        lastActive: {
             type: Date,
             default: Date.now
         }

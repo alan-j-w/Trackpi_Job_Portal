@@ -17,7 +17,6 @@ import PermissionManagement from "./pages/admin/PermissionManagement";
 import CreatePermission from "./pages/admin/CreatePermission";
 import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
-import ResumeCandidates from "./pages/admin/ResumeCandidates";
 
 
 import ContactUs from "./pages/ContactUs";

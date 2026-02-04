@@ -121,7 +121,7 @@ const PermissionManagement = () => {
                                     </div>
                                 </th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Role Name</th>
-                                <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Assigned Admins</th>
+                                <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Assigned Super Users</th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Created By</th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Created At</th>
                                 <th className="p-5 pr-8 text-right text-xs uppercase tracking-wider font-bold text-gray-500">Actions</th>
@@ -166,7 +166,7 @@ const PermissionManagement = () => {
                                             <td className="p-5">
                                                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${userCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                                     <UserCheck size={12} />
-                                                    {userCount} Admin{userCount !== 1 && 's'}
+                                                    {userCount} Super User{userCount !== 1 && 's'}
                                                 </div>
                                             </td>
                                             <td className="p-5">

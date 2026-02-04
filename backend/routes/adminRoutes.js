@@ -57,4 +57,32 @@ router.delete("/permissions/:id", authorize("superadmin"), adminController.delet
 // Manage Admin Status
 router.put("/admin-status/:id", authorize("superadmin"), adminController.toggleAdminStatus);
 
+// Update Super User (Admin & Super Admin)
+router.put(
+    "/superuser/:id",
+    authorize("superadmin", "admin"),
+    adminController.updateSuperUser
+);
+
+// Demote Super User (Admin & Super Admin)
+router.put(
+    "/remove-superuser/:id",
+    authorize("superadmin", "admin"),
+    adminController.demoteSuperUser
+);
+
+// Update Admin (Super Admin Only)
+router.put(
+    "/update-admin/:id",
+    authorize("superadmin"),
+    adminController.updateAdmin
+);
+
+// Demote Admin (Super Admin Only)
+router.put(
+    "/demote-admin/:id",
+    authorize("superadmin"),
+    adminController.demoteAdmin
+);
+
 export default router;
