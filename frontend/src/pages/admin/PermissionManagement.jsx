@@ -84,8 +84,8 @@ const PermissionManagement = () => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Team Roles</h1>
-                    <p className="text-gray-500 mt-1">Manage admin roles and their access permissions.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Super User Permission</h1>
+                    <p className="text-gray-500 mt-1">Manage super-user access permissions.</p>
                 </div>
 
                 <button
@@ -124,11 +124,11 @@ const PermissionManagement = () => {
             </div>
 
             {/* Table Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-100/50 overflow-hidden">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b-2 border-[#FFB300]/20 bg-gray-50/50">
+                            <tr className="border-b border-[#FFB300] text-gray-800 font-semibold text-sm">
                                 <th className="p-5 pl-8 w-14">
                                     <div className="flex items-center">
                                         <div className="flex items-center">
@@ -204,7 +204,7 @@ const PermissionManagement = () => {
                                                 </div>
                                             </td>
                                             <td className="p-5 pr-8 text-right">
-                                                <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                <div className="flex justify-end gap-2">
                                                     <button
                                                         onClick={() => navigate(`/admin/permissions/edit/${role._id}`)}
                                                         className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-[#FFB300] hover:text-white hover:border-[#FFB300] transition-all shadow-sm"

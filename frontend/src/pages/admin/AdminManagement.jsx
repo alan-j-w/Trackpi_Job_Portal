@@ -248,10 +248,10 @@ const AdminManagement = () => {
                 )}
             </div>
 
-            <div className="bg-white rounded-xl border border-[#FFB300] overflow-hidden shadow-sm">
-                <table className="w-full text-left border-collapse">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-white text-gray-900 font-semibold text-sm">
+                        <tr className="border-b border-[#FFB300] text-gray-800 font-semibold text-sm">
                             <th className="p-4 w-12 text-center text-gray-500">Sl No</th>
                             <th className="p-4 font-semibold">Username</th>
                             <th className="p-4 font-semibold">Email ID</th>

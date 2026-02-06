@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 /* Pages */
 import Home from "./pages/Home";
@@ -17,6 +18,8 @@ import PermissionManagement from "./pages/admin/PermissionManagement";
 import CreatePermission from "./pages/admin/CreatePermission";
 import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
+import FormManagement from "./pages/admin/FormManagement";
+import FormDetails from "./pages/admin/FormDetails";
 
 
 import ContactUs from "./pages/ContactUs";
@@ -41,6 +44,7 @@ import Creators from "./pages/Creators";
 function App() {
   return (
     <Router>
+      <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* ========== Non-Admin Routes (Redirect Super Admin) ========== */}
         <Route element={<RedirectIfSuperAdmin><Outlet /></RedirectIfSuperAdmin>}>
@@ -120,6 +124,8 @@ function App() {
 
           {/* User Management */}
           <Route path="users" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.USERS_EDIT}><UserManagement /></ProtectedAdminRoute>} />
+          <Route path="forms" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.FORMS_MANAGE}><FormManagement /></ProtectedAdminRoute>} />
+          <Route path="forms/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.FORMS_MANAGE}><FormDetails /></ProtectedAdminRoute>} />
           {/* Placeholder routes for others to prevent crashes if clicked */}
           <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
         </Route>
