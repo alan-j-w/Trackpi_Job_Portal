@@ -23,26 +23,33 @@ const app = express();
 connectDB();
 
 // Security Middleware
-app.use(helmet());
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for now to prevent frontend blocking
+  crossOriginResourcePolicy: false,
+}));
 app.use(morgan("dev"));
-app.use(mongoSanitize());
-app.use(xss());
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later."
-});
-app.use("/api", limiter);
-
-// CORS Configuration
+// CORS Configuration (Relaxed for debugging)
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"], // Allow frontend ports
+  origin: true, // Allow all origins dynamically
   credentials: true
 }));
 
+// Body Parsers (Must be before sanitizers)
 app.use(express.json());
+
+// Sanitization (Must be after body parser)
+// app.use(mongoSanitize());
+// app.use(xss());
+
+// Rate Limiting (Relaxed for Dev)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000, // Increased limit for dev
+  message: "Too many requests from this IP, please try again later."
+});
+app.use("/api", limiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
