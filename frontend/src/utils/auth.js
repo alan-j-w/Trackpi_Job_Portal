@@ -24,3 +24,12 @@ export const getUserRole = () => {
     const decoded = getDecodedToken();
     return decoded ? decoded.role : null;
 };
+
+export const hasPermission = (requiredPermission) => {
+    const role = getUserRole();
+    if (role === 'superadmin') return true;
+    const decoded = getDecodedToken();
+    const permissions = decoded?.permissions || [];
+    return permissions.includes(requiredPermission);
+};
+

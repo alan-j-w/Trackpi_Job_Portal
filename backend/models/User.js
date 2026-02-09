@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
             enum: ["jobseeker", "admin", "superadmin", "user"], // 'user' kept for legacy support until migration
             default: "jobseeker"
         },
+        status: {
+            type: String,
+            enum: ["active", "inactive"],
+            default: "active"
+        },
         permissions: {
             type: [String],
             default: []

@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import { Eye, Trash2, FileText, Search, Filter, ArrowUpDown } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { hasPermission } from "../../utils/auth";
+import { PERMISSIONS } from "../../constants/permissions";
+
 
 const CircularProgress = ({ percentage }) => {
     const radius = 18;
@@ -48,6 +52,12 @@ const AdminApplicants = () => {
     const [error, setError] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const location = useLocation();
+
+    const isSignupPage = location.pathname.includes("signup");
+    const PERM_RESUME = isSignupPage ? PERMISSIONS.SIGNUP_RESUME : PERMISSIONS.APPLICANTS_RESUME;
+    const PERM_DELETE = isSignupPage ? PERMISSIONS.SIGNUP_DELETE : PERMISSIONS.APPLICANTS_DELETE;
+
 
     // Calculate profile completion percentage
     const calculateProgress = (user, profile) => {
@@ -183,9 +193,11 @@ const AdminApplicants = () => {
             {selectedIds.length > 0 && (
                 <div className="mb-4 text-sm text-gray-600 flex items-center justify-between bg-yellow-50 p-3 rounded-lg border border-yellow-100">
                     <span>Selected <span className="font-bold text-[#FFB300]">{selectedIds.length}</span> items</span>
-                    <button className="text-red-500 hover:text-red-700 font-medium text-sm flex items-center gap-1">
-                        Delete items <span className="text-lg">→</span>
-                    </button>
+                    {hasPermission(PERM_DELETE) && (
+                        <button className="text-red-500 hover:text-red-700 font-medium text-sm flex items-center gap-1">
+                            Delete items <span className="text-lg">→</span>
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -228,13 +240,13 @@ const AdminApplicants = () => {
                                     <td className="p-4 text-gray-800 text-center">{candidate.gender}</td>
                                     <td className="p-4 text-center">
                                         <div className="flex justify-center">
-                                            {candidate.resume ? (
+                                            {candidate.resume && hasPermission(PERM_RESUME) ? (
                                                 <a href={candidate.resume} target="_blank" rel="noopener noreferrer"
                                                     className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition text-gray-700">
                                                     <FileText size={18} />
                                                 </a>
                                             ) : (
-                                                <span className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-gray-300">
+                                                <span className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-gray-300 cursor-not-allowed">
                                                     <FileText size={18} />
                                                 </span>
                                             )}
@@ -245,13 +257,15 @@ const AdminApplicants = () => {
                                             <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
                                                 <Eye size={18} />
                                             </button>
-                                            <button
-                                                className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded hover:bg-red-200 transition"
-                                                title="Delete"
-                                                onClick={() => handleDelete(candidate.id)}
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
+                                            {hasPermission(PERM_DELETE) && (
+                                                <button
+                                                    className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded hover:bg-red-200 transition"
+                                                    title="Delete"
+                                                    onClick={() => handleDelete(candidate.id)}
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="p-4 text-center">

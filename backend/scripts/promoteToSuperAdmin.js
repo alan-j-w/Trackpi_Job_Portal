@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import User from "../models/User.js";
 
 // Load env variables
