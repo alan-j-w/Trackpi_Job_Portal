@@ -1,16 +1,26 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import paulWalkerImg from "../assets/images/paulwaker.png";
 
-function TestimonialRow({ name, role, image, videoUrl, text }) {
+function TestimonialRow({
+  name,
+  jobTitle,
+  coverImageUrl,
+  thumbnailImageUrl,
+  videoUrl,
+  about
+}) {
   const [playVideo, setPlayVideo] = useState(false);
 
   return (
     <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 pb-10 border-b">
       {/* LEFT CARD */}
       <div className="relative w-full sm:w-64 bg-black text-white rounded-3xl overflow-hidden">
-        <img src={paulWalkerImg} className="w-full h-64 object-cover" alt={name} />
+        <img
+          src={coverImageUrl}
+          className="w-full h-64 object-cover"
+          alt={name}
+        />
 
         <button
           onClick={() => setPlayVideo(true)}
@@ -21,7 +31,7 @@ function TestimonialRow({ name, role, image, videoUrl, text }) {
 
         <div className="text-center py-4">
           <h3 className="font-semibold">{name}</h3>
-          <p className="text-sm text-gray-300">{role}</p>
+          <p className="text-sm text-gray-300">{jobTitle}</p>
         </div>
       </div>
 
@@ -31,8 +41,8 @@ function TestimonialRow({ name, role, image, videoUrl, text }) {
           {!playVideo ? (
             <>
               <img
-                src={paulWalkerImg}
-                className="w-full h-full object-contain opacity-80"
+                src={thumbnailImageUrl}
+                className="w-full h-full object-cover opacity-80"
                 alt="Video Preview"
               />
               <div className="absolute inset-0 bg-black/40"></div>
@@ -46,20 +56,19 @@ function TestimonialRow({ name, role, image, videoUrl, text }) {
               </button>
             </>
           ) : (
-            <iframe
-              src={`${videoUrl}?autoplay=1`}
+            <video
+              src={videoUrl}
               className="w-full h-full"
-              allow="autoplay; fullscreen"
-              allowFullScreen
-              title={name}
+              controls
+              autoPlay
             />
           )}
         </div>
 
         <h3 className="font-bold mt-4">{name}</h3>
-        <p className="text-gray-500 text-sm">{role}</p>
+        <p className="text-gray-500 text-sm">{jobTitle}</p>
 
-        <p className="text-gray-600 mt-2">{text}</p>
+        <p className="text-gray-600 mt-2">{about}</p>
       </div>
     </div>
   );
@@ -75,20 +84,13 @@ export default function Testimonials() {
     setLoading(true);
 
     fetch(`/api/testimonials?page=${currentPage}&limit=4`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch testimonials");
-        }
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
-        // Ensure data.testimonials exists, otherwise default to empty array
         setTestimonials(data.testimonials || []);
         setTotalPages(data.totalPages || 1);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error("Error fetching testimonials:", err);
+      .catch(() => {
         setTestimonials([]);
         setLoading(false);
       });
@@ -119,14 +121,16 @@ export default function Testimonials() {
 
       <section className="max-w-6xl mx-auto px-4 space-y-12">
         {testimonials.map((item) => (
-          <TestimonialRow
-            key={item._id}
-            name={item.name}
-            role={item.role}
-            image={item.image}
-            videoUrl={item.video}
-            text={item.description}
-          />
+          // Update your public Testimonials.jsx to use new structure
+<TestimonialRow
+  key={item._id}
+  name={item.name}
+  jobTitle={item.jobTitle}
+  coverImageUrl={item.coverImage.url} // Changed from coverImageUrl to coverImage.url
+  thumbnailImageUrl={item.thumbnailImage.url} // Changed
+  videoUrl={item.video.url} // Changed
+  about={item.about}
+/>
         ))}
       </section>
 

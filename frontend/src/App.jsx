@@ -10,6 +10,7 @@ import AdminJobs from "./pages/admin/AdminJobs";
 import PostJob from "./pages/admin/PostJob";
 import AdminApplicants from "./pages/admin/AdminApplicants";
 import AdminManagement from "./pages/admin/AdminManagement";
+import AdminTestimonials from "./pages/admin/AdminTestimonials";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
 import UserDashboard from "./pages/user/UserDashboard";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
@@ -20,7 +21,9 @@ import Signup from "./pages/Signup";
 import LinkedInCallback from "./pages/LinkedInCallback";
 import CreateProfile from "./pages/CreateProfile";
 import Profile from "./pages/Profile";
-
+import AddTestimonial from "./pages/admin/AddTestimonial";
+import TestimonialDetails from "./pages/admin/TestimonialDetails";
+import EditTestimonial from "./pages/admin/EditTestimonial";
 /* Route Protection */
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -45,6 +48,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/linkedin/callback" element={<LinkedInCallback />} />
+          
 
           {/* ========== Protected Routes ========== */}
           <Route
@@ -89,6 +93,7 @@ function App() {
               <AdminLayout />
             </ProtectedAdminRoute>
           }
+          
         >
           {/* General Dashboard */}
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -98,8 +103,11 @@ function App() {
           <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_JOBS}><PostJob /></ProtectedAdminRoute>} />
-          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AdminApplicants /></ProtectedAdminRoute>} />
 
+<Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AdminApplicants /></ProtectedAdminRoute>} />
+          <Route path="/admin/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AddTestimonial/></ProtectedAdminRoute>} />
+          <Route path="testimonials/:id"element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><TestimonialDetails /></ProtectedAdminRoute>}/>
+          <Route path="/admin/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><EditTestimonial /></ProtectedAdminRoute>} />
           {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_CANDIDATES}><AdminApplicants /></ProtectedAdminRoute>} />
 
@@ -107,7 +115,16 @@ function App() {
           <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
           {/* Placeholder routes for others to prevent crashes if clicked */}
           <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
+        <Route
+  path="testimonials"
+  element={
+    <ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}>
+      <AdminTestimonials />
+    </ProtectedAdminRoute>
+  }
+/>
         </Route>
+
 
       </Routes>
     </Router>

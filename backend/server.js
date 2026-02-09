@@ -21,7 +21,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
-app.use("/api/testimonials", testimonialsRoutes);
+app.use("/api", testimonialsRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
 
