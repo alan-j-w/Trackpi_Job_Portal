@@ -28,10 +28,10 @@ router.post(
     adminController.createAdmin
 );
 
-// Admin & Super Admin: Manage Super Users (Restricted Staff)
+// Super Admin Only: Manage Super Users (Restricted Staff)
 router.post(
     "/create-superuser",
-    authorize("superadmin", "admin"),
+    authorize("superadmin"),
     adminController.createSuperUser
 );
 
@@ -51,23 +51,22 @@ router.get(
 router.post("/permissions", authorize("superadmin"), adminController.createRole);
 router.get("/permissions", authorize("superadmin", "admin"), adminController.getAllRoles);
 router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
-router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
 router.delete("/permissions/:id", authorize("superadmin"), adminController.deleteRole);
 
 // Manage Admin Status
 router.put("/admin-status/:id", authorize("superadmin"), adminController.toggleAdminStatus);
 
-// Update Super User (Admin & Super Admin)
+// Update Super User (Super Admin Only)
 router.put(
     "/superuser/:id",
-    authorize("superadmin", "admin"),
+    authorize("superadmin"),
     adminController.updateSuperUser
 );
 
-// Demote Super User (Admin & Super Admin)
+// Demote Super User (Super Admin Only)
 router.put(
     "/remove-superuser/:id",
-    authorize("superadmin", "admin"),
+    authorize("superadmin"),
     adminController.demoteSuperUser
 );
 

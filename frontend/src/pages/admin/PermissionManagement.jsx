@@ -4,12 +4,17 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../../config";
 
+import { getUserRole } from "../../utils/auth";
+
 const PermissionManagement = () => {
     const navigate = useNavigate();
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRoles, setSelectedRoles] = useState([]);
+
+    const currentUserRole = getUserRole();
+    const isSuperAdmin = currentUserRole === "superadmin";
 
     useEffect(() => {
         fetchRoles();
@@ -88,13 +93,15 @@ const PermissionManagement = () => {
                     <p className="text-gray-500 mt-1">Manage super-user access permissions.</p>
                 </div>
 
-                <button
-                    onClick={() => navigate("/admin/permissions/create")}
-                    className="flex items-center gap-2 bg-[#FFB300] hover:bg-[#e09e00] text-black px-6 py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg transform active:scale-95 duration-200"
-                >
-                    <Plus size={18} strokeWidth={2.5} />
-                    Create New Role
-                </button>
+                {isSuperAdmin && (
+                    <button
+                        onClick={() => navigate("/admin/permissions/create")}
+                        className="flex items-center gap-2 bg-[#FFB300] hover:bg-[#e09e00] text-black px-6 py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg transform active:scale-95 duration-200"
+                    >
+                        <Plus size={18} strokeWidth={2.5} />
+                        Create New Role
+                    </button>
+                )}
             </div>
 
             {/* Controls Bar */}
@@ -116,9 +123,11 @@ const PermissionManagement = () => {
                             <span className="text-[#FFB300] font-bold">{selectedRoles.length}</span> selected
                         </span>
                         <div className="h-4 w-[1px] bg-gray-200"></div>
-                        <button className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 transition-colors">
-                            <Trash2 size={14} /> Delete Selected
-                        </button>
+                        {isSuperAdmin && (
+                            <button className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 transition-colors">
+                                <Trash2 size={14} /> Delete Selected
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -140,7 +149,7 @@ const PermissionManagement = () => {
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Assigned Super Users</th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Created By</th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Created At</th>
-                                <th className="p-5 pr-8 text-right text-xs uppercase tracking-wider font-bold text-gray-500">Actions</th>
+                                {isSuperAdmin && <th className="p-5 pr-8 text-right text-xs uppercase tracking-wider font-bold text-gray-500">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -164,12 +173,15 @@ const PermissionManagement = () => {
                                     return (
                                         <tr key={role._id} className="group hover:bg-yellow-50/30 transition-colors duration-150">
                                             <td className="p-5 pl-8">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedRoles.includes(role._id)}
-                                                    onChange={() => toggleSelect(role._id)}
-                                                    className="w-5 h-5 rounded-[4px] border-gray-300 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer transition-all"
-                                                />
+                                                {isSuperAdmin && (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedRoles.includes(role._id)}
+                                                        onChange={() => toggleSelect(role._id)}
+                                                        className="w-5 h-5 rounded-[4px] border-gray-300 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer transition-all"
+                                                    />
+                                                )}
+                                                {!isSuperAdmin && <span className="text-gray-400">#</span>}
                                             </td>
                                             <td className="p-5">
                                                 <div className="flex items-center gap-3">
@@ -203,24 +215,26 @@ const PermissionManagement = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-5 pr-8 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => navigate(`/admin/permissions/edit/${role._id}`)}
-                                                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-[#FFB300] hover:text-white hover:border-[#FFB300] transition-all shadow-sm"
-                                                        title="Edit Role"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(role)}
-                                                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm"
-                                                        title="Delete Role"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                            {isSuperAdmin && (
+                                                <td className="p-5 pr-8 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => navigate(`/admin/permissions/edit/${role._id}`)}
+                                                            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-[#FFB300] hover:text-white hover:border-[#FFB300] transition-all shadow-sm"
+                                                            title="Edit Role"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(role)}
+                                                            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm"
+                                                            title="Delete Role"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })
