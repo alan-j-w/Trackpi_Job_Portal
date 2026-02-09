@@ -13,6 +13,7 @@ import upload from "../middleware/uploadMiddleware.js";
 const router = express.Router();
 
 /* ================= LIST ================= */
+router.get("/testimonials", getPublicTestimonials);
 router.get("/admin/testimonials", getAdminTestimonials);
 
 /* ================= ADD (STATIC – IMPORTANT) ================= */

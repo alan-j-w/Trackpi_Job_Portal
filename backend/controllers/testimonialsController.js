@@ -253,12 +253,21 @@ export const getAdminTestimonials = async (req, res) => {
 
 export const getPublicTestimonials = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
+
+    const total = await Testimonial.countDocuments({ isActive: true });
     const testimonials = await Testimonial.find({ isActive: true })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.json({
       success: true,
-      testimonials
+      testimonials,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page
     });
   } catch {
     res.status(500).json({
