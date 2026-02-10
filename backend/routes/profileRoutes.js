@@ -4,8 +4,16 @@ const router = express.Router();
 import {
     createOrUpdateProfile,
     getMyProfile,
-    checkProfileStatus
+    checkProfileStatus,
+    uploadCoverImage,
+    uploadProfileImage,
+    uploadResume,
+    deleteCoverImage,
+    deleteProfileImage,
+    deleteResume
 } from "../controllers/profileController.js";
+
+import { uploadImage, uploadResume as resumeUpload } from "../middleware/uploadMiddleware.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -13,5 +21,31 @@ import { protect } from "../middleware/authMiddleware.js";
 router.post("/", protect, createOrUpdateProfile);       // Create or update profile
 router.get("/me", protect, getMyProfile);               // Get my profile
 router.get("/status", protect, checkProfileStatus);     // Check if profile exists
+
+router.post(
+    "/cover-image",
+    protect, // Using protect alias for authMiddleware
+    uploadImage.single("coverImage"),
+    uploadCoverImage
+);
+
+router.delete("/cover-image", protect, deleteCoverImage);
+router.delete("/profile-image", protect, deleteProfileImage);
+
+router.post(
+    "/profile-image",
+    protect,
+    uploadImage.single("profileImage"),
+    uploadProfileImage
+);
+
+router.post(
+    "/resume",
+    protect,
+    resumeUpload.single("resume"),
+    uploadResume
+);
+
+router.delete("/resume", protect, deleteResume);
 
 export default router;

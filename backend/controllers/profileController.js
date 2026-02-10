@@ -17,7 +17,8 @@ export const createOrUpdateProfile = async (req, res) => {
             'skills', 'languages',
             'preferredLocations', 'willRelocate', 'preferredWorkMode', // Step 2 fields
             'expectedSalary', 'drivingLicenses', 'hasTwoWheeler', 'hasLaptop', 'socialLinks',
-            'resumeUrl', 'profileImage', 'summary'
+            'resumeUrl', 'profileImage', 'summary',
+            'careerBreak', 'careerBreakDuration' // Added whitelist
         ];
 
         // Filter bodyData to only allowed fields
@@ -133,4 +134,101 @@ export const checkProfileStatus = async (req, res) => {
     }
 };
 
+export const uploadCoverImage = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user._id },
+            { coverImage: req.file.path },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+        res.json(profile);
+    } catch (error) {
+        console.error("Cover upload error:", error);
+        res.status(500).json({ success: false, message: "Cover upload failed" });
+    }
+};
 
+export const uploadProfileImage = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user._id },
+            { profileImage: req.file.path },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+        res.json(profile);
+    } catch (error) {
+        console.error("Profile image upload error:", error);
+        res.status(500).json({ success: false, message: "Profile image upload failed" });
+    }
+};
+
+export const uploadResume = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user._id },
+            { resume: req.file.path },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+        res.json(profile);
+    } catch (error) {
+        console.error("Resume upload error:", error);
+        res.status(500).json({ success: false, message: "Resume upload failed" });
+    }
+};
+
+
+// ✅ Delete Cover Image
+export const deleteCoverImage = async (req, res) => {
+    try {
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user._id },
+            { coverImage: "" },
+            { new: true }
+        );
+
+        if (!profile) return res.status(404).json({ message: "Profile not found" });
+        res.json(profile);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+
+// ✅ Delete Profile Image
+export const deleteProfileImage = async (req, res) => {
+    try {
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user._id },
+            { profileImage: "" },
+            { new: true }
+        );
+
+        if (!profile) return res.status(404).json({ message: "Profile not found" });
+        res.json(profile);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+// ✅ Delete Resume
+export const deleteResume = async (req, res) => {
+    try {
+        const profile = await Profile.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: { resume: "" } },
+            { new: true }
+        );
+
+        if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+        res.json(profile);
+    } catch (err) {
+        console.error("Delete resume fatal error:", err);
+        res.status(500).json({ message: "Server error: " + err.message });
+    }
+};

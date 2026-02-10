@@ -29,6 +29,7 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import RedirectIfSuperAdmin from "./components/RedirectIfSuperAdmin";
+import RedirectIfAuthenticated from "./components/RedirectIfAuthenticated";
 import { PERMISSIONS } from "./constants/permissions";
 
 import ResumeGen from "./pages/ResumeGen";
@@ -47,10 +48,23 @@ function App() {
             Assuming RedirectIfSuperAdmin renders Outlet if NOT SA.
         */}
         <Route element={<RedirectIfSuperAdmin><Outlet /></RedirectIfSuperAdmin>}>
-          <Route path="/" element={<Home />} />
+
+          {/* 
+            🔒 Routes that Logged-in Users CANNOT access 
+            (They get redirected to /profile)
+          */}
+          <Route element={<RedirectIfAuthenticated />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Route>
+
+          {/* Accessible to both (Authenticated & Guests) - OR typically these should be public? 
+              The user said "cant visit to the landing page". 
+              Usually About/Contact are okay, but if strict, we can put them inside too.
+              For now, I'll only restrict Home, Login, Signup.
+          */}
           <Route path="/contact" element={<ContactUs />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
           <Route path="/linkedin/callback" element={<LinkedInCallback />} />
           <Route path="/resume-gen" element={<ResumeGen />} />
           <Route path="/about" element={<About />} />

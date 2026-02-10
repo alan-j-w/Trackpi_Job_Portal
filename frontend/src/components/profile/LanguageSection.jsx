@@ -1,43 +1,54 @@
 import React from 'react';
+import LanguageRow from './LanguageRow';
 
 const EditIcon = ({ className, onClick }) => (
-    <div onClick={onClick} className={`w-8 h-8 rounded-full bg-white flex items-center justify-center cursor-pointer shadow-sm border border-gray-100 hover:bg-gray-50 transition ${className}`}>
-        <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        </svg>
-    </div>
+    <svg onClick={onClick} className={`cursor-pointer text-black hover:text-gray-600 transition ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+    </svg>
 );
 
-const PlusIcon = ({ className }) => (
-    <svg className={`w-5 h-5 cursor-pointer hover:text-black text-gray-400 transition-colors ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+const PlusIcon = ({ className, onClick }) => (
+    <svg onClick={onClick} className={`w-5 h-5 cursor-pointer hover:text-black text-gray-400 transition-colors ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
     </svg>
 );
 
-const LanguageRow = ({ name, level }) => (
-    <div className="flex justify-between items-center">
-        <span className="font-bold text-xs text-black w-24">{name}</span>
-        <div className="flex gap-1.5">
-            {[1, 2, 3, 4].map(dot => (
-                <div key={dot} className={`w-3 h-3 rounded-full ${dot <= level ? 'bg-[#FFB300]' : 'border border-gray-200 bg-gray-50'}`}></div>
-            ))}
-        </div>
-    </div>
-);
+const LanguageSection = ({ languages, onAdd, onManage }) => {
+    // Helper to convert proficiency string to 1-4 level
+    const getLevel = (proficiency) => {
+        switch (proficiency?.toLowerCase()) {
+            case 'beginner': return 1;
+            case 'intermediate': return 2;
+            case 'expert': return 3;
+            case 'native': return 4;
+            default: return 1;
+        }
+    };
 
-const LanguageSection = () => {
     return (
-        <div className="py-8 border-b border-gray-200">
+        <div className="py-5 border-b border-gray-200">
             <div className="flex justify-between items-center mb-5">
                 <h2 className="font-bold text-lg text-black">Language</h2>
-                <div className="flex gap-4"><EditIcon className="w-7 h-7" /><PlusIcon /></div>
+                <div className="flex gap-4">
+                    <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
+                    <PlusIcon onClick={onAdd} />
+                </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-12 max-w-lg">
-                <LanguageRow name="English" level={3} />
-                <LanguageRow name="Hindi" level={3} />
-                <LanguageRow name="Tamil" level={2} />
-                <LanguageRow name="Malayalam" level={3} />
-            </div>
+
+            {languages?.length > 0 ? (
+                <div className="flex flex-col gap-4 max-w-lg">
+                    {languages.map((lang, idx) => (
+                        <div key={idx} onClick={onManage} className="px-2 -mx-2 cursor-pointer hover:bg-gray-50 rounded-lg transition">
+                            <LanguageRow
+                                language={{ language: lang.name, proficiency: getLevel(lang.proficiency) }}
+                                showEdit={false}
+                            />
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-sm text-gray-400 italic">No languages added.</p>
+            )}
         </div>
     );
 };

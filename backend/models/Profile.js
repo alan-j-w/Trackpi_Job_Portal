@@ -85,13 +85,21 @@ const profileSchema = new mongoose.Schema(
                 startDate: String,
                 endDate: String,
                 description: String,
+                employmentType: { type: String, default: "" },
+                location: { type: String, default: "" },
+                salary: { type: String, default: "" }, // Added
+                workMode: { type: String, enum: ["onsite", "remote", "hybrid", ""], default: "" }, // Added
+                currentlyWorking: { type: Boolean, default: false }
             }
         ],
 
         // ================= STEP 2: PROFESSIONAL INFO =================
         languages: [{
             name: { type: String, required: true },
-            proficiency: { type: String, default: "beginner" } // beginner, intermediate, expert
+            proficiency: { type: String, default: "beginner" }, // beginner, intermediate, expert
+            canRead: { type: Boolean, default: false },
+            canWrite: { type: Boolean, default: false },
+            canSpeak: { type: Boolean, default: false }
         }],
 
         preferredLocations: [{ type: String }],
@@ -110,7 +118,13 @@ const profileSchema = new mongoose.Schema(
         education: [{
             degree: String,
             institution: String,
-            year: String,
+            course: String, // e.g. "Computer Science"
+            courseType: String, // "Full time", "Part time", etc.
+            startDate: String, // Year
+            endDate: String, // Year
+            grade: String, // "A"
+            domain: String, // University domain for logo
+            year: String, // Legacy, kept for compatibility if needed, or derived
             description: String
         }],
 
@@ -122,20 +136,27 @@ const profileSchema = new mongoose.Schema(
         skills: { type: [String], default: [] },
 
         // ================= ASSETS =================
-        resumeUrl: {
+        resume: {
             type: String,
             default: "",
         },
 
         profileImage: {
             type: String,
-            default: "",
+            default: ""
+        },
+        coverImage: {
+            type: String,
+            default: ""
         },
 
         // ================= EXTRA =================
         hasDrivingLicense: { type: Boolean, default: false },
         hasTwoWheeler: { type: Boolean, default: false },
         hasLaptop: { type: Boolean, default: false },
+
+        careerBreak: { type: Boolean, default: false },
+        careerBreakDuration: { type: String, default: "" },
 
         // ================= SOCIAL =================
         socialLinks: {

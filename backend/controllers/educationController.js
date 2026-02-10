@@ -40,10 +40,18 @@ export const searchUniversities = async (req, res) => {
         const searchQuery = query.toLowerCase().trim();
 
         // Promise.allSettled for Resilience
-        const [hipolabsResult, gdResult, localResult] = await Promise.allSettled([
+        const [clearbitResult, hipolabsResult, gdResult, localResult] = await Promise.allSettled([
+            // 0. Clearbit Autocomplete API (Best for logos & global coverage)
+            axios.get(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(query)}`, { timeout: 3000 })
+                .then(res => res.data.map(item => ({
+                    name: item.name,
+                    domain: item.domain,
+                    logo: item.logo
+                }))),
+
             // 1. Hipolabs API
             axios.get(`http://universities.hipolabs.com/search?name=${encodeURIComponent(query)}`, { timeout: 3000 })
-                .then(res => res.data.slice(0, 20).map(u => ({ name: u.name }))),
+                .then(res => res.data.slice(0, 20).map(u => ({ name: u.name, domain: u.domains?.[0] || null }))),
 
             // 2. Github College List (Cached)
             (async () => {
@@ -60,7 +68,8 @@ export const searchUniversities = async (req, res) => {
                         .filter(c => c.college && c.college.toLowerCase().includes(searchQuery))
                         .slice(0, 20)
                         .map(c => ({
-                            name: c.college.replace(/\s*\(Id:.*?\)/i, "").trim()
+                            name: c.college.replace(/\s*\(Id:.*?\)/i, "").trim(),
+                            domain: null
                         }))
                     : [];
             })(),
@@ -68,32 +77,39 @@ export const searchUniversities = async (req, res) => {
             // 3. Local DB
             University.find({ name: { $regex: new RegExp(query, "i") } })
                 .limit(10)
-                .select("name")
-                .then(docs => docs.map(d => ({ name: d.name })))
+                .select("name domain")
+                .then(docs => docs.map(d => ({ name: d.name, domain: d.domain || null })))
         ]);
 
         // Aggregate results
         let allResults = [];
+        if (clearbitResult.status === 'fulfilled') allResults.push(...clearbitResult.value);
         if (hipolabsResult.status === 'fulfilled') allResults.push(...hipolabsResult.value);
         if (gdResult.status === 'fulfilled') allResults.push(...gdResult.value);
         if (localResult.status === 'fulfilled') allResults.push(...localResult.value);
 
-        // Deduplication (Case-Insensitive)
-        const uniqueResults = [];
-        const seenNames = new Set();
+        // Deduplication (Case-Insensitive) & Prefer Domain/Logo
+        const uniqueResults = new Map();
 
         for (const item of allResults) {
-            // Strict deduplication key
             const normalizedName = item.name.trim().toLowerCase();
-            if (!seenNames.has(normalizedName)) {
-                seenNames.add(normalizedName);
-                uniqueResults.push({ name: item.name }); // Keep original casing
+
+            // Update if:
+            // 1. Not exists
+            // 2. Current has no domain but new one does
+            // 3. Current has domain but new one has explicitly defined logo
+            const current = uniqueResults.get(normalizedName);
+            if (!current) {
+                uniqueResults.set(normalizedName, item);
+            } else if (!current.domain && item.domain) {
+                uniqueResults.set(normalizedName, item);
+            } else if (!current.logo && item.logo) {
+                uniqueResults.set(normalizedName, item);
             }
         }
 
-        // Return strictly [{ name: "..." }]
-        res.status(200).json(uniqueResults.slice(0, 50));
-
+        // Return values
+        res.status(200).json(Array.from(uniqueResults.values()).slice(0, 50));
     } catch (error) {
         console.error("Error searching institutions:", error.message);
         // Resilience: Return empty array on critical failure

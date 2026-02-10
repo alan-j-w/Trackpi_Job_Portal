@@ -196,7 +196,7 @@ const Step1BasicInfo = ({
 
     return (
         <>
-            <div className="text-center mb-16 max-w-[580px] mx-auto">
+            <div className="text-center mb-24 max-w-[580px] mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold mb-2">
                     Launch <span className="text-[#FFB300]">Career</span>
                 </h1>

@@ -139,6 +139,7 @@ const CreateProfile = () => {
                 degree: edu.level,
                 institution: edu.university,
                 year: edu.endYear, // Taking end year as main year
+                domain: edu.domain,
                 description: `${edu.course} (${edu.courseType})`
             })) || [];
 
@@ -257,7 +258,7 @@ const CreateProfile = () => {
 
             {/* Top Right Illustration */}
             {step === 1 && (
-                <div className="absolute top-0 right-0 z-0 hidden md:block w-[423px] h-auto">
+                <div className="absolute top-10 right-0 z-0 hidden md:block w-[423px] h-auto">
                     <img src={step1Illustration} alt="Illustration" className="w-full h-auto" />
                 </div>
             )}

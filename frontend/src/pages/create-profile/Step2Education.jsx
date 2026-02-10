@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import SearchableDropdown from "./components/SearchableDropdown";
 import deleteEducationImg from "../../assets/illustrations/delete-education.png";
+import { calculateProfileStrength } from "../../utils/profileUtils";
+import ProfileStrengthCircle from "../../components/profile/ProfileStrengthCircle";
 
 const EDUCATION_LEVELS = [
     "10th",
@@ -20,6 +22,12 @@ const KERALA_DISTRICTS = [
 const YEARS = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
 
 const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack }) => {
+
+    const { strength } = calculateProfileStrength({
+        ...formData,
+        education: formData.educationList,
+        workExperience: formData.workExperiences
+    });
 
     // ================= SKILLS LOGIC =================
     const [skillInput, setSkillInput] = useState("");
@@ -192,7 +200,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
         course: "",
         courseType: "Full time",
         startYear: "",
-        endYear: ""
+        endYear: "",
+        domain: ""
     });
 
     const [filteredCourses, setFilteredCourses] = useState([]);
@@ -262,12 +271,12 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                     { signal: abortControllerRef.current.signal }
                 );
 
-                // Expecting [{ name: "..." }]
-                const unis = res.data.map(u => u.name);
+                // Expecting [{ name: "...", domain: "...", logo: "..." }]
+                const unis = res.data;
 
                 // Inject "Other" option
-                if (!unis.includes("Other")) {
-                    unis.push("Other");
+                if (!unis.some(u => u.name === "Other")) {
+                    unis.push({ name: "Other", domain: null });
                 }
 
                 setFilteredUniversities(unis);
@@ -315,7 +324,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                 course: "",
                 courseType: "Full time",
                 startYear: "",
-                endYear: ""
+                endYear: "",
+                domain: ""
             });
             setEditingEducationIndex(null);
             setEduSearch("");
@@ -420,19 +430,9 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                 {/* Profile Strength Indicator */}
                 <div className="flex justify-center mb-12">
-                    <div className="relative w-48 h-48">
-                        <svg className="w-full h-full transform -rotate-90">
-                            <circle cx="96" cy="96" r="88" stroke="#374151" strokeWidth="12" fill="none" className="opacity-20" />
-                            <circle cx="96" cy="96" r="88" stroke="#374151" strokeWidth="12" fill="none" strokeDasharray="552" strokeDashoffset="100" className="opacity-100" /> {/* Grey part */}
-                            <circle cx="96" cy="96" r="88" stroke="#FFB300" strokeWidth="12" fill="none" strokeDasharray="552" strokeDashoffset="90" strokeLinecap="round" className="drop-shadow-lg" /> {/* Yellow part */}
-                        </svg>
-                        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-                            <p className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-1">Profile Strength</p>
-                            <p className="text-5xl font-extrabold text-[#FFB300]">83%</p>
-                        </div>
-                    </div>
+                    <ProfileStrengthCircle strength={strength} />
                 </div>
-                <p className="text-center -mt-8 mb-12 text-sm font-bold text-gray-900">Profile Strength: Intermediate</p>
+                <p className="text-center -mt-8 mb-12 text-sm font-bold text-gray-900">Profile Strength: {strength >= 100 ? "Excellent" : strength >= 50 ? "Intermediate" : "Beginner"}</p>
 
 
 

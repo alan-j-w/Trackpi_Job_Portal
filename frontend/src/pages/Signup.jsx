@@ -1,8 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
-
-import loginIllustration from "../assets/illustrations/login-illustration.png";
+import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -18,7 +14,7 @@ const Signup = () => {
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
 
-                navigate("/");
+                redirectAfterLogin(navigate);
             } catch (error) {
                 console.error("Google signup failed:", error.response?.data || error.message);
                 alert("Google signup failed");

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-// SVGs used directly in component
+import SearchableDropdown from "../../pages/create-profile/components/SearchableDropdown";
+
+const KERALA_DISTRICTS = [
+    "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
+    "Idukki", "Ernakulam", "Thrissur", "Palakkad", "Malappuram",
+    "Kozhikode", "Wayanad", "Kannur", "Kasaragod"
+];
 
 const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     if (!isOpen) return null;
@@ -29,7 +35,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                 skills: profileData.skills || [],
                 workStatus: profileData.workStatus || "",
                 gender: profileData.gender || "",
-                phone: profileData.phone || "", // Assuming phone might include code, we might need to strip it if separate
+                phone: profileData.phone?.replace(/^\+91/, '') || "",
                 email: profileData.email || "",
                 // Take first education entry's degree or empty
                 educationDegree: profileData.education?.[0]?.degree || "",
@@ -61,12 +67,16 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     };
 
     const handleSubmit = () => {
-        onSave(formData);
+        const finalData = { ...formData };
+        if (finalData.phone && !finalData.phone.startsWith('+91')) {
+            finalData.phone = '+91' + finalData.phone;
+        }
+        onSave(finalData);
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fadeIn">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fadeIn" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h2 className="text-lg font-bold text-gray-800">Edit Profile</h2>
@@ -87,7 +97,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                             value={formData.fullName}
                             onChange={handleChange}
                             className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
-                            placeholder="Paul walker"
+                            placeholder="John Doe"
                         />
                     </div>
 
@@ -99,7 +109,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                             value={formData.jobTitle}
                             onChange={handleChange}
                             className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
-                            placeholder="UI UX Designer"
+                            placeholder="Sales Executive"
                         />
                     </div>
 
@@ -217,32 +227,31 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                     {/* Location */}
                     <div className="grid grid-cols-2 gap-6">
                         {/* District/City */}
-                        {/* Using simple inputs with dropdown icons to match UI visual, as simplified logic */}
                         <div className="relative">
-                            <div className="bg-white border border-gray-200 shadow-sm rounded-xl px-4 py-3 flex justify-between items-center cursor-pointer">
-                                <input
-                                    name="locationCity"
-                                    value={formData.locationCity}
-                                    onChange={handleChange}
-                                    placeholder="Palakkad"
-                                    className="outline-none text-sm text-gray-600 w-full font-medium"
-                                />
-                                <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                            </div>
+                            <label className="block text-sm font-bold text-black mb-2">District</label>
+                            <SearchableDropdown
+                                options={KERALA_DISTRICTS.map(d => ({ name: d, value: d }))}
+                                value={formData.locationCity}
+                                onChange={(val) => handleChange({ target: { name: 'locationCity', value: val } })}
+                                placeholder="Select District"
+                                valueKey="value"
+                                labelKey="name"
+                                searchable={false}
+                            />
                         </div>
 
                         {/* State */}
                         <div className="relative">
-                            <div className="bg-white border border-gray-200 shadow-sm rounded-xl px-4 py-3 flex justify-between items-center cursor-pointer">
-                                <input
-                                    name="locationState"
-                                    value={formData.locationState}
-                                    onChange={handleChange}
-                                    placeholder="Kerala"
-                                    className="outline-none text-sm text-gray-600 w-full font-medium"
-                                />
-                                <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                            </div>
+                            <label className="block text-sm font-bold text-black mb-2">State</label>
+                            <SearchableDropdown
+                                options={[{ name: "Kerala", value: "Kerala" }]}
+                                value={formData.locationState || "Kerala"}
+                                onChange={(val) => handleChange({ target: { name: 'locationState', value: val } })}
+                                placeholder="Select State"
+                                valueKey="value"
+                                labelKey="name"
+                                searchable={false}
+                            />
                         </div>
                     </div>
 
@@ -250,7 +259,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                     <div className="flex justify-center gap-4 pt-4">
                         <button
                             onClick={handleSubmit}
-                            className="bg-gradient-to-b from-[#FFC107] to-[#FFB300] text-black font-bold py-3 px-12 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
+                            className="bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black font-bold py-3 px-12 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
                         >
                             Submit
                         </button>

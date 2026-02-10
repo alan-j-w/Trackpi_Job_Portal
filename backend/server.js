@@ -1,5 +1,5 @@
+import "dotenv/config"; // Load env vars BEFORE other imports
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 
 import connectDB from "./config/db.js";
@@ -12,7 +12,7 @@ import languageRoutes from "./routes/languageRoutes.js";
 import testimonialsRoutes from "./routes/testimonialsRoutes.js";
 import educationRoutes from "./routes/educationRoutes.js";
 
-dotenv.config();
+// dotenv.config(); // Removed - already loaded above
 
 const app = express();
 
