@@ -1,0 +1,101 @@
+import React from 'react';
+import { toast } from 'react-hot-toast';
+
+const EditIcon = ({ className, onClick }) => (
+    <svg onClick={onClick} className={`cursor-pointer text-black hover:text-gray-600 transition ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+    </svg>
+);
+
+const TrashIcon = ({ className, onClick }) => (
+    <svg onClick={onClick} className={`cursor-pointer text-black hover:text-gray-600 transition ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
+
+const DownloadIcon = ({ className }) => (
+    <svg className={`cursor-pointer text-black hover:text-gray-600 transition ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+);
+
+const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete }) => {
+
+    const handleEditClick = () => {
+        onEdit();
+    };
+    // ...
+    const handleATSClick = () => {
+        if (!resumeUrl || !isGlobalComplete) {
+            toast.error("Please complete your profile (100%) and upload a resume to generate an ATS CV.");
+        } else {
+            toast.success("Generating ATS CV... (Feature coming soon)");
+            // Future: Trigger generation logic here
+        }
+    };
+
+    const isATSUnlocked = resumeUrl && isGlobalComplete;
+
+    return (
+        <div className="pt-5 pb-0">
+
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold text-lg text-black">Resume</h2>
+                <div className="flex gap-4 items-center">
+                    {/* Import/Download Icon */}
+                    {resumeUrl && (
+                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition" title="Download Resume">
+                            <DownloadIcon className="w-[18px] h-[18px]" />
+                        </a>
+                    )}
+
+                    {/* Edit Icon */}
+                    <EditIcon className="w-[18px] h-[18px]" onClick={onEdit} />
+
+                    {/* Delete Icon */}
+                    {resumeUrl && (
+                        <TrashIcon className="w-[18px] h-[18px]" onClick={onDelete} />
+                    )}
+                </div>
+            </div>
+
+            <div className="border border-gray-300 rounded-lg p-2 max-w-[400px] bg-white">
+                <div className="flex gap-4 items-center">
+                    {resumeUrl ? (
+                        <>
+                            <div className="w-12 h-16 bg-red-50 border border-red-100 rounded flex flex-col items-center justify-center relative">
+                                <span className="text-[10px] font-bold text-red-500">PDF</span>
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="text-sm font-medium text-gray-900 truncate">Resume.pdf</p>
+                                <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FFB300] hover:underline">View Resume</a>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="w-full h-20 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 transition" onClick={onAdd}>
+                            <span className="text-sm">No resume uploaded</span>
+                            <span className="text-xs text-[#FFB300] font-medium mt-1">Click to upload</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <button
+                onClick={handleATSClick}
+                style={{
+                    width: '238px',
+                    height: '46px',
+                    borderRadius: '8px', // Hug/Radius seems to be standard, using 8px
+                    border: '1px solid #827E7E',
+                    background: 'linear-gradient(90deg, #D9D9D9 0%, rgba(153, 153, 153, 0.00) 76%)'
+                }}
+                className={`mt-4 font-bold text-sm shadow-sm flex items-center justify-center text-black hover:shadow-md transition`}
+            >
+                Create ATS friendly CV
+                {!isATSUnlocked && <span className="ml-2 text-xs opacity-75">🔒</span>}
+            </button>
+        </div>
+    );
+};
+
+export default ResumeSection;
