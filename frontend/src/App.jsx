@@ -37,6 +37,7 @@ import About from "./pages/About";
 import Testimonials from "./pages/Testimonials";
 import TalentLeague from "./pages/TalentLeague";
 import Creators from "./pages/Creators";
+import Jobs from "./pages/Jobs";
 
 function App() {
   return (
@@ -97,6 +98,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/jobs"
+            element={
+              <ProtectedRoute>
+                <Jobs />
               </ProtectedRoute>
             }
           />

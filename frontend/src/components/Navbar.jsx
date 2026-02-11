@@ -3,20 +3,20 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import logo from "../assets/logo.png";
+import LogoutModal from "./LogoutModal";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("token");
 
-  // Check if we are on the profile page - REMOVED, using token instead
-  // const isProfilePage = location.pathname === "/profile";
-
-  // Handle Logout
-  const handleLogout = () => {
+  // Handle Logout Confirmation
+  const confirmLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user"); // Clear user info if stored
+    setShowLogoutModal(false);
     navigate("/");
   };
 
@@ -30,6 +30,8 @@ const Navbar = () => {
             <span className="text-2xl font-bold text-gray-900">My Profile</span>
           ) : location.pathname === "/testimonials" && token ? (
             <span className="text-2xl font-bold text-gray-900">Testimonials</span>
+          ) : location.pathname === "/jobs" ? (
+            <span className="text-2xl font-bold text-gray-900">Brows jobs</span>
           ) : (
             <img
               src={logo}
@@ -52,7 +54,12 @@ const Navbar = () => {
                   Join our community <i className="ri-external-link-line"></i>
                 </a>
                 <Link to="/testimonials" className="hover:text-[#FFB300]">Testimonial</Link>
-                <Link to="/jobs" className="hover:text-[#FFB300]">Brows job</Link>
+                <Link
+                  to="/jobs"
+                  className={`hover:text-[#FFB300] ${location.pathname === "/jobs" ? "border-b-2 border-black pb-1" : ""}`}
+                >
+                  Brows job
+                </Link>
                 <Link to="/applied-jobs" className="hover:text-[#FFB300]">Applied vacancies</Link>
               </>
             ) : (
@@ -72,7 +79,7 @@ const Navbar = () => {
             {token ? (
               // Authenticated Logout Button
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutModal(true)}
                 className="px-6 py-2 bg-white border border-[#FFB300] rounded-lg text-black font-medium shadow-sm hover:bg-[#FFB300] hover:text-white transition"
               >
                 Log out
@@ -138,7 +145,7 @@ const Navbar = () => {
               // Authenticated Mobile Logout
               <button
                 onClick={() => {
-                  handleLogout();
+                  setShowLogoutModal(true);
                   setOpen(false);
                 }}
                 className="px-6 py-2 bg-white border border-[#FFB300] text-center rounded-lg text-black font-medium hover:bg-[#FFB300] hover:text-white"
@@ -165,6 +172,13 @@ const Navbar = () => {
 
           </div>
         </div>
+      )}
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <LogoutModal
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={confirmLogout}
+        />
       )}
     </header>
   );

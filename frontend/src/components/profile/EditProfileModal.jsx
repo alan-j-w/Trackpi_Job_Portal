@@ -18,10 +18,13 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
         gender: "",
         phone: "",
         email: "",
-        educationDegree: "", // We'll map this to the first ed entry
+        educationDegree: "",
         locationCity: "",
         locationState: "",
-        countryCode: "+91"
+        countryCode: "+91",
+        maritalStatus: "",
+        dob: "",
+        socialLinks: { linkedin: "", twitter: "", facebook: "", portfolio: "" }
     });
 
     const [skillInput, setSkillInput] = useState("");
@@ -37,12 +40,18 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                 gender: profileData.gender || "",
                 phone: profileData.phone?.replace(/^\+91/, '') || "",
                 email: profileData.email || "",
-                // Take first education entry's degree or empty
                 educationDegree: profileData.education?.[0]?.degree || "",
-                // Parse location string or use fields if available
                 locationCity: profileData.location?.city || "",
                 locationState: profileData.location?.state || "",
-                countryCode: "+91" // Default or parse from phone
+                countryCode: "+91",
+                maritalStatus: profileData.maritalStatus || "",
+                dob: profileData.dob ? new Date(profileData.dob).toISOString().split('T')[0] : "",
+                socialLinks: {
+                    linkedin: profileData.socialLinks?.linkedin || "",
+                    twitter: profileData.socialLinks?.twitter || "",
+                    facebook: profileData.socialLinks?.facebook || "",
+                    portfolio: profileData.socialLinks?.portfolio || "" // Behance/Portfolio
+                }
             });
         }
     }, [profileData]);
@@ -50,6 +59,17 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSocialChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            socialLinks: {
+                ...prev.socialLinks,
+                [name]: value
+            }
+        }));
     };
 
     const handleSkillAdd = (e) => {
@@ -252,6 +272,81 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                                 labelKey="name"
                                 searchable={false}
                             />
+                        </div>
+                    </div>
+
+                    {/* Marital Status & DOB */}
+                    <div className="grid grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-black mb-2">Marital Status</label>
+                            <div className="relative">
+                                <SearchableDropdown
+                                    options={["Single", "Married", "Divorced", "Widowed"].map(s => ({ name: s, value: s }))}
+                                    value={formData.maritalStatus}
+                                    onChange={(val) => handleChange({ target: { name: 'maritalStatus', value: val } })}
+                                    placeholder="Select Status"
+                                    valueKey="value"
+                                    labelKey="name"
+                                    searchable={false}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-black mb-2">Date of Birth</label>
+                            <input
+                                type="date"
+                                name="dob"
+                                value={formData.dob}
+                                onChange={handleChange}
+                                className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Social Links */}
+                    <div>
+                        <label className="block text-sm font-bold text-black mb-4">Social Links</label>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <span className="w-24 text-sm font-medium text-gray-600">LinkedIn</span>
+                                <input
+                                    name="linkedin"
+                                    value={formData.socialLinks.linkedin}
+                                    onChange={handleSocialChange}
+                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
+                                    placeholder="LinkedIn URL"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="w-24 text-sm font-medium text-gray-600">Twitter</span>
+                                <input
+                                    name="twitter"
+                                    value={formData.socialLinks.twitter}
+                                    onChange={handleSocialChange}
+                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
+                                    placeholder="Twitter URL"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="w-24 text-sm font-medium text-gray-600">Facebook</span>
+                                <input
+                                    name="facebook"
+                                    value={formData.socialLinks.facebook}
+                                    onChange={handleSocialChange}
+                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
+                                    placeholder="Facebook URL"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="w-24 text-sm font-medium text-gray-600">Behance</span>
+                                <input
+                                    name="portfolio"
+                                    value={formData.socialLinks.portfolio}
+                                    onChange={handleSocialChange}
+                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
+                                    placeholder="Behance/Portfolio URL"
+                                />
+                            </div>
                         </div>
                     </div>
 

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { calculateProfileStrength } from '../../utils/profileUtils';
 import ProfileStrengthCircle from './ProfileStrengthCircle';
+import MissingDetailsModal from './MissingDetailsModal';
 
 const EditIcon = ({ className, onClick }) => (
     <svg onClick={onClick} className={`cursor-pointer text-black hover:text-gray-600 transition ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,6 +55,8 @@ const SocialLink = ({ platform, url }) => {
 };
 
 const ProfileSidebar = ({ profile, onAction }) => {
+    const [isMissingDetailsModalOpen, setIsMissingDetailsModalOpen] = useState(false);
+
     // Strength Calculation from Util
     const { strength, isComplete } = calculateProfileStrength(profile);
 
@@ -65,7 +68,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
             {/* 1. Profile Strength */}
             <div
                 className={`bg-white rounded-[32px] border ${isComplete ? 'border-[#FFB300] bg-[#FFF9E5]/30' : 'border-gray-200'} p-8 mb-8 pb-10 flex flex-col items-center relative shadow-sm`}
-                style={{ height: '635px' }}
+                style={{ minHeight: '635px' }}
             >
 
                 {isComplete ? (
@@ -99,35 +102,45 @@ const ProfileSidebar = ({ profile, onAction }) => {
                         {/* Missing Detail List */}
                         <div className="w-full space-y-2 mb-6 transition-all">
                             {(!profile.languages || profile.languages.length === 0) &&
-                                <StrengthItem label="Add language" score="+10%" icon="文" onClick={() => onAction && onAction('language')} />
+                                <StrengthItem label="Add language" score="+10%" icon={<i className="ri-translate-2 text-lg"></i>} onClick={() => onAction && onAction('language')} />
                             }
                             {(!profile.skills || profile.skills.length === 0) &&
-                                <StrengthItem label="Add skills" score="+07%" icon="⚡" onClick={() => onAction && onAction('skills')} />
+                                <StrengthItem label="Add skills" score="+07%" icon={<i className="ri-brain-line text-lg"></i>} onClick={() => onAction && onAction('skills')} />
                             }
                             {(!profile.education || profile.education.length === 0) &&
-                                <StrengthItem label="Add education" score="+07%" icon="🎓" onClick={() => onAction && onAction('education')} />
+                                <StrengthItem label="Add education" score="+07%" icon={<i className="ri-graduation-cap-line text-lg"></i>} onClick={() => onAction && onAction('education')} />
                             }
                             {!profile.summary &&
-                                <StrengthItem label="Add summary" score="+07%" icon="📝" onClick={() => onAction && onAction('summary')} />
+                                <StrengthItem label="Add summary" score="+07%" icon={<i className="ri-user-smile-line text-lg"></i>} onClick={() => onAction && onAction('summary')} />
                             }
                             {(!profile.workExperience || profile.workExperience.length === 0) &&
-                                <StrengthItem label="Add experience" score="+07%" icon="💼" onClick={() => onAction && onAction('experience')} />
+                                <StrengthItem label="Add experience" score="+07%" icon={<i className="ri-briefcase-line text-lg"></i>} onClick={() => onAction && onAction('experience')} />
                             }
                             {/* Add Photo Wiring */}
                             {!profile.profileImage &&
-                                <StrengthItem label="Add photo" score="+10%" icon="📷" onClick={() => onAction && onAction('photo')} />
+                                <StrengthItem label="Add photo" score="+10%" icon={<i className="ri-camera-line text-lg"></i>} onClick={() => onAction && onAction('photo')} />
                             }
                         </div>
 
-                        <div className="w-full relative group px-4 pb-2">
+                        <div className="w-full relative group px-4 pb-2 mt-auto">
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-[#FFB300] to-[#EAB308] rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
-                            <button className="relative w-full bg-[#FFF9E5] text-black font-bold py-3.5 rounded-xl text-xs hover:bg-[#ffeebb] transition shadow-sm border border-[#FFB300]/20">
+                            <button
+                                onClick={() => setIsMissingDetailsModalOpen(true)}
+                                className="relative w-full bg-[#FFF9E5] text-black font-bold py-3.5 rounded-xl text-xs hover:bg-[#ffeebb] transition shadow-sm border border-[#FFB300]/20"
+                            >
                                 See all missing details
                             </button>
                         </div>
                     </>
                 )}
             </div>
+
+            <MissingDetailsModal
+                isOpen={isMissingDetailsModalOpen}
+                onClose={() => setIsMissingDetailsModalOpen(false)}
+                profile={profile}
+                onAction={onAction}
+            />
 
             {/* 2. Additional Details */}
             <div
@@ -158,7 +171,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
                     />
                     {/* Date of Birth */}
                     <DetailItem
-                        icon={<i className="ri-cake-2-line"></i>}
+                        icon={<i className="ri-calendar-event-line"></i>}
                         label="Date of Birth"
                         value={profile.dateOfBirth || "Add DOB"}
                     />
@@ -176,7 +189,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
                     />
                     {/* Marital Status */}
                     <DetailItem
-                        icon={<i className="ri-hearts-line"></i>}
+                        icon={<i className="ri-vip-diamond-line"></i>}
                         label="Marital Status"
                         value={profile.maritalStatus || "Add status"}
                     />

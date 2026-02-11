@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-const JobListing = () => {
+const JobListing = ({ limit }) => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -32,6 +34,8 @@ const JobListing = () => {
 
     if (loading) return <div className="text-center py-20">Loading jobs...</div>;
 
+    const displayedJobs = limit ? jobs.slice(0, limit) : jobs;
+
     return (
         <div className="relative pb-24 pt-8 px-4 mt-16">
             {/* Header Section */}
@@ -55,7 +59,7 @@ const JobListing = () => {
 
             {/* Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                {jobs.map((job, idx) => {
+                {displayedJobs.map((job, idx) => {
                     const badgeProps = getBadgeProps(job.status);
 
                     return (
@@ -156,13 +160,18 @@ const JobListing = () => {
                 })}
             </div>
 
-            {/* Bottom Link */}
-            <div className="flex justify-end mt-8 max-w-7xl mx-auto px-4">
-                <button className="text-black text-sm font-bold flex items-center gap-2 group">
-                    <span className="border-b-2 border-[#FF4D4D] pb-1">Explore for more jobs</span>
-                    <i className="ri-arrow-right-line text-lg group-hover:translate-x-1 transition-transform"></i>
-                </button>
-            </div>
+            {/* Bottom Link - Only show if limited or there's more */}
+            {limit && (
+                <div className="flex justify-end mt-8 max-w-7xl mx-auto px-4">
+                    <button
+                        onClick={() => navigate('/jobs')}
+                        className="text-black text-sm font-bold flex items-center gap-2 group hover:text-[#FFB300] transition-colors"
+                    >
+                        <span className="border-b-2 border-[#FF4D4D] pb-1 group-hover:border-[#FFB300]">Explore for more jobs</span>
+                        <i className="ri-arrow-right-line text-lg group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

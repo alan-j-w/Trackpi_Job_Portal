@@ -111,6 +111,15 @@ const Profile = () => {
             'experience': { id: 'experience-section', open: handleAddExperience },
             'language': { id: 'language-section', open: handleAddLanguage },
             'summary': { id: 'summary-section', open: () => setIsSummaryModalOpen(true) },
+
+            // New Actions from MissingDetailsModal
+            'resume': { id: 'resume-section', open: () => setIsResumeModalOpen(true) },
+
+            // These open the main Edit Profile Modal
+            'social': { open: () => setIsEditModalOpen(true) },
+            'phone': { open: () => setIsEditModalOpen(true) },
+            'marital': { open: () => setIsEditModalOpen(true) },
+            'dob': { open: () => setIsEditModalOpen(true) },
         };
 
         const target = sectionMap[actionType];
@@ -682,7 +691,7 @@ const Profile = () => {
                 </div>
 
                 {/* --- Latest Job Listing --- */}
-                <JobListing />
+                <JobListing limit={3} />
 
                 <div
                     onClick={handleShareProfile}
