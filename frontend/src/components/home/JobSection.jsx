@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import JobCard from "./JobCard";
+import JobDetailsModal from "./JobDetailsModal";
 import Pagination from "./Pagination";
 import "remixicon/fonts/remixicon.css";
 
 const JobSection = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedJobId, setSelectedJobId] = useState(null);
 
   // Filter & Search State
   const [searchTerm, setSearchTerm] = useState("");
@@ -433,6 +435,7 @@ const JobSection = () => {
             currentJobs.map((job, idx) => (
               <JobCard
                 key={job._id || idx}
+                id={job._id}
                 status={job.status === "urgent" ? "Urgent Hiring" : "New"}
                 statusColor={job.status === "urgent" ? "red" : "green"}
                 title={job.title}
@@ -443,9 +446,20 @@ const JobSection = () => {
                 salary={job.salary}
                 experience={job.experience}
                 workMode={job.workMode}
+                onDetailsClick={() => setSelectedJobId(job._id)}
               />
             ))}
         </div>
+
+        {/* Modal */}
+        {selectedJobId && (
+          <JobDetailsModal
+            jobId={selectedJobId}
+            onClose={() => setSelectedJobId(null)}
+          />
+        )}
+
+
 
 
         {/* 5. Pagination */}
