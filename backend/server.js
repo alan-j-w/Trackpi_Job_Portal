@@ -17,12 +17,18 @@ import educationRoutes from "./routes/educationRoutes.js";
 const app = express();
 
 // connect database
+import applicationRoutes from "./routes/applicationRoutes.js";
+
+// connect database
 connectDB();
 
 app.use(cors());
 app.use(express.json());
+// Serve uploads folder statically
+app.use('/uploads', express.static('uploads'));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/jobs", applicationRoutes); // Mount before jobRoutes to catch /apply
 app.use("/api/jobs", jobRoutes);
 app.use("/api/testimonials", testimonialsRoutes);
 app.use("/api/profile", profileRoutes);

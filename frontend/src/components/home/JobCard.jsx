@@ -9,6 +9,7 @@ import trackpiLogo from "../../assets/badges/trackpi-striped.png";
 import LoginRequiredModal from "../LoginRequiredModal";
 
 const JobCard = ({
+  id,
   title = "Job Title",
   company = "Company Name",
   location = "Location",
