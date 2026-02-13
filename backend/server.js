@@ -17,18 +17,14 @@ import languageRoutes from "./routes/languageRoutes.js";
 import testimonialsRoutes from "./routes/testimonialsRoutes.js";
 import educationRoutes from "./routes/educationRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
-
-// dotenv.config(); // Removed - already loaded above
+import applicationRoutes from "./routes/applicationRoutes.js";
 
 const app = express();
 
-// connect database
-import applicationRoutes from "./routes/applicationRoutes.js";
 
 // connect database
 connectDB();
 
-// Security Middleware
 // Security Middleware
 app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP for now to prevent frontend blocking

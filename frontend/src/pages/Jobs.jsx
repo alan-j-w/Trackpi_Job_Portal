@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSearchParams } from "react-router-dom";
-import JobCard from "../components/JobCard";
 import { API_URL } from "../config";
 import Navbar from "../components/Navbar";
 import JobSection from "../components/home/JobSection";
