@@ -5,7 +5,6 @@ const applicationSchema = new mongoose.Schema(
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
         },
         jobId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -15,6 +14,29 @@ const applicationSchema = new mongoose.Schema(
         status: {
             type: String,
             default: "applied",
+        },
+        name: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+            required: true,
+        },
+        phone: {
+            type: String,
+            required: true,
+        },
+        experience: {
+            type: String,
+            required: true,
+        },
+        resume: {
+            type: String, // Path to file
+            required: true,
+        },
+        portfolio: {
+            type: String, // URL
         },
     },
     { timestamps: true }

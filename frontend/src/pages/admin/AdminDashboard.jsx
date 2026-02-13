@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Users, Briefcase, FileText, CheckCircle } from "lucide-react";
+import { API_URL } from "../../config";
 
 const AdminDashboard = () => {
     const [statsData, setStatsData] = useState({
@@ -13,7 +14,7 @@ const AdminDashboard = () => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch("http://localhost:8000/api/admin/dashboard-stats", {
+                const response = await fetch(`${API_URL}/api/admin/dashboard-stats`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -65,8 +66,9 @@ const AdminDashboard = () => {
             </div>
 
             {/* Recent Activity Section Placeholder */}
+            {/* Recent Activity Section Placeholder */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-96 flex items-center justify-center text-gray-400">
-                Activity Table will go here
+                <p>Recent Activity will be displayed here</p>
             </div>
         </div>
     );

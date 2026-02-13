@@ -6,6 +6,8 @@ import {
     loginUser,
     googleAuth,
     linkedinAuth,
+    sendOtp,
+    verifyOtp
 } from "../controllers/authController.js";
 
 // Auth routes
@@ -13,5 +15,7 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/google", googleAuth);
 router.post("/linkedin", linkedinAuth);
+router.post("/send-otp", sendOtp);
+router.post("/verify-otp", verifyOtp);
 
 export default router;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../../config";
 
 const PostJob = () => {
     const navigate = useNavigate();
@@ -50,7 +51,7 @@ const PostJob = () => {
     const fetchJobDetails = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8000/api/jobs/${id}`);
+            const response = await axios.get(`${API_URL}/api/jobs/${id}`);
             const job = response.data;
 
             // Helper to safely split strings
@@ -125,11 +126,11 @@ const PostJob = () => {
             };
 
             if (isEditMode) {
-                await axios.put(`http://localhost:8000/api/jobs/${id}`, payload, {
+                await axios.put(`${API_URL}/api/jobs/${id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             } else {
-                await axios.post("http://localhost:8000/api/jobs", payload, {
+                await axios.post(`${API_URL}/api/jobs`, payload, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             }

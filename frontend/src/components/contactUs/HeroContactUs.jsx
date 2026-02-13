@@ -1,7 +1,7 @@
 import React from "react";
 import heroImage from "../../assets/hero/cuate.png"; // Placeholder, user can replace with specific contact illustration
 
-const HeroContactUs = () => {
+const HeroContactUs = ({ onSendMessageClick, onContactDetailsClick }) => {
     return (
         <section className="relative w-full bg-white pt-24 pb-16 lg:pt-32 lg:pb-12 px-6 md:px-12 font-cabinet">
             <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -21,10 +21,16 @@ const HeroContactUs = () => {
                     </p>
 
                     <div className="flex flex-wrap gap-4 pt-4">
-                        <button className="bg-[#FFB300] hover:bg-[#ffca2c] text-black font-bold py-3.5 px-8 rounded-full shadow-md transition-all transform active:scale-95">
+                        <button
+                            onClick={onSendMessageClick}
+                            className="bg-[#FFB300] hover:bg-[#ffca2c] text-black font-bold py-3.5 px-8 rounded-full shadow-md transition-all transform active:scale-95"
+                        >
                             Send a Message
                         </button>
-                        <button className="bg-white border-2 border-black text-black font-bold py-3.5 px-8 rounded-full hover:bg-black hover:text-white transition-all transform active:scale-95">
+                        <button
+                            onClick={onContactDetailsClick}
+                            className="bg-white border-2 border-black text-black font-bold py-3.5 px-8 rounded-full hover:bg-black hover:text-white transition-all transform active:scale-95"
+                        >
                             Contact Details
                         </button>
                     </div>
