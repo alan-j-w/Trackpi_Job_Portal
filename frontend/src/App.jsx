@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 /* Pages */
 import Home from "./pages/Home";
 /* Admin Pages */
-/* Admin Pages */
+
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminJobs from "./pages/admin/AdminJobs";
@@ -16,6 +17,9 @@ import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import PermissionManagement from "./pages/admin/PermissionManagement";
 import CreatePermission from "./pages/admin/CreatePermission";
 import AdminLogin from "./pages/admin/AdminLogin";
+import UserManagement from "./pages/admin/UserManagement";
+import FormManagement from "./pages/admin/FormManagement";
+import FormDetails from "./pages/admin/FormDetails";
 
 
 import ContactUs from "./pages/ContactUs";
@@ -42,6 +46,7 @@ import Jobs from "./pages/Jobs";
 function App() {
   return (
     <Router>
+      <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* ========== Public Routes (Accessible to everyone) ========== */}
         {/* These should NOT be wrapped in RedirectIfSuperAdmin if that component BLOCKS access. 
@@ -127,7 +132,8 @@ function App() {
           <Route path="dashboard" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}><AdminDashboard /></ProtectedAdminRoute>} />
 
           {/* Permission Protected Routes */}
-          <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><AdminJobs /></ProtectedAdminRoute>} />
+
+          <Route path="jobs" element={<ProtectedAdminRoute><AdminJobs /></ProtectedAdminRoute>} />
           <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_POST}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_EDIT}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><PostJob /></ProtectedAdminRoute>} />
@@ -137,11 +143,16 @@ function App() {
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Super Admin Routes */}
-          <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
+          <Route path="management" element={<ProtectedAdminRoute><AdminManagement /></ProtectedAdminRoute>} />
           <Route path="permissions" element={<ProtectedAdminRoute requiredRole="superadmin"><PermissionManagement /></ProtectedAdminRoute>} />
           <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
           <Route path="permissions/edit/:id" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
 
+          {/* User Management */}
+          <Route path="users" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.USERS_EDIT}><UserManagement /></ProtectedAdminRoute>} />
+          <Route path="forms" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.FORMS_MANAGE}><FormManagement /></ProtectedAdminRoute>} />
+          <Route path="forms/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.FORMS_MANAGE}><FormDetails /></ProtectedAdminRoute>} />
+          {/* Placeholder routes for others to prevent crashes if clicked */}
           <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
         </Route>
 

@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:8000/api/jobs";
+import { API_URL as BASE_URL } from "./config";
+const API_URL = `${BASE_URL}/api/jobs`;
 
 export const getAllJobs = async () => {
     const res = await fetch(API_URL);

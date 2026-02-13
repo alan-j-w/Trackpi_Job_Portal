@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../config";
 
 const LinkedInCallback = () => {
     const navigate = useNavigate();
@@ -38,7 +39,7 @@ const LinkedInCallback = () => {
                 }
 
                 // ===== Send code to backend =====
-                const res = await axios.post("http://localhost:8000/api/auth/linkedin", {
+                const res = await axios.post(`${API_URL}/api/auth/linkedin`, {
                     code,
                 });
 
