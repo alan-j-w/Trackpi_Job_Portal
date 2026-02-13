@@ -33,7 +33,7 @@ export const googleAuth = async (req, res) => {
                 name,
                 email,
                 googleId: sub,
-                password: await bcrypt.hash(Math.random().toString(36), 10),
+                password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
                 role: "jobseeker",
                 role: "jobseeker",
                 permissions: [],
@@ -210,7 +210,6 @@ export const loginUser = async (req, res) => {
         user.lastLogin = new Date();
         await user.save();
 
-        console.log(`[DEBUG] Login Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
