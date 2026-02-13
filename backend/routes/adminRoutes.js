@@ -10,16 +10,16 @@ router.use(protect);
 router.use(authorize("admin", "superadmin", "superuser"));
 
 // Dashboard Stats
-router.get("/dashboard-stats", adminController.getDashboardStats);
+router.get("/dashboard-stats", checkPermission(PERMISSIONS.VIEW_LOGS), adminController.getDashboardStats); // Example permission, adjust if needed
 
 // Get All Candidates (Job Seekers)
-router.get("/candidates", adminController.getAllCandidates);
+router.get("/candidates", checkPermission(PERMISSIONS.VIEW_CANDIDATES), adminController.getAllCandidates);
 
 // Get All Jobs (Admin View)
-router.get("/jobs", adminController.getAdminJobs);
+router.get("/jobs", checkPermission(PERMISSIONS.MANAGE_JOBS), adminController.getAdminJobs);
 
 // Delete Candidate
-router.delete("/candidates/:id", adminController.deleteCandidate);
+router.delete("/candidates/:id", checkPermission(PERMISSIONS.MANAGE_USERS), adminController.deleteCandidate);
 
 // Super Admin Only: Manage Admins (Full Admins)
 router.post(
