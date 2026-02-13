@@ -1,19 +1,17 @@
 export default function JoinTeam() {
     return (
-        <section className="bg-black py-20 px-6 lg:px-20 text-white">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h2 className="text-3xl font-bold mb-6">
-                        Join <span className="text-yellow-400">our team</span>
-                    </h2>
-                    <p className="text-gray-300 mb-4">
-                        We are always on the lookout for our next stunning colleague.
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                        Our hiring team reviews all applications anonymously.
-                    </p>
+        <section className="relative bg-black pt-0 pb-20 px-6 lg:px-20 text-white overflow-hidden">
+            {/* Yellow light shade background effect */}
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#FFB300]/10 blur-[150px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0" />
+
+            <div className="relative z-10 flex justify-center items-center">
+                <div className="w-full max-w-6xl pointer-events-none">
+                    <img
+                        src="/assets/team/join-team-final.png"
+                        alt="Join our team"
+                        className="w-full h-auto rounded-xl object-contain"
+                    />
                 </div>
-                <div className="w-full h-64 bg-gray-800 rounded-xl" />
             </div>
         </section>
     );

@@ -12,6 +12,7 @@ export const protect = async (req, res, next) => {
         try {
             // Get token from header
             token = req.headers.authorization.split(" ")[1];
+            console.log("Auth Middleware Token:", token);
 
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -33,7 +34,8 @@ export const protect = async (req, res, next) => {
             next();
         } catch (error) {
             console.error(error);
-            res.status(401).json({ message: "Not authorized, token failed" });
+            console.error(error);
+            res.status(401).json({ message: "Not authorized, token failed", error: error.message });
         }
     }
 
