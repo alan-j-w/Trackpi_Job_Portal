@@ -232,16 +232,30 @@ export const deleteTestimonial = async (req, res) => {
 
 /* ================= ADMIN LIST ================= */
 
+/* ================= ADMIN LIST WITH PAGINATION ================= */
+
 export const getAdminTestimonials = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+
+    const skip = (page - 1) * limit;
+
+    const total = await Testimonial.countDocuments();
+
     const testimonials = await Testimonial.find()
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.json({
       success: true,
-      data: testimonials
+      data: testimonials,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page
     });
-  } catch {
+  } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
       message: "Server error fetching testimonials"

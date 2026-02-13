@@ -17,7 +17,7 @@ const AdminTestimonials = () => {
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/api/admin/testimonials", {
+      const res = await fetch("http://localhost:8000/api/admin/testimonials?limit=100", {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();

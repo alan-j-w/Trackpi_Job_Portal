@@ -11,6 +11,10 @@ import PostJob from "./pages/admin/PostJob";
 import AdminApplicants from "./pages/admin/AdminApplicants";
 import AdminManagement from "./pages/admin/AdminManagement";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
+import AdminHiringPartners from "./pages/admin/AdminHiringPartners";
+import AddHiringPartner from "./pages/admin/AddHiringPartner";
+import HiringPartnerDetails from "./pages/admin/HiringPartnerDetails";
+import EditHiringPartner from "./pages/admin/EditHiringPartner";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
 import UserDashboard from "./pages/user/UserDashboard";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
@@ -52,7 +56,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/linkedin/callback" element={<LinkedInCallback />} />
-          
+
 
           {/* ========== Protected Routes ========== */}
           <Route
@@ -99,7 +103,7 @@ function App() {
               <AdminLayout />
             </ProtectedAdminRoute>
           }
-          
+
         >
           {/* General Dashboard */}
           {/* Dashboard Route */}
@@ -112,10 +116,12 @@ function App() {
           <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_EDIT}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><PostJob /></ProtectedAdminRoute>} />
 
-<Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
-          <Route path="/admin/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AddTestimonial/></ProtectedAdminRoute>} />
-          <Route path="testimonials/:id"element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><TestimonialDetails /></ProtectedAdminRoute>}/>
+          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
+          <Route path="/admin/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AddTestimonial /></ProtectedAdminRoute>} />
+          <Route path="testimonials/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><TestimonialDetails /></ProtectedAdminRoute>} />
           <Route path="/admin/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><EditTestimonial /></ProtectedAdminRoute>} />
+
+
           {/* Signup Candidates - reusing AdminApplicants for now as it fetches all jobseekers */}
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
@@ -125,15 +131,21 @@ function App() {
           <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
           <Route path="permissions/edit/:id" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
           {/* Placeholder routes for others to prevent crashes if clicked */}
-          <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
-        <Route
-  path="testimonials"
-  element={
-    <ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}>
-      <AdminTestimonials />
-    </ProtectedAdminRoute>
-  }
-/>
+          <Route path="partners" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}>
+            <AdminHiringPartners />
+          </ProtectedAdminRoute>} />
+          <Route path="/admin/partners/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}><AddHiringPartner /></ProtectedAdminRoute>} />
+          <Route path="partners/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}><HiringPartnerDetails /></ProtectedAdminRoute>} />
+          <Route path="/admin/partners/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}><EditHiringPartner /></ProtectedAdminRoute>} />
+
+          <Route
+            path="testimonials"
+            element={
+              <ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}>
+                <AdminTestimonials />
+              </ProtectedAdminRoute>
+            }
+          />
         </Route>
 
 

@@ -14,31 +14,37 @@ function TestimonialRow({
   const [playVideo, setPlayVideo] = useState(false);
 
   return (
-    <div className={`flex flex-col ${isReversed ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-6 lg:gap-10 pb-10 border-b`}>
+    <div className={`flex flex-col ${isReversed ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-6 pb-10 border-b`}>
       {/* LEFT CARD */}
-      <div className="relative w-full sm:w-64 bg-black text-white rounded-3xl overflow-hidden shrink-0">
+      <div className="relative w-full sm:w-72 h-[420px] rounded-3xl overflow-hidden shrink-0">
+        {/* IMAGE */}
         <img
           src={coverImageUrl}
-          className="w-full h-64 object-cover"
           alt={name}
+          className="w-full h-full object-cover"
         />
 
+        {/* DARK GRADIENT OVERLAY */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+
+        {/* TEXT (BOTTOM LEFT ON IMAGE) */}
+        <div className="absolute bottom-6 left-6 text-white">
+          <h3 className="text-2xl font-semibold">{name}</h3>
+          <p className="text-sm text-gray-300">{jobTitle}</p>
+        </div>
+
+        {/* PLAY BUTTON (FLOATING) */}
         <button
           onClick={() => setPlayVideo(true)}
-          className="absolute bottom-14 right-6 bg-white w-12 h-12 rounded-full flex items-center justify-center text-yellow-500 text-xl hover:scale-110 transition-transform"
+          className="absolute bottom-6 right-6 bg-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform"
         >
-          ▶
+          <span className="text-yellow-500 text-xl ml-1">▶</span>
         </button>
-
-        <div className="text-center py-4 bg-black/90 absolute bottom-0 w-full">
-          <h3 className="font-semibold text-lg">{name}</h3>
-          <p className="text-xs text-gray-400 uppercase tracking-wider">{jobTitle}</p>
-        </div>
       </div>
 
       {/* VIDEO + TEXT */}
       <div className="flex-1 w-full flex flex-col justify-center">
-        <div className="relative h-52 sm:h-72 rounded-3xl overflow-hidden bg-black shadow-xl">
+        <div className="relative h-64 sm:h-72 rounded-3xl overflow-hidden bg-black shadow-xl">
           {!playVideo ? (
             <>
               <img

@@ -8,7 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-
+import hiringpartnersRoutes from "./routes/hiringpartnersRoutes.js"
 dotenv.config();
 
 const app = express();
@@ -21,6 +21,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api", hiringpartnersRoutes);
 app.use("/api", testimonialsRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
