@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import ProfileStrengthCircle from './ProfileStrengthCircle';
+import { calculateProfileStrength } from '../../utils/profileUtils';
 
 const MissingDetailItem = ({ icon, label, score, onClick }) => (
     <div className="flex items-center justify-between py-2 group">
@@ -36,23 +37,111 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
 
     if (!isOpen) return null;
 
-    // Calculate strength locally for display within the modal
-    // This logic should ideally match calculateProfileStrength in utils/profileUtils
-    // But simplified here for consistent display if not passed down fully calculated
-    const calculateStrength = (p) => {
-        let score = 20;
-        if (p?.languages?.length > 0) score += 10;
-        if (p?.skills?.length > 0) score += 7;
-        if (p?.education?.length > 0) score += 7;
-        if (p?.summary) score += 7;
-        if (p?.workExperience?.length > 0) score += 7;
-        if (p?.profileImage) score += 10;
-        // ... add more conditions based on full logic
-        return Math.min(Math.round(score), 100);
-    };
-
-    const strength = calculateStrength(profile);
+    const { strength, isComplete } = calculateProfileStrength(profile);
     const strengthStatus = strength >= 100 ? "Excellent" : strength >= 70 ? "Good" : strength >= 50 ? "Intermediate" : "Beginner";
+
+    // Define all possible items with their check logic and score
+    // Scores must match utils/profileUtils.js
+    const allItems = [
+        {
+            id: 'language',
+            label: 'Add language',
+            score: '10%',
+            icon: <i className="ri-translate-2 text-xl"></i>,
+            isMissing: !profile.languages || profile.languages.length === 0,
+            action: 'language'
+        },
+        {
+            id: 'skills',
+            label: 'Add skills',
+            score: '10%',
+            icon: <i className="ri-brain-line text-xl"></i>,
+            isMissing: !profile.skills || profile.skills.length === 0,
+            action: 'skills'
+        },
+        {
+            id: 'education',
+            label: 'Add education',
+            score: '10%',
+            icon: <i className="ri-graduation-cap-line text-xl"></i>,
+            isMissing: !profile.education || profile.education.length === 0,
+            action: 'education'
+        },
+        {
+            id: 'summary',
+            label: 'Add summary',
+            score: '10%',
+            icon: <i className="ri-user-smile-line text-xl"></i>,
+            isMissing: !profile.summary,
+            action: 'summary'
+        },
+        {
+            id: 'experience',
+            label: 'Add experience',
+            score: '10%',
+            icon: <i className="ri-briefcase-line text-xl"></i>,
+            isMissing: !profile.workExperience || profile.workExperience.length === 0,
+            action: 'experience'
+        },
+        {
+            id: 'resume',
+            label: 'Add your resume',
+            score: '10%',
+            icon: <i className="ri-file-user-line text-xl"></i>,
+            isMissing: !profile.resume && !profile.resumeUrl,
+            action: 'resume'
+        },
+        {
+            id: 'photo',
+            label: 'Add profile photo',
+            score: '10%',
+            icon: <i className="ri-camera-line text-xl"></i>,
+            isMissing: !profile.profileImage,
+            action: 'photo'
+        },
+        {
+            id: 'jobTitle',
+            label: 'Add job title',
+            score: '05%',
+            icon: <i className="ri-id-card-line text-xl"></i>,
+            isMissing: !profile.jobTitle,
+            action: 'social' // Opens EditProfileModal where Job Title is
+        },
+        {
+            id: 'social',
+            label: 'Add social links',
+            score: '05%',
+            icon: <i className="ri-link text-xl"></i>,
+            isMissing: !profile.socialLinks || !Object.values(profile.socialLinks).some(l => l && l.trim() !== ""),
+            action: 'social'
+        },
+        {
+            id: 'phone',
+            label: 'Add phone number',
+            score: '05%',
+            icon: <i className="ri-phone-fill text-xl"></i>,
+            isMissing: !profile.phone,
+            action: 'phone'
+        },
+        {
+            id: 'marital',
+            label: 'Add marital status',
+            score: '05%',
+            icon: <i className="ri-vip-diamond-line text-xl"></i>,
+            isMissing: !profile.maritalStatus,
+            action: 'marital'
+        },
+        {
+            id: 'dob',
+            label: 'Add date of birth',
+            score: '05%',
+            icon: <i className="ri-calendar-event-line text-xl"></i>,
+            isMissing: !profile.dateOfBirth,
+            action: 'dob'
+        }
+    ];
+
+    const missingItems = allItems.filter(item => item.isMissing);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
@@ -84,78 +173,35 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
                 </div>
 
                 {/* Grid of details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-0 relative px-4 md:px-8">
-                    {/* Vertical Divider for MD screens */}
-                    <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[1px] bg-[#FFB300]/20 transform -translate-x-1/2"></div>
+                {missingItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-0 relative px-4 md:px-8">
+                        {/* Vertical Divider for MD screens - Only if enough items to span columns? Keep simpler logic */}
+                        {missingItems.length > 1 && (
+                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[1px] bg-[#FFB300]/20 transform -translate-x-1/2"></div>
+                        )}
 
-                    {/* Left Column */}
-                    <div className="space-y-3 md:pr-6">
-                        <MissingDetailItem
-                            icon={<i className="ri-translate-2 text-xl"></i>}
-                            label="Add language"
-                            score="10%"
-                            onClick={() => onAction('language')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-brain-line text-xl"></i>}
-                            label="Add skills"
-                            score="07%"
-                            onClick={() => onAction('skills')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-graduation-cap-line text-xl"></i>}
-                            label="Add education"
-                            score="07%"
-                            onClick={() => onAction('education')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-user-smile-line text-xl"></i>}
-                            label="Add summary"
-                            score="07%"
-                            onClick={() => onAction('summary')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-briefcase-line text-xl"></i>}
-                            label="Add experience"
-                            score="07%"
-                            onClick={() => onAction('experience')}
-                        />
+                        {/* Rendering mapped items. 
+                             To split into two columns specifically like visually requested might be tricky with simple map in grid.
+                             But grid-flow-row (default) fills left then right? No, grid fills row by row: 1 2, 3 4.
+                             To get Col 1 then Col 2, we need grid-flow-col or explicit columns.
+                             Let's just iterate.
+                        */}
+                        {missingItems.map((item) => (
+                            <MissingDetailItem
+                                key={item.id}
+                                icon={item.icon}
+                                label={item.label}
+                                score={item.score}
+                                onClick={() => onAction(item.action)}
+                            />
+                        ))}
                     </div>
-
-                    {/* Right Column */}
-                    <div className="space-y-3 md:pl-6 mt-3 md:mt-0">
-                        <MissingDetailItem
-                            icon={<i className="ri-file-user-line text-xl"></i>}
-                            label="Add your resume"
-                            score="10%"
-                            onClick={() => onAction('resume')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-link text-xl"></i>}
-                            label="Add social links"
-                            score="07%"
-                            onClick={() => onAction('social')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-phone-fill text-xl"></i>}
-                            label="Add phone number"
-                            score="07%"
-                            onClick={() => onAction('phone')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-vip-diamond-line text-xl"></i>}
-                            label="Add marital status"
-                            score="07%"
-                            onClick={() => onAction('marital')}
-                        />
-                        <MissingDetailItem
-                            icon={<i className="ri-calendar-event-line text-xl"></i>}
-                            label="Add date of birth"
-                            score="07%"
-                            onClick={() => onAction('dob')}
-                        />
+                ) : (
+                    <div className="text-center text-gray-500 py-8">
+                        <p className="text-lg font-bold text-[#16A34A] mb-2">🎉 Profile Complete!</p>
+                        <p className="text-sm">You have filled all recommended details.</p>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );

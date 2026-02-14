@@ -102,19 +102,19 @@ const ProfileSidebar = ({ profile, onAction }) => {
                         {/* Missing Detail List */}
                         <div className="w-full space-y-2 mb-6 transition-all">
                             {(!profile.languages || profile.languages.length === 0) &&
-                                <StrengthItem label="Add language" score="+10%" icon={<i className="ri-translate-2 text-lg"></i>} onClick={() => onAction && onAction('language')} />
+                                <StrengthItem label="Add language" score="+05%" icon={<i className="ri-translate-2 text-lg"></i>} onClick={() => onAction && onAction('language')} />
                             }
                             {(!profile.skills || profile.skills.length === 0) &&
-                                <StrengthItem label="Add skills" score="+07%" icon={<i className="ri-brain-line text-lg"></i>} onClick={() => onAction && onAction('skills')} />
+                                <StrengthItem label="Add skills" score="+10%" icon={<i className="ri-brain-line text-lg"></i>} onClick={() => onAction && onAction('skills')} />
                             }
                             {(!profile.education || profile.education.length === 0) &&
-                                <StrengthItem label="Add education" score="+07%" icon={<i className="ri-graduation-cap-line text-lg"></i>} onClick={() => onAction && onAction('education')} />
+                                <StrengthItem label="Add education" score="+10%" icon={<i className="ri-graduation-cap-line text-lg"></i>} onClick={() => onAction && onAction('education')} />
                             }
                             {!profile.summary &&
-                                <StrengthItem label="Add summary" score="+07%" icon={<i className="ri-user-smile-line text-lg"></i>} onClick={() => onAction && onAction('summary')} />
+                                <StrengthItem label="Add summary" score="+10%" icon={<i className="ri-user-smile-line text-lg"></i>} onClick={() => onAction && onAction('summary')} />
                             }
                             {(!profile.workExperience || profile.workExperience.length === 0) &&
-                                <StrengthItem label="Add experience" score="+07%" icon={<i className="ri-briefcase-line text-lg"></i>} onClick={() => onAction && onAction('experience')} />
+                                <StrengthItem label="Add experience" score="+10%" icon={<i className="ri-briefcase-line text-lg"></i>} onClick={() => onAction && onAction('experience')} />
                             }
                             {/* Add Photo Wiring */}
                             {!profile.profileImage &&
@@ -139,7 +139,10 @@ const ProfileSidebar = ({ profile, onAction }) => {
                 isOpen={isMissingDetailsModalOpen}
                 onClose={() => setIsMissingDetailsModalOpen(false)}
                 profile={profile}
-                onAction={onAction}
+                onAction={(action) => {
+                    onAction(action);
+                    setIsMissingDetailsModalOpen(false);
+                }}
             />
 
             {/* 2. Additional Details */}

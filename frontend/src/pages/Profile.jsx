@@ -3,6 +3,7 @@ import axios from "axios";
 import { calculateProfileStrength } from "../utils/profileUtils";
 import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
+import config from "../config";
 
 import Navbar from "../components/Navbar";
 import EditProfileModal from "../components/profile/EditProfileModal";
@@ -83,7 +84,7 @@ const Profile = () => {
             const token = localStorage.getItem("token");
             if (!token) { navigate("/login"); return; }
 
-            const res = await axios.get("http://localhost:8000/api/profile/me", {
+            const res = await axios.get(`${config.API_URL}/api/profile/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setProfile(res.data.profile);
@@ -148,7 +149,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete("http://localhost:8000/api/profile/resume", {
+            await axios.delete(`${config.API_URL}/api/profile/resume`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Resume deleted");
@@ -174,7 +175,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post("http://localhost:8000/api/profile/resume", formData, {
+            const res = await axios.post(`${config.API_URL}/api/profile/resume`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     Authorization: `Bearer ${token}`
@@ -207,7 +208,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/profile", { skills: updatedSkills }, {
+            await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Skill deleted");
@@ -259,7 +260,7 @@ const Profile = () => {
             delete payload.locationState;
             delete payload.countryCode;
 
-            await axios.post("http://localhost:8000/api/profile", payload, {
+            await axios.post(`${config.API_URL}/api/profile`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -280,7 +281,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/profile", { summary: newSummary }, {
+            await axios.post(`${config.API_URL}/api/profile`, { summary: newSummary }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Summary updated");
@@ -303,7 +304,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/profile", { skills: updatedSkills }, {
+            await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Skills updated");
@@ -330,7 +331,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/profile", { education: updatedEducationList }, {
+            await axios.post(`${config.API_URL}/api/profile`, { education: updatedEducationList }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Education updated");
@@ -367,7 +368,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/profile", { education: updatedEducationList }, {
+            await axios.post(`${config.API_URL}/api/profile`, { education: updatedEducationList }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Education deleted");
@@ -394,7 +395,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8000/api/profile", { languages: updatedLanguageList }, {
+            await axios.post(`${config.API_URL}/api/profile`, { languages: updatedLanguageList }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Languages updated");
@@ -454,7 +455,7 @@ const Profile = () => {
         try {
             const token = localStorage.getItem("token");
             console.log("Sending request to backend...");
-            const res = await axios.post("http://localhost:8000/api/profile", { workExperience: newExperienceList }, {
+            const res = await axios.post(`${config.API_URL}/api/profile`, { workExperience: newExperienceList }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             console.log("Backend response:", res.data);
@@ -472,7 +473,7 @@ const Profile = () => {
     const handleSaveAllExperiences = async (updatedExperiences) => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post("http://localhost:8000/api/profile", {
+            const res = await axios.post(`${config.API_URL}/api/profile`, {
                 ...profile, // Ensure we send full profile if needed, or just workExperience? 
                 // The API seems to handle partials in some places, but let's be safe.
                 // Wait, handleSaveExperience uses `axios.post` with `{ workExperience: list }`.
@@ -532,7 +533,7 @@ const Profile = () => {
             console.log("Frontend Upload Token:", token);
             const endpoint = type === "cover" ? "cover-image" : type === "profile" ? "profile-image" : "resume";
 
-            const res = await axios.post(`http://localhost:8000/api/profile/${endpoint}`, formData, {
+            const res = await axios.post(`${config.API_URL}/api/profile/${endpoint}`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -558,7 +559,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete("http://localhost:8000/api/profile/cover-image", {
+            await axios.delete(`${config.API_URL}/api/profile/cover-image`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Cover image deleted", { id: loadingToast });
@@ -581,7 +582,7 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete("http://localhost:8000/api/profile/profile-image", {
+            await axios.delete(`${config.API_URL}/api/profile/profile-image`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Profile picture deleted", { id: loadingToast });

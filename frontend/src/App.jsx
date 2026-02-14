@@ -54,8 +54,9 @@ function App() {
             🔒 Routes that Logged-in Users CANNOT access 
             (They get redirected to /profile)
           */}
+          <Route path="/" element={<Home />} />
+
           <Route element={<RedirectIfAuthenticated />}>
-            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
           </Route>

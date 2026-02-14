@@ -7,7 +7,7 @@ import step1Illustration from "../assets/profile/step1_illustration.png";
 import Step1BasicInfo from "./create-profile/Step1BasicInfo";
 import Step2Education from "./create-profile/Step2Education";
 import Step3Experience from "./create-profile/Step3Experience";
-
+import config from "../config";
 
 
 const CreateProfile = () => {
@@ -23,7 +23,7 @@ const CreateProfile = () => {
 
             try {
                 // If profile exists, redirect to /profile
-                await axios.get("http://localhost:8000/api/profile/me", {
+                await axios.get(`${config.API_URL}/api/profile/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 navigate("/profile");
@@ -163,7 +163,7 @@ const CreateProfile = () => {
             // Simulate loading delay for visual effect (as requested)
             await new Promise(resolve => setTimeout(resolve, 3000));
 
-            await axios.post("http://localhost:8000/api/profile", payload, {
+            await axios.post(`${config.API_URL}/api/profile`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

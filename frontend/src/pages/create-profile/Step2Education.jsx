@@ -283,7 +283,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             } catch (err) {
                 if (!axios.isCancel(err)) {
                     console.error("Failed to fetch universities", err);
-                    setFilteredUniversities([]);
+                    // Fallback to just "Other" on error
+                    setFilteredUniversities([{ name: "Other", domain: null }]);
                 }
             } finally {
                 // Only turn off loading if this was the latest request
@@ -800,12 +801,14 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                         {/* Actions */}
                         <div className="flex justify-end gap-4 items-center">
                             <button
+                                type="button"
                                 onClick={() => setShowLanguageModal(false)}
                                 className="px-8 py-2.5 rounded-lg border border-[#FFB300] text-[#FFB300] font-medium hover:bg-[#FFF9E5] transition"
                             >
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={handleLanguageSave}
                                 className="px-8 py-2.5 rounded-lg bg-[#FFB300] text-black font-bold hover:bg-[#E6A200] transition shadow-md"
                             >
@@ -813,6 +816,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                             </button>
                             {editingLanguageIndex !== null && (
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         handleLanguageDelete(editingLanguageIndex);
                                         setShowLanguageModal(false);
@@ -830,7 +834,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             {showEducationModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
                     <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative animate-scaleIn max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => setShowEducationModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition">
+                        <button type="button" onClick={() => setShowEducationModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
 
@@ -853,6 +857,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         placeholder="Add graduate/doctorate/Phd"
                                         value={eduSearch}
                                         readOnly
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'level' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                 </div>
@@ -891,6 +896,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={educationForm.course}
                                         onChange={(e) => setEducationForm({ ...educationForm, course: e.target.value })}
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 ) : (
                                     // Dropdown for others
@@ -920,6 +926,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                     e.stopPropagation();
                                                     setOpenDropdown('course');
                                                 }}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                             />
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'course' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                         </div>
@@ -964,6 +971,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={customCourse}
                                         autoFocus
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 </div>
                             )}
@@ -978,6 +986,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={educationForm.university}
                                         onChange={(e) => setEducationForm({ ...educationForm, university: e.target.value })}
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 ) : (
                                     <>
@@ -1001,6 +1010,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                     e.stopPropagation();
                                                     setOpenDropdown('university');
                                                 }}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                             />
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'university' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                         </div>
@@ -1021,9 +1031,9 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                         className="px-6 py-4 cursor-pointer text-sm font-medium text-gray-800 hover:bg-gray-50 border-b border-gray-100 last:border-none transition-colors"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            setEducationForm({ ...educationForm, university: uni });
-                                                            setUniversitySearch(uni);
-                                                            if (uni !== "Other") {
+                                                            setEducationForm({ ...educationForm, university: uni.name || uni });
+                                                            setUniversitySearch(uni.name || uni);
+                                                            if ((uni.name || uni) !== "Other") {
                                                                 setCustomUniversity("");
                                                             } else {
                                                                 // If "Other" is selected, we might want to ensure customUniversity is reset or ready
@@ -1031,7 +1041,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                             setOpenDropdown(null);
                                                         }}
                                                     >
-                                                        {uni}
+                                                        {uni.name || uni}
                                                     </div>
                                                 ))}
                                                 {!isSearchingUni && filteredUniversities.length === 0 && (
@@ -1056,6 +1066,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={customUniversity}
                                         autoFocus
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 </div>
                             )}
@@ -1160,12 +1171,14 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                         {/* Actions */}
                         <div className="flex justify-end gap-4 mt-10 items-center">
                             <button
+                                type="button"
                                 onClick={() => setShowEducationModal(false)}
                                 className="px-8 py-3 rounded-xl border border-[#FFB300] text-[#FFB300] font-bold hover:bg-[#FFF9E5] transition"
                             >
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={handleEducationSave}
                                 className="px-10 py-3 rounded-xl bg-[#FFB300] text-black font-bold hover:bg-[#E6A200] transition shadow-md"
                             >
@@ -1173,6 +1186,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                             </button>
                             {editingEducationIndex !== null && (
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         setShowDeleteConfirm(true);
                                     }}
@@ -1199,12 +1213,14 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                         <div className="flex gap-4 w-full px-2">
                             <button
+                                type="button"
                                 onClick={() => setShowDeleteConfirm(false)}
                                 className="flex-1 py-3 rounded-xl border border-[#FFB300] text-[#FFB300] font-bold hover:bg-[#FFF9E5] transition text-sm"
                             >
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={() => {
                                     if (editingEducationIndex !== null) {
                                         handleEducationDelete(editingEducationIndex);

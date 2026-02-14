@@ -5,6 +5,7 @@ import fresherIcon from "../../assets/fresher_icon.png";
 import experiencedIcon from "../../assets/experienced_icon.png";
 import SearchableDropdown from "./components/SearchableDropdown";
 import { fetchLocationDetails } from "../../utils/locationUtils";
+import config from "../../config";
 
 const Step1BasicInfo = ({
     formData,
@@ -137,10 +138,12 @@ const Step1BasicInfo = ({
         }
     };
 
+
+
     // OTP Functions
     const sendOtp = async () => {
         try {
-            await axios.post("http://localhost:8000/api/auth/send-otp", {
+            await axios.post(`${config.API_URL}/api/auth/send-otp`, {
                 phone: `${primaryPhoneCode}${formData.phone}`
             });
             setOtpSent(true);
@@ -153,7 +156,7 @@ const Step1BasicInfo = ({
 
     const verifyOtp = async () => {
         try {
-            const res = await axios.post("http://localhost:8000/api/auth/verify-otp", {
+            const res = await axios.post(`${config.API_URL}/api/auth/verify-otp`, {
                 phone: `${primaryPhoneCode}${formData.phone}`,
                 otp
             });

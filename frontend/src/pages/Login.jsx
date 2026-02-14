@@ -3,6 +3,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { redirectAfterLogin } from "../utils/redirectAfterLogin";
+import config from "../config";
 
 /* Assets */
 import loginIllustration from "../assets/illustrations/login-illustration.png";
@@ -19,13 +20,14 @@ const Login = () => {
         }
     }, [navigate]);
 
+
     /* ---------------- GOOGLE LOGIN ---------------- */
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
                 setLoading(true);
 
-                const res = await axios.post("http://localhost:8000/api/auth/google", {
+                const res = await axios.post(`${config.API_URL}/api/auth/google`, {
                     access_token: tokenResponse.access_token,
                 });
 
