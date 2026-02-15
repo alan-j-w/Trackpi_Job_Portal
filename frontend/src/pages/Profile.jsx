@@ -30,6 +30,17 @@ import ResumeSection from "../components/profile/ResumeSection";
 import ProfileSidebar from "../components/profile/ProfileSidebar";
 import JobListing from "../components/profile/JobListing";
 
+const DetailItem = ({ icon, text, isLink, href }) => (
+    <div className="flex items-center gap-3 text-sm font-medium text-gray-800">
+        <span className="text-black text-lg flex-shrink-0">{icon}</span>
+        {isLink ? (
+            <a href={href} className="truncate hover:underline" title={text}>{text}</a>
+        ) : (
+            <span className="truncate" title={text}>{text}</span>
+        )}
+    </div>
+);
+
 const Profile = () => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -51,7 +62,7 @@ const Profile = () => {
 
     // Skills Modal State
     const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
-    const [isSkillsAddMode, setIsSkillsAddMode] = useState(true); // Renaming for consistency? Keeping as is for now but logic is same.
+    const [isSkillsAddMode, setIsSkillsAddMode] = useState(true);
 
     // Education Modal State
     const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
@@ -89,8 +100,16 @@ const Profile = () => {
             });
             setProfile(res.data.profile);
         } catch (err) {
-            if (err.response?.status === 404) navigate("/create-profile");
-            else setError("Failed to load profile");
+            if (err.response?.status === 404) {
+                navigate("/create-profile");
+            } else if (err.response?.status === 401) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = "/login";
+            } else {
+                setError("Failed to load profile");
+                console.error(err);
+            }
         } finally {
             setLoading(false);
         }
@@ -100,7 +119,6 @@ const Profile = () => {
 
     const handleAction = (actionType) => {
         if (actionType === 'photo') {
-            // Provide feedback or trigger if possible. For now, we scroll to top.
             window.scrollTo({ top: 0, behavior: 'smooth' });
             toast("Click the camera icon on your profile picture", { icon: "📷" });
             return;
@@ -112,11 +130,7 @@ const Profile = () => {
             'experience': { id: 'experience-section', open: handleAddExperience },
             'language': { id: 'language-section', open: handleAddLanguage },
             'summary': { id: 'summary-section', open: () => setIsSummaryModalOpen(true) },
-
-            // New Actions from MissingDetailsModal
             'resume': { id: 'resume-section', open: () => setIsResumeModalOpen(true) },
-
-            // These open the main Edit Profile Modal
             'social': { open: () => setIsEditModalOpen(true) },
             'phone': { open: () => setIsEditModalOpen(true) },
             'marital': { open: () => setIsEditModalOpen(true) },
@@ -128,7 +142,6 @@ const Profile = () => {
             const element = document.getElementById(target.id);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Small delay to let scroll confirm before opening modal logic
                 setTimeout(() => target.open(), 600);
             } else {
                 target.open();
@@ -142,8 +155,6 @@ const Profile = () => {
 
     const confirmDeleteResume = async () => {
         setShowDeleteResumeModal(false);
-
-        // Optimistic
         const oldResume = profile.resume;
         setProfile(prev => ({ ...prev, resume: null, resumeUrl: null }));
 
@@ -156,8 +167,7 @@ const Profile = () => {
         } catch (err) {
             console.error("Delete resume failed", err);
             setProfile(prev => ({ ...prev, resume: oldResume, resumeUrl: oldResume }));
-            const msg = err.response?.data?.message || "Failed to delete resume";
-            toast.error(msg);
+            toast.error(err.response?.data?.message || "Failed to delete resume");
         }
     };
 
@@ -169,7 +179,6 @@ const Profile = () => {
 
         const formData = new FormData();
         formData.append("resume", file);
-
         const loadingToast = toast.loading("Uploading resume...");
         setIsResumeModalOpen(false);
 
@@ -181,8 +190,6 @@ const Profile = () => {
                     Authorization: `Bearer ${token}`
                 }
             });
-
-            // Update profile with new resume URL
             setProfile(prev => ({ ...prev, resume: res.data.resume, resumeUrl: res.data.resume }));
             toast.success("Resume uploaded successfully!", { id: loadingToast });
         } catch (err) {
@@ -199,11 +206,8 @@ const Profile = () => {
 
     const handleDeleteDirectSkill = async (skillToDelete) => {
         if (!window.confirm(`Are you sure you want to delete "${skillToDelete}"?`)) return;
-
         const oldSkills = profile.skills || [];
         const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
-
-        // Optimistic Update
         setProfile(prev => ({ ...prev, skills: updatedSkills }));
 
         try {
@@ -219,23 +223,16 @@ const Profile = () => {
         }
     };
 
-    // --- Update Handlers ---
-
     const handleUpdateProfile = async (updatedData) => {
         const loadingToast = toast.loading("Updating profile...");
         try {
             const token = localStorage.getItem("token");
-
-            // Reconstruct payload for backend
-
-            // 1. Handle Location
             const locationUpdate = {
                 city: updatedData.locationCity,
                 state: updatedData.locationState,
                 country: updatedData.locationCountry || profile.location?.country || "India"
             };
 
-            // 2. Handle Education (Update first entry or create new)
             let updatedEducation = [...(profile.education || [])];
             if (updatedData.educationDegree) {
                 if (!updatedEducation.length) {
@@ -253,8 +250,6 @@ const Profile = () => {
                 location: locationUpdate,
                 education: updatedEducation
             };
-
-            // Remove modal-specific keys
             delete payload.educationDegree;
             delete payload.locationCity;
             delete payload.locationState;
@@ -274,7 +269,6 @@ const Profile = () => {
     };
 
     const handleSaveSummary = async (newSummary) => {
-        // Optimistic
         const oldSummary = profile.summary;
         setProfile(prev => ({ ...prev, summary: newSummary }));
         setIsSummaryModalOpen(false);
@@ -293,12 +287,8 @@ const Profile = () => {
     };
 
     const handleSaveSkills = async (newSkills) => {
-        // Optimistic
         const oldSkills = profile.skills || [];
-
-        // Modal now handles full list management (Add/Remove), so we just replace.
         const updatedSkills = newSkills;
-
         setProfile(prev => ({ ...prev, skills: updatedSkills }));
         setIsSkillsModalOpen(false);
 
@@ -318,14 +308,11 @@ const Profile = () => {
     const handleSaveEducation = async (newEducation) => {
         const oldEducation = [...(profile.education || [])];
         let updatedEducationList = [...oldEducation];
-
         if (educationEditIndex !== null) {
             updatedEducationList[educationEditIndex] = newEducation;
         } else {
             updatedEducationList.push(newEducation);
         }
-
-        // Optimistic
         setProfile(prev => ({ ...prev, education: updatedEducationList }));
         setIsEducationModalOpen(false);
 
@@ -345,25 +332,22 @@ const Profile = () => {
     const handleAddEducation = () => {
         setCurrentEducation(null);
         setEducationEditIndex(null);
-        setIsEducationEditing(false); // Strict Add contract
+        setIsEducationEditing(false);
         setIsEducationModalOpen(true);
     };
 
     const handleEditEducation = (edu, index) => {
         setCurrentEducation(edu);
         setEducationEditIndex(index);
-        setIsEducationEditing(true); // Strict Edit contract
+        setIsEducationEditing(true);
         setIsEducationModalOpen(true);
     };
 
     const handleDeleteEducation = async (indexToDelete) => {
         const eduToDelete = profile.education[indexToDelete];
         if (!window.confirm(`Are you sure you want to delete ${eduToDelete.degree} from ${eduToDelete.institution}?`)) return;
-
         const oldEducation = [...(profile.education || [])];
         const updatedEducationList = oldEducation.filter((_, i) => i !== indexToDelete);
-
-        // Optimistic
         setProfile(prev => ({ ...prev, education: updatedEducationList }));
 
         try {
@@ -382,14 +366,11 @@ const Profile = () => {
     const handleSaveLanguage = async (newLanguage) => {
         const oldLanguages = [...(profile.languages || [])];
         let updatedLanguageList = [...oldLanguages];
-
         if (languageEditIndex !== null) {
             updatedLanguageList[languageEditIndex] = newLanguage;
         } else {
             updatedLanguageList.push(newLanguage);
         }
-
-        // Optimistic
         setProfile(prev => ({ ...prev, languages: updatedLanguageList }));
         setIsLanguageModalOpen(false);
 
@@ -409,105 +390,75 @@ const Profile = () => {
     const handleAddLanguage = () => {
         setCurrentLanguage(null);
         setLanguageEditIndex(null);
-        setIsLanguageEditing(false); // Strict Add contract
+        setIsLanguageEditing(false);
         setIsLanguageModalOpen(true);
     };
 
     const handleEditLanguage = (lang, index) => {
         setCurrentLanguage(lang);
         setLanguageEditIndex(index);
-        setIsLanguageEditing(true); // Strict Edit contract
+        setIsLanguageEditing(true);
         setIsLanguageModalOpen(true);
     };
 
-    // Experience Handlers
     const handleAddExperience = () => {
         setCurrentExperience(null);
         setExperienceEditIndex(null);
-        setIsExperienceEditing(false); // Strict Add contract
+        setIsExperienceEditing(false);
         setIsExpModalOpen(true);
     };
 
     const handleEditExperience = (exp, index) => {
         setCurrentExperience(exp);
         setExperienceEditIndex(index);
-        setIsExperienceEditing(true); // Strict Edit contract
+        setIsExperienceEditing(true);
         setIsExpModalOpen(true);
     };
 
     const handleSaveExperience = async (experienceData) => {
-        console.log("handleSaveExperience called with:", experienceData);
         const oldExperience = [...(profile.workExperience || [])];
         let newExperienceList = [...oldExperience];
-
         if (experienceEditIndex !== null) {
             newExperienceList[experienceEditIndex] = experienceData;
         } else {
             newExperienceList.push(experienceData);
         }
-
-        console.log("New experience list:", newExperienceList);
-
-        // Optimistic
         setProfile(prev => ({ ...prev, workExperience: newExperienceList }));
         setIsExpModalOpen(false);
 
         try {
             const token = localStorage.getItem("token");
-            console.log("Sending request to backend...");
-            const res = await axios.post(`${config.API_URL}/api/profile`, { workExperience: newExperienceList }, {
+            await axios.post(`${config.API_URL}/api/profile`, { workExperience: newExperienceList }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            console.log("Backend response:", res.data);
             toast.success("Experience updated");
         } catch (err) {
             console.error("Update experience failed", err);
-            console.error("Error response:", err.response);
             setProfile(prev => ({ ...prev, workExperience: oldExperience }));
             toast.error("Failed to update experience");
         }
     };
 
-
-    // Bulk Save Handler
     const handleSaveAllExperiences = async (updatedExperiences) => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post(`${config.API_URL}/api/profile`, {
-                ...profile, // Ensure we send full profile if needed, or just workExperience? 
-                // The API seems to handle partials in some places, but let's be safe.
-                // Wait, handleSaveExperience uses `axios.post` with `{ workExperience: list }`.
-                // In Step 503, Line 434: `axios.post(..., { workExperience: newExperienceList }, ...)`
-                // So I will do the same.
-                workExperience: updatedExperiences
-            }, {
+            await axios.post(`${config.API_URL}/api/profile`, { workExperience: updatedExperiences }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Update local state
-            setProfile(res.data.profile || res.data); // API might return profile object or just data? 
-            // In handleSaveExperience: `setProfile(res.data.profile)` (Line 89 fetches `res.data.profile`)
-            // But handleSaveExperience (Line 434) doesn't use `res.data`. It refetches? No, it sets profile optimistically at 428?
-            // Actually line 437 `console.log("Backend response:", res.data)`.
-            // fetchProfile() is safer if we are unsure of return.
-            // But `handleUpdateProfile` uses `fetchProfile()`.
-
-            // I'll optimistically update and then fetch.
             setProfile(prev => ({ ...prev, workExperience: updatedExperiences }));
-            setIsExpListOpen(false); // Close Bulk Modal
+            setIsExpListOpen(false);
             toast.success("All experiences updated!");
         } catch (err) {
             console.error(err);
             toast.error("Failed to update experiences");
-            fetchProfile(); // Revert
+            fetchProfile();
         }
     };
 
-    // Upload Handlers
     const handleUpload = async (e, type) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validation
         const validTypes = type === "resume"
             ? ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
             : ["image/jpeg", "image/png", "image/webp"];
@@ -517,7 +468,7 @@ const Profile = () => {
             return;
         }
 
-        const maxSize = type === "resume" ? 5 * 1024 * 1024 : 2 * 1024 * 1024; // 5MB for resume, 2MB for images
+        const maxSize = type === "resume" ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
         if (file.size > maxSize) {
             toast.error("File size too large.");
             return;
@@ -525,20 +476,14 @@ const Profile = () => {
 
         const formData = new FormData();
         formData.append(type === "cover" ? "coverImage" : type === "profile" ? "profileImage" : "resume", file);
-
         const loadingToast = toast.loading("Uploading...");
 
         try {
             const token = localStorage.getItem("token");
-            console.log("Frontend Upload Token:", token);
             const endpoint = type === "cover" ? "cover-image" : type === "profile" ? "profile-image" : "resume";
-
             const res = await axios.post(`${config.API_URL}/api/profile/${endpoint}`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                headers: { Authorization: `Bearer ${token}` }
             });
-
             setProfile(res.data);
             toast.success("Upload successful!", { id: loadingToast });
         } catch (err) {
@@ -550,11 +495,8 @@ const Profile = () => {
     const handleDeleteCoverImage = async () => {
         if (!profile.coverImage) return;
         if (!window.confirm("Are you sure you want to delete your cover photo?")) return;
-
         const oldCover = profile.coverImage;
         const loadingToast = toast.loading("Deleting cover image...");
-
-        // Optimistic
         setProfile(prev => ({ ...prev, coverImage: null }));
 
         try {
@@ -573,11 +515,8 @@ const Profile = () => {
     const handleDeleteProfileImage = async () => {
         if (!profile.profileImage) return;
         if (!window.confirm("Are you sure you want to delete your profile picture?")) return;
-
         const oldImage = profile.profileImage;
         const loadingToast = toast.loading("Deleting profile picture...");
-
-        // Optimistic
         setProfile(prev => ({ ...prev, profileImage: null }));
 
         try {
@@ -601,6 +540,9 @@ const Profile = () => {
     if (!profile) return null;
 
     const { isComplete } = calculateProfileStrength(profile);
+    const locationString = profile.location
+        ? `${profile.location.city || ''}, ${profile.location.state || ''}, ${profile.location.country || ''}`.replace(/^, |, $/g, '')
+        : "Add Location";
 
     return (
         <div className="bg-white min-h-screen font-sans pb-20 overflow-x-hidden">
@@ -624,6 +566,50 @@ const Profile = () => {
 
                     {/* LEFT COLUMN (Content) */}
                     <div className="flex-1 lg:max-w-[822px]">
+
+                        {/* User Details Grid (Inline) */}
+                        <div className="rounded-lg border border-[#0091FF] px-6 py-5 mb-8 bg-white max-w-[822px]">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
+                                {/* Col 1 */}
+                                <div className="space-y-3">
+                                    <DetailItem
+                                        icon={<i className="ri-briefcase-line"></i>}
+                                        text={profile.workStatus ? (profile.workStatus.charAt(0).toUpperCase() + profile.workStatus.slice(1)) : "Add work status"}
+                                    />
+                                    <DetailItem
+                                        icon={profile.gender === 'female' ? <i className="ri-women-line"></i> : <i className="ri-men-line"></i>}
+                                        text={profile.gender === 'male' ? 'He/Him' : profile.gender === 'female' ? 'She/Her' : profile.gender || 'Add gender'}
+                                    />
+                                </div>
+
+                                {/* Col 2 */}
+                                <div className="space-y-3">
+                                    <DetailItem
+                                        icon={<i className="ri-phone-line"></i>}
+                                        text={profile.phone || "Add phone"}
+                                    />
+                                    <DetailItem
+                                        icon={<i className="ri-mail-line"></i>}
+                                        text={profile.email}
+                                        isLink={true}
+                                        href={`mailto:${profile.email}`}
+                                    />
+                                </div>
+
+                                {/* Col 3 */}
+                                <div className="space-y-3">
+                                    <DetailItem
+                                        icon={<i className="ri-graduation-cap-line"></i>}
+                                        text={profile.education?.length > 0 ? profile.education[0].degree : "Add education"}
+                                    />
+                                    <DetailItem
+                                        icon={<i className="ri-map-pin-line"></i>}
+                                        text={locationString}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="summary-section">
                             <ProfileSummary
                                 summary={profile.summary}

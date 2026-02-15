@@ -43,101 +43,62 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* ========== Public Routes (Accessible to everyone) ========== */}
-        {/* These should NOT be wrapped in RedirectIfSuperAdmin if that component BLOCKS access. 
-            However, typically we want SA to be redirected from these to Dashboard.
-            Assuming RedirectIfSuperAdmin renders Outlet if NOT SA.
-        */}
-        <Route element={<RedirectIfSuperAdmin><Outlet /></RedirectIfSuperAdmin>}>
+        {/* =================================================================
+            1. PUBLIC ROUTES (Accessible to ALL, never blocked or redirected)
+            ================================================================= */}
+        {/* Home is now Restricted for Auth Users */}
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/testimonials" element={<Testimonials />} />
+        <Route path="/talent-league" element={<TalentLeague />} />
+        <Route path="/creators" element={<Creators />} />
+        <Route path="/resume-gen" element={<ResumeGen />} />
 
-          {/* 
-            🔒 Routes that Logged-in Users CANNOT access 
-            (They get redirected to /profile)
-          */}
+        {/* Helper for LinkedIn Callback (Public but handles its own logic) */}
+        <Route path="/linkedin/callback" element={<LinkedInCallback />} />
+
+        {/* =================================================================
+            2. AUTH ROUTES (Only for GUESTS. Logged-in users -> Profile)
+            ================================================================= */}
+        <Route element={<RedirectIfAuthenticated />}>
           <Route path="/" element={<Home />} />
-
-          <Route element={<RedirectIfAuthenticated />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-          </Route>
-
-          {/* Accessible to both (Authenticated & Guests) - OR typically these should be public? 
-              The user said "cant visit to the landing page". 
-              Usually About/Contact are okay, but if strict, we can put them inside too.
-              For now, I'll only restrict Home, Login, Signup.
-          */}
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/linkedin/callback" element={<LinkedInCallback />} />
-          <Route path="/resume-gen" element={<ResumeGen />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/talent-league" element={<TalentLeague />} />
-          <Route path="/creators" element={<Creators />} />
-
-          {/* ========== Protected User Routes ========== */}
-          <Route
-            path="/create-profile"
-            element={
-              <ProtectedRoute>
-                <CreateProfile />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Job Seeker Dashboard */}
-          <Route
-            path="/user/dashboard"
-            element={
-              <ProtectedRoute>
-                <UserDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/jobs"
-            element={
-              <ProtectedRoute>
-                <Jobs />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Route>
 
-        {/* ========== Admin Routes ========== */}
+        {/* =================================================================
+            3. PROTECTED ROUTES (Only for Authenticated Users)
+            ================================================================= */}
+        <Route element={<ProtectedRoute />}>
+
+          {/* User Routes */}
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/create-profile" element={<CreateProfile />} />
+          <Route path="/user/dashboard" element={<UserDashboard />} />
+          <Route path="/jobs" element={<Jobs />} />
+
+        </Route>
+
+        {/* =================================================================
+            4. ADMIN ROUTES
+            ================================================================= */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route
-          path="/admin"
-          element={
-            <ProtectedAdminRoute>
-              <AdminLayout />
-            </ProtectedAdminRoute>
-          }
-        >
-          {/* Dashboard Route */}
+        <Route path="/admin" element={<ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>}>
+          {/* Dashboard */}
           <Route path="dashboard" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}><AdminDashboard /></ProtectedAdminRoute>} />
 
-          {/* Permission Protected Routes */}
+          {/* Jobs */}
           <Route path="jobs" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><AdminJobs /></ProtectedAdminRoute>} />
           <Route path="jobs/post" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_POST}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_EDIT}><PostJob /></ProtectedAdminRoute>} />
           <Route path="jobs/view/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.JOBS_VIEW}><PostJob /></ProtectedAdminRoute>} />
-          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
-          {/* Signup Candidates */}
+          {/* Applicants */}
+          <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
-          {/* Super Admin Routes */}
+          {/* Super Admin */}
           <Route path="management" element={<ProtectedAdminRoute requiredRole="superadmin"><AdminManagement /></ProtectedAdminRoute>} />
           <Route path="permissions" element={<ProtectedAdminRoute requiredRole="superadmin"><PermissionManagement /></ProtectedAdminRoute>} />
           <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
@@ -146,6 +107,7 @@ function App() {
           <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
         </Route>
 
+        {/* Catch all for main app if needed, or 404 */}
       </Routes>
     </Router>
   );

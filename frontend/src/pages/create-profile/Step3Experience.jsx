@@ -52,7 +52,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Expected Salary */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.expectedSalary ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-2">Expected Salary</label>
@@ -67,7 +67,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Driving License */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.drivingLicenses?.length > 0 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Do You Have Driving License</label>
@@ -88,7 +88,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* 2 Wheeler */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.hasTwoWheeler !== undefined && formData.hasTwoWheeler !== null ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between pr-10">
@@ -114,7 +114,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Laptop */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.hasLaptop !== undefined && formData.hasLaptop !== null ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between pr-10">
@@ -140,7 +140,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Social Links */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${Object.values(formData.socialLinks || {}).some(Boolean) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Social Links</label>

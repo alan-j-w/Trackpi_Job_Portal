@@ -67,30 +67,38 @@ const ProfileSidebar = ({ profile, onAction }) => {
 
             {/* 1. Profile Strength */}
             <div
-                className={`bg-white rounded-[32px] border ${isComplete ? 'border-[#FFB300] bg-[#FFF9E5]/30' : 'border-gray-200'} p-8 mb-8 pb-10 flex flex-col items-center relative shadow-sm`}
-                style={{ minHeight: '635px' }}
+                className={`bg-white rounded-[20px] border ${isComplete ? 'border-[#FFB300] shadow-[0_4px_20px_rgba(255,179,0,0.15)]' : 'border-gray-200 shadow-sm'} ${isComplete ? 'p-6 mb-8 flex flex-col items-center relative overflow-hidden' : 'p-8 mb-8 pb-10 flex flex-col items-center relative'}`}
+                style={{ minHeight: isComplete ? 'auto' : '635px' }}
             >
 
                 {isComplete ? (
-                    <div className="flex flex-col items-center justify-center h-full w-full">
+                    <div className="flex flex-col items-center justify-center w-full py-1">
                         {/* 1. Top Strength Text */}
-                        <div className="text-center mb-8">
-                            <span className="text-[13px] font-bold text-gray-400">Profile Strength </span>
-                            <span className="text-[13px] font-bold text-[#FFB300]">100%</span>
+                        <div className="text-center mb-1">
+                            <span className="text-[14px] font-bold text-[#262626]">Profile Strength </span>
+                            <span className="text-[14px] font-bold text-[#FFB300]">100%</span>
                         </div>
 
                         {/* 2. Congratulations Text with Stars */}
-                        <div className="relative px-4">
-                            <h3 className="font-extrabold text-[26px] bg-gradient-to-r from-[#FFB300] to-[#F59E0B] bg-clip-text text-transparent tracking-tight text-center leading-tight">
+                        <div className="relative">
+                            <h3 className="font-bold text-[36px] text-[#FFB300] tracking-wide text-center leading-tight" style={{ textShadow: '0px 2px 4px rgba(255, 179, 0, 0.2)' }}>
                                 Congratulations
                             </h3>
 
-                            {/* Decorative Stars (CSS positioned) */}
-                            <span className="absolute -top-3 -left-1 text-[#FFB300] text-xl animate-bounce" style={{ animationDuration: '2s' }}>✨</span>
-                            <span className="absolute -bottom-2 -right-2 text-[#FFB300] text-lg animate-pulse" style={{ animationDuration: '1.5s' }}>✨</span>
-                            <span className="absolute top-1/2 -right-4 text-[#FFB300] text-xs animate-ping" style={{ animationDuration: '3s' }}>✨</span>
-                            <span className="absolute -bottom-6 left-8 text-[#FFB300] text-sm animate-bounce" style={{ animationDelay: '0.5s' }}>.</span>
-                            <span className="absolute -top-4 right-1/4 text-[#FFB300] text-lg">.</span>
+                            {/* Decorative Stars */}
+                            {/* Top Left */}
+                            <svg className="absolute -top-1 -left-6 w-5 h-5 text-[#FFB300] animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                            <svg className="absolute top-4 -left-10 w-3 h-3 text-[#FFB300] animate-bounce" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+
+                            {/* Bottom Left */}
+                            <svg className="absolute -bottom-1 -left-4 w-4 h-4 text-[#FFB300]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+
+                            {/* Top Right */}
+                            <svg className="absolute -top-2 -right-5 w-4 h-4 text-[#FFB300] animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+
+                            {/* Bottom Right */}
+                            <svg className="absolute top-4 -right-9 w-3 h-3 text-[#FFB300]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                            <svg className="absolute -bottom-1 -right-4 w-4 h-4 text-[#FFB300] animate-bounce" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                         </div>
                     </div>
                 ) : (

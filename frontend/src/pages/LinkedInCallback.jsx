@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../config";
+import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 
 const LinkedInCallback = () => {
     const navigate = useNavigate();
@@ -38,7 +40,7 @@ const LinkedInCallback = () => {
                 }
 
                 // ===== Send code to backend =====
-                const res = await axios.post("http://localhost:8000/api/auth/linkedin", {
+                const res = await axios.post(`${config.API_URL}/api/auth/linkedin`, {
                     code,
                 });
 
@@ -49,7 +51,7 @@ const LinkedInCallback = () => {
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
 
-                navigate("/");
+                redirectAfterLogin(navigate);
             } catch (err) {
                 console.error("LinkedIn callback error:", err.response?.data || err.message);
                 const errorMessage = err.response?.data?.message || err.message || "Unknown error";
