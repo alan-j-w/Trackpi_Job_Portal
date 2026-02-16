@@ -49,6 +49,7 @@ const PERMISSIONS = {
     ROLES_DELETE: "roles.delete",
 
     // User Management
+    USERS_VIEW: "users.view",
     USERS_EDIT: "users.edit",
     USERS_DELETE: "users.delete",
 

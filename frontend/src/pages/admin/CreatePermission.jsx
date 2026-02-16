@@ -95,6 +95,7 @@ const MODULES_CONFIG = [
         label: "User management",
         key: "user_mgmt",
         permissions: [
+            { label: "View", value: PERMISSIONS.USERS_VIEW },
             { label: "Edit", value: PERMISSIONS.USERS_EDIT },
             { label: "delete", value: PERMISSIONS.USERS_DELETE },
         ]

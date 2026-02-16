@@ -48,7 +48,7 @@ const AdminLayout = () => {
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
         { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW }, // Visible to Admin (Read Only) & Super Admin
         { name: "User permission", path: "/admin/permissions", icon: Lock, permission: PERMISSIONS.ROLES_VIEW }, // Visible to Admin (Read Only) & Super Admin
-        { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_EDIT },
+        { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_VIEW },
         { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
         { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_ADD }, // No view key?
         { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS },

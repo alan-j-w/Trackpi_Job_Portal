@@ -43,7 +43,7 @@ router.put(
 
 router.get(
     "/users",
-    checkPermission(PERMISSIONS.USERS_EDIT),
+    checkPermission(PERMISSIONS.USERS_VIEW),
     adminController.getAllUsers
 );
 
