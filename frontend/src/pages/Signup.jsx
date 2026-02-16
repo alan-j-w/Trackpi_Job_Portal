@@ -6,6 +6,8 @@ import { API_URL } from "../config";
 import loginIllustration from "../assets/illustrations/login-illustration.png";
 import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 
+import config from "../config";
+
 const Signup = () => {
     const navigate = useNavigate();
 
@@ -13,7 +15,7 @@ const Signup = () => {
     const handleGoogleSignup = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
-                const res = await axios.post(`${API_URL}/api/auth/google`, {
+                const res = await axios.post(`${config.API_URL}/api/auth/google`, {
                     access_token: tokenResponse.access_token,
                 });
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import EditExperienceModal from "../../components/profile/EditExperienceModal";
+
 import { calculateProfileStrength } from "../../utils/profileUtils";
 import ProfileStrengthCircle from "../../components/profile/ProfileStrengthCircle";
 
@@ -11,41 +11,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
         workExperience: formData.workExperiences
     });
 
-    // ================= EXPERIENCE LOGIC =================
-    const [showExperienceModal, setShowExperienceModal] = useState(false);
-    const [editingExperienceIndex, setEditingExperienceIndex] = useState(null);
-    const [currentExperienceData, setCurrentExperienceData] = useState(null);
 
-    const openExperienceModal = (index = null) => {
-        if (index !== null) {
-            setEditingExperienceIndex(index);
-            setCurrentExperienceData(formData.workExperiences[index]);
-        } else {
-            setEditingExperienceIndex(null);
-            setCurrentExperienceData(null);
-        }
-        setShowExperienceModal(true);
-    };
-
-    const handleExperienceSave = (newExp) => {
-        setFormData(prev => {
-            const list = [...(prev.workExperiences || [])];
-            if (editingExperienceIndex !== null) {
-                list[editingExperienceIndex] = newExp;
-            } else {
-                list.push(newExp);
-            }
-            return { ...prev, workExperiences: list };
-        });
-        setShowExperienceModal(false);
-    };
-
-    const handleExperienceDelete = (index) => {
-        setFormData(prev => ({
-            ...prev,
-            workExperiences: prev.workExperiences.filter((_, i) => i !== index)
-        }));
-    };
 
     const handleLicenseChange = (type) => {
         setFormData(prev => {
@@ -82,47 +48,11 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
                 {/* Form Sections */}
                 <div className="space-y-6">
 
-                    {/* Work Experience */}
-                    <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                        </div>
-                        <div className="flex justify-between items-start mb-1">
-                            <label className="block text-sm font-bold text-black">Work experience</label>
-                            <button
-                                onClick={() => openExperienceModal()}
-                                className="text-[#FFB300] font-bold text-sm hover:underline"
-                            >
-                                Add Experience +
-                            </button>
-                        </div>
-                        <p className="text-[11px] text-gray-500 mb-4 font-medium">Add your work experience to build trust</p>
 
-                        {/* Experience List */}
-                        <div className="space-y-3 mt-4">
-                            {(formData.workExperiences || []).map((exp, index) => (
-                                <div key={index} className="bg-transparent rounded-xl p-4 border border-[#FFB300] flex justify-between items-start">
-                                    <div>
-                                        <p className="font-bold text-sm text-black mb-0.5">{exp.jobTitle}</p>
-                                        <p className="text-xs text-black font-medium mb-0.5">{exp.company}</p>
-                                        <p className="text-[11px] text-gray-500 font-medium">{exp.startDate} - {exp.endDate} | {exp.employmentType}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => openExperienceModal(index)} className="text-gray-400 hover:text-[#FFB300] mt-1">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                        </button>
-                                        <button onClick={() => handleExperienceDelete(index)} className="text-gray-400 hover:text-red-500 mt-1">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
 
                     {/* Expected Salary */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.expectedSalary ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-2">Expected Salary</label>
@@ -137,7 +67,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Driving License */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.drivingLicenses?.length > 0 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Do You Have Driving License</label>
@@ -158,7 +88,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* 2 Wheeler */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.hasTwoWheeler !== undefined && formData.hasTwoWheeler !== null ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between pr-10">
@@ -184,7 +114,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Laptop */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.hasLaptop !== undefined && formData.hasLaptop !== null ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between pr-10">
@@ -210,7 +140,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Social Links */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${Object.values(formData.socialLinks || {}).some(Boolean) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Social Links</label>
@@ -245,14 +175,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
                 <p className="text-center text-[#FFB300] text-xs font-medium -mt-6 pb-6">Page 3 of 3</p>
             </div>
 
-            {/* Experience Modal */}
-            <EditExperienceModal
-                isOpen={showExperienceModal}
-                onClose={() => setShowExperienceModal(false)}
-                experienceData={currentExperienceData}
-                onSave={handleExperienceSave}
-                isEditing={editingExperienceIndex !== null}
-            />
+
         </div>
     );
 };

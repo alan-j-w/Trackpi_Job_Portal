@@ -57,18 +57,40 @@ export const authorize = (...roles) => {
 };
 
 // Check Permissions (Admin Only)
-// Superadmin always bypasses this check due to authorize('superadmin', 'admin') logic usually preceding this,
-// or we can explicitly handle it here.
+// Superadmin always bypasses this check
 export const checkPermission = (requiredPermission) => {
     return (req, res, next) => {
         const user = req.user;
 
-        // Super Admin & Full Admin bypass (Admin has full access except managing admins, which is handled by route-level role checks)
-        if (user.role === "superadmin" || user.role === "admin") {
+        // 1. Super Admin: Full Access (Bypass everything)
+        if (user.role === "superadmin") {
             return next();
         }
 
-        // Superuser (Restricted Admin) permission check
+        // 2. Admin: Restricted Access
+        // Admins generally have full access, BUT we must explicit block them from
+        // "Super Admin Only" actions if the route is protected by a permission key
+        // that corresponds to those actions.
+        if (user.role === "admin") {
+            const RESTRICTED_PERMISSIONS = [
+                // Admin Management Restrictions
+                "admin.add",
+                "admin.edit",
+                "admin.status",
+                // Role Management Restrictions - ALLOWED now
+                // "roles.edit", 
+                // "roles.delete"
+            ];
+
+            if (RESTRICTED_PERMISSIONS.includes(requiredPermission)) {
+                return res.status(403).json({
+                    message: "Access forbidden: Admins cannot perform this action.",
+                });
+            }
+            return next();
+        }
+
+        // 3. Super User (Restricted Admin) permission check
         if (user.role === "superuser") {
             if (user.permissions && user.permissions.includes(requiredPermission)) {
                 return next();

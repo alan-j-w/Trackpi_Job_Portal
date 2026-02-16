@@ -10,7 +10,7 @@ import Footer from "../components/Footer";
 const Home = () => {
   return (
     <div className="font-poppins">
-      <Navbar />
+      <Navbar mode="public" />
       <Hero />
       <HowToGetHired />
       <Stats />

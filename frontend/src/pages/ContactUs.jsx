@@ -21,7 +21,7 @@ const ContactUs = () => {
 
     return (
         <div className="w-full bg-white font-cabinet">
-            <Navbar />
+            <Navbar mode="public" />
             {/* 1. Hero Section */}
             <HeroContactUs
                 onSendMessageClick={scrollToForm}

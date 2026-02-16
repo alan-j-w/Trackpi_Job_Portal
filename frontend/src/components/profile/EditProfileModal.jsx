@@ -88,6 +88,15 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
     const handleSubmit = () => {
         const finalData = { ...formData };
+
+        // Auto-add pending skill input if user forgot to press Enter
+        if (skillInput.trim()) {
+            const newSkill = skillInput.trim();
+            if (!finalData.skills.includes(newSkill)) {
+                finalData.skills = [...finalData.skills, newSkill];
+            }
+        }
+
         if (finalData.phone && !finalData.phone.startsWith('+91')) {
             finalData.phone = '+91' + finalData.phone;
         }

@@ -64,6 +64,12 @@ const UserManagement = () => {
         fetchRoles();
     }, []);
 
+    const findUserRole = (userId) => {
+        // Robustly check if user exists in any role group
+        if (!roles || roles.length === 0) return null;
+        return roles.find(role => role.users?.some(u => String(u._id || u) === String(userId)));
+    };
+
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem("token");
@@ -77,8 +83,6 @@ const UserManagement = () => {
                 // Use real employeeId or fallback
                 employeeId: user.employeeId || "",
                 lastSeen: user.lastActive ? formatLastSeen(user.lastActive) : "Never",
-                // Display first permission or role name as "Permission"
-                permission: user.permissions && user.permissions.length > 0 ? user.permissions[0] : "Admin Access"
             }));
             setUsers(mappedUsers);
         } catch (error) {
@@ -121,15 +125,17 @@ const UserManagement = () => {
     };
 
     const handleEdit = (user) => {
-        // Try to find a role that matches the user's current permissions/role name if possible.
-        const userRoleName = roles.find(r => r.users?.some(u => u._id === user._id))?.name;
-        const matchedRole = roles.find(r => r.name === userRoleName);
+        // use findUserRole to consistently get the role
+        const matchedRole = findUserRole(user._id);
+
+        console.log("Editing User:", user.name, user._id);
+        console.log("Matched Role:", matchedRole);
 
         setFormData({
             name: user.name,
             employeeId: user.employeeId || "",
             email: user.email,
-            permission: matchedRole ? matchedRole._id : ""
+            permission: matchedRole ? String(matchedRole._id) : ""
         });
         setEditingUser(user);
         setIsModalOpen(true);
@@ -171,8 +177,9 @@ const UserManagement = () => {
                 alert("User demoted successfully");
             }
             fetchUsers();
+            // Refresh roles too as user list in roles changes
+            fetchRoles();
         } catch (error) {
-            console.error("Error demoting user(s):", error);
             alert("Failed to demote user(s)");
         } finally {
             cancelDelete();
@@ -215,7 +222,6 @@ const UserManagement = () => {
             fetchRoles();
             setFormData({ name: "", employeeId: "", email: "", permission: "" });
         } catch (error) {
-            console.error("Error saving user:", error);
             alert(error.response?.data?.message || "Failed to save user");
         } finally {
             setIsSubmitting(false);
@@ -288,49 +294,52 @@ const UserManagement = () => {
                             ) : filteredUsers.length === 0 ? (
                                 <tr><td colSpan="6" className="p-8 text-center text-gray-500">No users found.</td></tr>
                             ) : (
-                                filteredUsers.map((user) => (
-                                    <tr key={user._id} className="hover:bg-gray-50 transition-colors">
-                                        {canManage && (
-                                            <td className="p-4 pl-6 align-middle">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedUsers.includes(user._id)}
-                                                    onChange={() => handleSelectOne(user._id)}
-                                                    className="w-5 h-5 rounded border-gray-300 focus:ring-[#FFB300]"
-                                                />
-                                            </td>
-                                        )}
-                                        <td className="p-4 align-middle text-gray-700">{user.employeeId}</td>
-                                        <td className="p-4 align-middle">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-gray-900">{user.name}</span>
-                                                <span className="text-gray-500 text-sm">{user.email}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 align-middle text-gray-700">
-                                            {roles.find(r => r.users?.some(u => u._id === user._id))?.name || "Custom"}
-                                        </td>
-                                        <td className="p-4 align-middle text-gray-700">{user.lastSeen}</td>
-                                        {canManage && (
-                                            <td className="p-4 align-middle text-right pr-6">
-                                                <div className="flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(user)}
-                                                        className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(user)}
-                                                        className="p-1.5 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                filteredUsers.map((user) => {
+                                    const role = findUserRole(user._id);
+                                    return (
+                                        <tr key={user._id} className="hover:bg-gray-50 transition-colors">
+                                            {canManage && (
+                                                <td className="p-4 pl-6 align-middle">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedUsers.includes(user._id)}
+                                                        onChange={() => handleSelectOne(user._id)}
+                                                        className="w-5 h-5 rounded border-gray-300 focus:ring-[#FFB300]"
+                                                    />
+                                                </td>
+                                            )}
+                                            <td className="p-4 align-middle text-gray-700">{user.employeeId}</td>
+                                            <td className="p-4 align-middle">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-gray-900">{user.name}</span>
+                                                    <span className="text-gray-500 text-sm">{user.email}</span>
                                                 </div>
                                             </td>
-                                        )}
-                                    </tr>
-                                ))
+                                            <td className="p-4 align-middle text-gray-700">
+                                                {role ? role.name : "Custom / None"}
+                                            </td>
+                                            <td className="p-4 align-middle text-gray-700">{user.lastSeen}</td>
+                                            {canManage && (
+                                                <td className="p-4 align-middle text-right pr-6">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleEdit(user)}
+                                                            className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(user)}
+                                                            className="p-1.5 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

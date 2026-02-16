@@ -25,7 +25,6 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                     currentlyWorking: experienceData.currentlyWorking || experienceData.endDate === 'Present',
                     startDate: experienceData.startDate || "",
                     endDate: experienceData.endDate || "",
-                    endDate: experienceData.endDate || "",
                     description: experienceData.description || "",
                     salary: experienceData.salary || "",
                     workMode: experienceData.workMode || ""
@@ -39,7 +38,6 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                     location: "",
                     currentlyWorking: false,
                     startDate: "",
-                    endDate: "",
                     endDate: "",
                     description: "",
                     salary: "",

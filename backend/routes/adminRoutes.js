@@ -10,16 +10,16 @@ router.use(protect);
 router.use(authorize("admin", "superadmin", "superuser"));
 
 // Dashboard Stats
-router.get("/dashboard-stats", adminController.getDashboardStats);
+router.get("/dashboard-stats", checkPermission(PERMISSIONS.DASHBOARD_VIEW), adminController.getDashboardStats);
 
 // Get All Candidates (Job Seekers)
-router.get("/candidates", adminController.getAllCandidates);
+router.get("/candidates", checkPermission(PERMISSIONS.SIGNUP_VIEW), adminController.getAllCandidates);
 
 // Get All Jobs (Admin View)
-router.get("/jobs", adminController.getAdminJobs);
+router.get("/jobs", checkPermission(PERMISSIONS.JOBS_VIEW), adminController.getAdminJobs);
 
 // Delete Candidate
-router.delete("/candidates/:id", adminController.deleteCandidate);
+router.delete("/candidates/:id", checkPermission(PERMISSIONS.SIGNUP_DELETE), adminController.deleteCandidate);
 
 // Super Admin Only: Manage Admins (Full Admins)
 router.post(
@@ -28,10 +28,10 @@ router.post(
     adminController.createAdmin
 );
 
-// Super Admin Only: Manage Super Users (Restricted Staff)
+// Super Admin & Admin: Manage Super Users (Restricted Staff)
 router.post(
     "/create-superuser",
-    authorize("superadmin"),
+    authorize("superadmin", "admin"),
     adminController.createSuperUser
 );
 
@@ -43,30 +43,30 @@ router.put(
 
 router.get(
     "/users",
-    checkPermission(PERMISSIONS.MANAGE_USERS),
+    checkPermission(PERMISSIONS.USERS_EDIT),
     adminController.getAllUsers
 );
 
-// Role Management (Super Admin Only)
-router.post("/permissions", authorize("superadmin"), adminController.createRole);
+// Role Management (Super Admin & Admin)
+router.post("/permissions", authorize("superadmin", "admin"), adminController.createRole);
 router.get("/permissions", authorize("superadmin", "admin"), adminController.getAllRoles);
-router.put("/permissions/:id", authorize("superadmin"), adminController.updateRole);
-router.delete("/permissions/:id", authorize("superadmin"), adminController.deleteRole);
+router.put("/permissions/:id", authorize("superadmin", "admin"), adminController.updateRole);
+router.delete("/permissions/:id", authorize("superadmin", "admin"), adminController.deleteRole);
 
 // Manage Admin Status
 router.put("/admin-status/:id", authorize("superadmin"), adminController.toggleAdminStatus);
 
-// Update Super User (Super Admin Only)
+// Update Super User (Super Admin & Admin)
 router.put(
     "/superuser/:id",
-    authorize("superadmin"),
+    authorize("superadmin", "admin"),
     adminController.updateSuperUser
 );
 
-// Demote Super User (Super Admin Only)
+// Demote Super User (Super Admin & Admin)
 router.put(
     "/remove-superuser/:id",
-    authorize("superadmin"),
+    authorize("superadmin", "admin"),
     adminController.demoteSuperUser
 );
 

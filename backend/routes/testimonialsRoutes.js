@@ -8,7 +8,7 @@ import {
   getPublicTestimonials
 } from "../controllers/testimonialsController.js";
 
-import upload from "../middleware/uploadMiddleware.js";
+import { uploadTestimonial as upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 

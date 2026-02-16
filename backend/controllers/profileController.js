@@ -67,7 +67,11 @@ export const createOrUpdateProfile = async (req, res) => {
 
         // Also update User model ONLY if final submission
         if (isFinalSubmission) {
-            await User.findByIdAndUpdate(userId, { profileCompleted: true });
+            const userUpdates = { profileCompleted: true };
+            if (bodyData.fullName) {
+                userUpdates.name = bodyData.fullName;
+            }
+            await User.findByIdAndUpdate(userId, userUpdates);
         }
 
         return res.status(200).json({
@@ -77,10 +81,13 @@ export const createOrUpdateProfile = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Profile create/update error:", error);
+        console.error("Profile create/update error:", error); // Keep original error log
+        console.error("Validation Error Details:", JSON.stringify(error.errors, null, 2)); // Log validation errors
+        console.error("Incoming Body:", JSON.stringify(req.body, null, 2)); // Log what was sent
         res.status(500).json({
             success: false,
-            message: "Failed to create or update profile",
+            message: error.message || "Failed to create or update profile", // Send actual error message to frontend
+            error: error // Send full error object for debugging
         });
     }
 };
@@ -125,6 +132,7 @@ export const checkProfileStatus = async (req, res) => {
         res.status(200).json({
             success: true,
             hasProfile: !!profile,
+            profileCompleted: profile?.profileCompleted || false,
         });
     } catch (error) {
         res.status(500).json({

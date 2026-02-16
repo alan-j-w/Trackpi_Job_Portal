@@ -5,6 +5,8 @@ import fresherIcon from "../../assets/fresher_icon.png";
 import experiencedIcon from "../../assets/experienced_icon.png";
 import SearchableDropdown from "./components/SearchableDropdown";
 import { fetchLocationDetails } from "../../utils/locationUtils";
+import config from "../../config";
+import OtpVerificationModal from "../../components/OtpVerificationModal";
 
 const Step1BasicInfo = ({
     formData,
@@ -25,6 +27,7 @@ const Step1BasicInfo = ({
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState("");
     const [phoneVerified, setPhoneVerified] = useState(false);
+    const [showOtpModal, setShowOtpModal] = useState(false); // Modal state
 
     // Country Code UI State
     const [showPrimaryCountryDropdown, setShowPrimaryCountryDropdown] = useState(false);
@@ -137,30 +140,34 @@ const Step1BasicInfo = ({
         }
     };
 
+
+
     // OTP Functions
     const sendOtp = async () => {
         try {
-            await axios.post("http://localhost:8000/api/auth/send-otp", {
+            await axios.post(`${config.API_URL}/api/auth/send-otp`, {
                 phone: `${primaryPhoneCode}${formData.phone}`
             });
             setOtpSent(true);
-            alert("OTP sent to your phone (Check server console for demo)");
+            setShowOtpModal(true); // Open Modal
+            // alert("OTP sent to your phone (Check server console for demo)"); // Optional feedback
         } catch (err) {
             console.error("Send OTP Failed", err);
             alert("Failed to send OTP");
         }
     };
 
-    const verifyOtp = async () => {
+    const verifyOtp = async (enteredOtp) => {
         try {
-            const res = await axios.post("http://localhost:8000/api/auth/verify-otp", {
+            const res = await axios.post(`${config.API_URL}/api/auth/verify-otp`, {
                 phone: `${primaryPhoneCode}${formData.phone}`,
-                otp
+                otp: enteredOtp
             });
 
             if (res.data.success) {
                 setPhoneVerified(true);
-                alert("Phone verified!");
+                setShowOtpModal(false); // Close Modal
+                alert("Phone verified successfully!");
             } else {
                 alert("Invalid OTP");
             }
@@ -229,7 +236,7 @@ const Step1BasicInfo = ({
                 {/* Primary Phone Number & Verify */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-5 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${formData.phone.length >= 10 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${phoneVerified ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -296,7 +303,11 @@ const Step1BasicInfo = ({
                                 <button
                                     type="button"
                                     onClick={sendOtp}
-                                    className="bg-white border text-sm px-6 py-1.5 rounded-xl border-[#FFB300] font-medium hover:bg-[#FFF9E5]"
+                                    disabled={formData.phone.length < 10}
+                                    className={`bg-white border text-sm px-6 py-1.5 rounded-xl border-[#FFB300] font-medium transition-all ${formData.phone.length < 10
+                                        ? 'opacity-50 cursor-not-allowed grayscale'
+                                        : 'hover:bg-[#FFF9E5] opacity-100'
+                                        }`}
                                 >
                                     {otpSent ? "Resend OTP" : "Verify"}
                                 </button>
@@ -304,26 +315,17 @@ const Step1BasicInfo = ({
                                 <span className="text-green-600 font-bold text-sm">Verified ✓</span>
                             )}
                         </div>
-
-                        {/* OTP Input */}
-                        {otpSent && !phoneVerified && (
-                            <div className="mt-3 flex gap-3 animate-fadeIn">
-                                <input
-                                    value={otp}
-                                    onChange={(e) => setOtp(e.target.value)}
-                                    placeholder="Enter 4-digit OTP"
-                                    className="bg-white px-4 py-2 rounded-lg border w-full text-sm outline-none focus:border-[#FFB300]"
-                                />
-                                <button
-                                    onClick={verifyOtp}
-                                    className="bg-[#FFB300] px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap"
-                                >
-                                    Verify OTP
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
+
+                {/* OTP Modal */}
+                <OtpVerificationModal
+                    isOpen={showOtpModal}
+                    onClose={() => setShowOtpModal(false)}
+                    phone={`${primaryPhoneCode}${formData.phone}`}
+                    onVerify={verifyOtp}
+                    onResend={sendOtp}
+                />
 
                 {/* Alternate Phone Number */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
@@ -655,26 +657,56 @@ const Step1BasicInfo = ({
 
 
                 {/* Resume */}
+                {/* Resume */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-5 relative">
-                    <div className="absolute top-0 right-0 transform translate-x-1/3 -translate-y-1/3">
-                        <div className="bg-[#FFB300] w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="absolute top-4 right-4">
+                        <div className={`${formData.resumeFile || formData.resumeUrl ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
                     </div>
-                    <label className="block text-sm font-semibold text-black mb-4">Resume <span className="text-[#FF0000]">*</span></label>
+                    <label className="block text-sm font-bold text-black mb-4">Resume <span className="text-[#FF0000]">*</span></label>
                     <div className="flex flex-col md:flex-row gap-4">
                         <button className="flex-1 bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-4 rounded-lg shadow-sm transition text-sm">
                             Create ATS friendly CV
                         </button>
-                        <button className="flex-1 border-2 border-[#FFB300] text-[#FFB300] font-bold py-3 px-4 rounded-lg hover:bg-[#FFF9E5] transition flex items-center justify-center gap-2 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                            </svg>
-                            <span>Upload Resume</span>
-                        </button>
+
+                        <div className="flex-1">
+                            <input
+                                type="file"
+                                id="resume-upload"
+                                className="hidden"
+                                accept=".pdf,.doc,.docx"
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        if (file.size > 5 * 1024 * 1024) {
+                                            alert("File size too large (max 5MB)");
+                                            return;
+                                        }
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            resumeFile: file,
+                                            resumeName: file.name
+                                        }));
+                                    }
+                                }}
+                            />
+                            <label
+                                htmlFor="resume-upload"
+                                className={`w-full h-full border-2 border-[#FFB300] text-[#FFB300] font-bold py-3 px-4 rounded-lg hover:bg-[#FFF9E5] transition flex items-center justify-center gap-2 text-sm cursor-pointer ${formData.resumeName ? 'bg-yellow-50' : ''}`}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                </svg>
+                                <span className="truncate max-w-[150px]">{formData.resumeName || "Upload Resume"}</span>
+                            </label>
+                        </div>
                     </div>
+                    {formData.resumeName && (
+                        <p className="text-[10px] text-gray-500 mt-2 text-right italic">Selected: {formData.resumeName}</p>
+                    )}
                 </div>
 
                 {/* Next Button */}

@@ -7,7 +7,7 @@ import step1Illustration from "../assets/profile/step1_illustration.png";
 import Step1BasicInfo from "./create-profile/Step1BasicInfo";
 import Step2Education from "./create-profile/Step2Education";
 import Step3Experience from "./create-profile/Step3Experience";
-
+import config from "../config";
 
 
 const CreateProfile = () => {
@@ -22,11 +22,15 @@ const CreateProfile = () => {
             if (!token) return;
 
             try {
-                // If profile exists, redirect to /profile
-                await axios.get("http://localhost:8000/api/profile/me", {
+                // If profile exists AND is completed, redirect to /profile
+                const res = await axios.get(`${config.API_URL}/api/profile/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                navigate("/profile");
+
+                if (res.data.profile?.profileCompleted) {
+                    navigate("/profile");
+                }
+                // If profile exists but not completed (e.g. just resume uploaded), stay here to finish it.
             } catch (err) {
                 // 404 means no profile, so we stay here
                 if (err.response?.status !== 404) {
@@ -73,6 +77,8 @@ const CreateProfile = () => {
         hasLaptop: null,
 
         resumeUrl: "",
+        resumeFile: null, // File object for upload
+        resumeName: "",   // Display name
         profileImage: "",
 
         socialLinks: {
@@ -157,22 +163,54 @@ const CreateProfile = () => {
             // Remove frontend-only list keys to keep payload clean
             delete payload.educationList;
             delete payload.workExperiences;
+            delete payload.resumeFile; // Don't send file object in JSON JSON
+            delete payload.resumeName;
 
             console.log("Submitting Profile:", payload);
 
             // Simulate loading delay for visual effect (as requested)
             await new Promise(resolve => setTimeout(resolve, 3000));
 
-            await axios.post(`${API_URL}/api/profile`, payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            await axios.post(`${config.API_URL}/api/profile`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
             });
+
+            // --- Resume Upload Logic ---
+            if (formData.resumeFile) {
+                try {
+                    const resumeData = new FormData();
+                    resumeData.append("resume", formData.resumeFile);
+                    await axios.post(`${config.API_URL}/api/profile/resume`, resumeData, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "multipart/form-data"
+                        }
+                    });
+                } catch (uploadErr) {
+                    console.error("Resume upload failed", uploadErr);
+                    // Strict handling: Alert and block navigation
+                    alert("Profile saved successfully, but Resume upload failed. Please try uploading your resume again.");
+                    setLoading(false);
+                    return;
+                }
+            }
+            // ---------------------------
 
             navigate("/profile");
         } catch (err) {
             console.error(err);
-            alert("Profile creation failed");
+            const status = err.response?.status;
+            const errorMessage = err.response?.data?.message || err.message || "Profile creation failed";
+
+            if (status === 401) {
+                alert("Session expired or invalid. Please login again.");
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = "/login";
+                return;
+            }
+
+            alert(`Error: ${errorMessage}`);
             setLoading(false); // Stop loading if error
         }
     };
