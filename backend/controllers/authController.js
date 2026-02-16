@@ -56,7 +56,6 @@ export const googleAuth = async (req, res) => {
         if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
             user.permissions = DEFAULT_REPAIR_PERMISSIONS;
             await user.save();
-            console.log("Auto-repaired admin permissions");
         }
 
         const token = jwt.sign(
