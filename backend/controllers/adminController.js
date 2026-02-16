@@ -9,91 +9,123 @@ import PERMISSIONS from "../config/permissions.js";
 
 // Create Admin (Super Admin Only)
 // Create or Promote Admin
+// Create Admin (Super Admin Only)
 export const createAdmin = async (req, res) => {
     try {
-        const { name, email, password, roleId } = req.body;
+        const { name, email, employeeId, password, role } = req.body;
 
-        // Check if role exists
-        let rolePermissions = [];
-        let roleName = "Admin";
-        if (roleId) {
-            const adminRole = await AdminRole.findById(roleId);
-            if (adminRole) {
-                rolePermissions = adminRole.permissions;
-                roleName = adminRole.name;
-            }
-        }
+        // Default to 'admin', strictly allow 'superadmin' only if explicitly requested
+        const targetRole = role === 'superadmin' ? 'superadmin' : 'admin';
 
         const userExists = await User.findOne({ email });
 
         if (userExists) {
-            // PROMOTE EXISTING USER
-            userExists.role = "admin";
-            // If name is provided, update it, else keep existing
-            if (name) userExists.name = name;
-            // If password provided, update it (optional, maybe specific flag needed?)
-            // For now, let's NOT update password for existing users to prevent account takeover unless explicitly intended.
-            // But the form has password. Let's start with just promoting role/permissions.
-
-            userExists.permissions = rolePermissions;
+            // Check if attempting to demote/modify another Super Admin?
+            // Since this is Super Admin only route, they can do what they want.
+            userExists.role = targetRole;
+            userExists.permissions = []; // Clear custom permissions as they are now a main Admin type
             await userExists.save();
-
-            // Link to Admin Role if provided
-            if (roleId) {
-                await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: userExists._id } });
-            }
-
-            // Audit
-            await AuditLog.create({
-                action: "PROMOTE_ADMIN",
-                adminId: req.user._id,
-                targetId: userExists._id,
-                details: { email: userExists.email, newRole: roleName },
-                ipAddress: req.ip
-            });
-
-            return res.status(200).json({ message: "User promoted to Admin successfully", admin: userExists });
+            return res.status(200).json({ message: `User promoted to ${targetRole === 'superadmin' ? 'Super Admin' : 'Admin'}`, admin: userExists });
         }
 
-        // CREATE NEW ADMIN
-        // Generate random password if not provided (since admins use social login)
-        const finalPassword = password || Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-        const hashedPassword = await bcrypt.hash(finalPassword, 10);
-
+        const hashedPassword = await bcrypt.hash(password || "trackpi123", 10);
         const newAdmin = await User.create({
             name,
             email,
+            employeeId,
             password: hashedPassword,
-            role: "admin",
-            permissions: rolePermissions,
-        });
-
-        // Link to Admin Role if provided
-        if (roleId) {
-            await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: newAdmin._id } });
-        }
-
-        // Audit Log
-        await AuditLog.create({
-            action: "CREATE_ADMIN",
-            adminId: req.user._id,
-            targetId: newAdmin._id,
-            details: { name: newAdmin.name, email: newAdmin.email, role: roleName },
-            ipAddress: req.ip
+            role: targetRole,
+            permissions: []
         });
 
         res.status(201).json({ message: "Admin created successfully", admin: newAdmin });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Create Super User (Restricted Staff)
+export const createSuperUser = async (req, res) => {
+    try {
+        const { name, email, employeeId, roleId } = req.body; // No password usually for staff? Or random.
+
+        // Resolve Permissions from Role
+        let permissions = [];
+        let roleName = "SuperUser";
+
+        if (roleId) {
+            const r = await AdminRole.findById(roleId);
+            if (r) {
+                permissions = r.permissions;
+                roleName = r.name;
+            }
+        }
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            userExists.role = "superuser";
+            userExists.permissions = permissions;
+            await userExists.save();
+            return res.status(200).json({ message: "Promoted to Super User", user: userExists });
+        }
+
+        // New User
+        const password = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await User.create({
+            name,
+            email,
+            employeeId,
+            password: hashedPassword,
+            role: "superuser",
+            permissions: permissions
+        });
+
+        // Add to Role
+        if (roleId) {
+            await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: newUser._id } });
+        }
+
+        res.status(201).json({ message: "Super User created", user: newUser });
     } catch (error) {
-        res.status(500).json({ message: "Failed to create/promote admin", error: error.message });
+        res.status(500).json({ message: "Failed to create Super User", error: error.message });
     }
 };
 
 // Get All Users (Super Admin & Admin with permission)
 export const getAllUsers = async (req, res) => {
     try {
-        // Simple filter example
         const { role } = req.query;
-        const query = role ? { role } : {};
+        let query = {};
+
+        if (role) {
+            const roles = role.split(',');
+            if (roles.length > 1) {
+                // If searching for admins, also include those who were admins (demoted)
+                if (roles.includes('admin') || roles.includes('superadmin')) {
+                    query = {
+                        $or: [
+                            { role: { $in: roles } },
+                            { previousRole: { $in: roles } }
+                        ]
+                    };
+                } else {
+                    query = { role: { $in: roles } };
+                }
+            } else {
+                if (role === 'admin' || role === 'superadmin') {
+                    query = {
+                        $or: [
+                            { role: role },
+                            { previousRole: role }
+                        ]
+                    };
+                } else {
+                    query = { role };
+                }
+            }
+        }
 
         const users = await User.find(query).select("-password -googleId -linkedinId");
         res.status(200).json(users);
@@ -145,6 +177,243 @@ export const deleteCandidate = async (req, res) => {
         res.status(200).json({ message: "Candidate deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete candidate", error: error.message });
+    }
+};
+
+// Demote Admin to Job Seeker (Super Admin Only)
+export const demoteAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role === 'superadmin' && req.user.role !== 'superadmin') {
+            return res.status(403).json({ message: "Cannot demote Super Admin" });
+        }
+
+        user.role = "jobseeker";
+        user.permissions = []; // Clear admin permissions
+        user.employeeId = undefined; // Clear employee ID
+        await user.save();
+
+        // Remove from any AdminRole groups
+        await AdminRole.updateMany(
+            { users: user._id },
+            { $pull: { users: user._id } }
+        );
+
+        // Audit Log
+        await AuditLog.create({
+            action: "DEMOTE_ADMIN",
+            adminId: req.user._id,
+            targetId: user._id,
+            details: { email: user.email, newRole: "jobseeker" },
+            ipAddress: req.ip
+        });
+
+        res.status(200).json({ message: "Admin demoted to Job Seeker successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to demote admin", error: error.message });
+    }
+};
+
+// Update Admin Details (Super Admin Only)
+export const updateAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, employeeId, roleId, status } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role === 'superadmin' && req.user.role !== 'superadmin') {
+            return res.status(403).json({ message: "Not authorized to update Super Admin" });
+        }
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (employeeId) user.employeeId = employeeId;
+        if (status) user.status = status; // Handle status update
+
+        // Handle Role Update (Promote/Demote between Admin and Super Admin)
+        if (req.body.role) {
+            // Only Super Admin can change roles here
+            if (req.user.role !== 'superadmin') {
+                return res.status(403).json({ message: "Only Super Admins can change user roles" });
+            }
+            // Validate role
+            if (['admin', 'superadmin'].includes(req.body.role)) {
+                user.role = req.body.role;
+            }
+        }
+
+        // If roleId provided, update permissions
+        let roleName = "Custom";
+        if (roleId) {
+            const adminRole = await AdminRole.findById(roleId);
+            if (adminRole) {
+                user.permissions = adminRole.permissions;
+                roleName = adminRole.name;
+
+                // Update AdminRole associations
+                // Remove from old roles
+                await AdminRole.updateMany(
+                    { users: user._id },
+                    { $pull: { users: user._id } }
+                );
+                // Add to new role
+                await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: user._id } });
+            }
+        }
+
+        await user.save();
+
+        // Audit Log
+        await AuditLog.create({
+            action: "UPDATE_ADMIN",
+            adminId: req.user._id,
+            targetId: user._id,
+            details: { name: user.name, email: user.email, role: roleName },
+            ipAddress: req.ip
+        });
+
+        res.status(200).json({ message: "Admin updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update admin", error: error.message });
+    }
+};
+
+// Toggle Admin Status / Deactivate to Job Seeker
+export const toggleAdminStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // Expecting 'active' or 'inactive' from frontend button
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Logic:
+        // If status becomes 'inactive' (Deactivate) -> Demote to Job Seeker, Store previous Role
+        // If status becomes 'active' (Activate) -> Restore previous Role
+
+        if (status === 'inactive') {
+            // Deactivating
+            if (user.role === 'admin' || user.role === 'superadmin') {
+                user.previousRole = user.role;
+                user.role = 'jobseeker';
+                // user.status remains 'active' technically to allow them to be a job seeker?
+                // OR we set user.status to 'active' always?
+                // The frontend sends 'inactive' to signal the INTENT of deactivating ADMIN privileges.
+                // So we set role = jobseeker. Status can stay active so they can login.
+                user.status = 'active';
+            }
+        } else if (status === 'active') {
+            // Activating
+            if (user.role === 'jobseeker' && user.previousRole) {
+                user.role = user.previousRole;
+                user.previousRole = null;
+                user.status = 'active';
+            }
+        }
+
+        await user.save();
+        res.status(200).json({ message: "Admin status updated", user });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update status", error: error.message });
+    }
+};
+
+// Update Super User (Restricted Staff) - Admin & Super Admin
+// Update Super User (Restricted Staff) - Admin & Super Admin
+export const updateSuperUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, employeeId, roleId } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Security Check: Only allow updating 'superuser' role
+        if (user.role !== 'superuser') {
+            return res.status(403).json({ message: "This endpoint is only for updating Super Users." });
+        }
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (employeeId) user.employeeId = employeeId;
+
+        if (roleId) {
+            const r = await AdminRole.findById(roleId);
+            if (r) {
+                user.permissions = r.permissions;
+
+                // Sync AdminRole Collections
+                // 1. Remove user from ALL other AdminRole documents first
+                await AdminRole.updateMany(
+                    { users: user._id },
+                    { $pull: { users: user._id } }
+                );
+
+                // 2. Add user to the NEW AdminRole document
+                await AdminRole.findByIdAndUpdate(roleId, {
+                    $addToSet: { users: user._id }
+                });
+            }
+        }
+
+        await user.save();
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update user", error: error.message });
+    }
+};
+
+// Demote Super User (Restricted Staff) -> Job Seeker
+export const demoteSuperUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role !== 'superuser') {
+            return res.status(403).json({ message: "Target user is not a Super User" });
+        }
+
+        user.role = "jobseeker";
+        user.permissions = []; // Clear permissions
+        user.employeeId = undefined; // Clear employee ID
+        await user.save();
+
+        // Remove from any AdminRole groups
+        await AdminRole.updateMany(
+            { users: user._id },
+            { $pull: { users: user._id } }
+        );
+
+        // Audit Log
+        await AuditLog.create({
+            action: "DEMOTE_SUPERUSER",
+            adminId: req.user._id,
+            targetId: user._id,
+            details: { email: user.email, newRole: "jobseeker" },
+            ipAddress: req.ip
+        });
+
+        res.status(200).json({ message: "Super User demoted to Job Seeker successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to demote super user", error: error.message });
     }
 };
 
@@ -356,43 +625,4 @@ export const deleteRole = async (req, res) => {
     }
 };
 
-// Toggle Admin Status (Activate/Deactivate)
-export const toggleAdminStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body; // 'active' or 'inactive'
 
-        if (!['active', 'inactive'].includes(status)) {
-            return res.status(400).json({ message: "Invalid status" });
-        }
-
-        const user = await User.findById(id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        // Prevent deactivating self (optional but good practice)
-        if (req.user._id.toString() === id) {
-            return res.status(400).json({ message: "Cannot deactivate your own account" });
-        }
-
-        // Prevent deactivating superadmin if not superadmin? (Already protected by route auth usually, but extra safety)
-        if (user.role === 'superadmin' && req.user.role !== 'superadmin') {
-            return res.status(403).json({ message: "Not authorized to change superadmin status" });
-        }
-
-        user.status = status;
-        await user.save();
-
-        // Audit Log
-        await AuditLog.create({
-            action: "UPDATE_STATUS",
-            adminId: req.user._id,
-            targetId: user._id,
-            details: { newStatus: status, email: user.email },
-            ipAddress: req.ip
-        });
-
-        res.status(200).json({ message: `Admin status updated to ${status}`, user });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to update status", error: error.message });
-    }
-};

@@ -1,6 +1,11 @@
 import "dotenv/config"; // Load env vars BEFORE other imports
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
 
 import connectDB from "./config/db.js";
 import jobRoutes from "./routes/jobRoutes.js";
@@ -11,22 +16,52 @@ import skillRoutes from "./routes/skillRoutes.js";
 import languageRoutes from "./routes/languageRoutes.js";
 import testimonialsRoutes from "./routes/testimonialsRoutes.js";
 import educationRoutes from "./routes/educationRoutes.js";
-
-// dotenv.config(); // Removed - already loaded above
+import contactRoutes from "./routes/contactRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
 
 const app = express();
+
 
 // connect database
 connectDB();
 
-app.use(cors());
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for now to prevent frontend blocking
+  crossOriginResourcePolicy: false,
+}));
+app.use(morgan("dev"));
+
+// CORS Configuration (Relaxed for debugging)
+app.use(cors({
+  origin: true, // Allow all origins dynamically
+  credentials: true
+}));
+
+// Body Parsers (Must be before sanitizers)
 app.use(express.json());
+// Serve uploads folder statically
+app.use('/uploads', express.static('uploads'));
+
+// Sanitization (Must be after body parser)
+// app.use(mongoSanitize());
+// app.use(xss());
+
+// Rate Limiting (Relaxed for Dev)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000, // Increased limit for dev
+  message: "Too many requests from this IP, please try again later."
+});
+app.use("/api", limiter);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/jobs", applicationRoutes); // Mount before jobRoutes to catch /apply
 app.use("/api/jobs", jobRoutes);
 app.use("/api/testimonials", testimonialsRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/contact", contactRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/languages", languageRoutes);
 app.use("/api/education", educationRoutes);

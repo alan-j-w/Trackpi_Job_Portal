@@ -3,6 +3,7 @@ import { Eye, Trash2, FileText, Search, Filter, ArrowUpDown } from "lucide-react
 import { useLocation } from "react-router-dom";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
+import { API_URL } from "../../config";
 
 
 const CircularProgress = ({ percentage }) => {
@@ -80,7 +81,7 @@ const AdminApplicants = () => {
         const fetchCandidates = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch("http://localhost:8000/api/admin/candidates", {
+                const response = await fetch(`${API_URL}/api/admin/candidates`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -132,7 +133,7 @@ const AdminApplicants = () => {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:8000/api/admin/candidates/${id}`, {
+            const response = await fetch(`${API_URL}/api/admin/candidates/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -202,89 +203,91 @@ const AdminApplicants = () => {
             )}
 
             {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border border-[#FFB300] text-black text-[15px] text-center">
-                            <th className="p-4 w-[50px] text-left"></th> {/* Checkbox Column */}
-                            <th className="p-4 min-w-[150px] font-normal text-center">Applicants Name</th>
-                            <th className="p-4 font-normal text-center">Job role</th>
-                            <th className="p-4 font-normal text-center">Phone Number</th>
-                            <th className="p-4 font-normal text-center">Email</th>
-                            <th className="p-4 font-normal text-center">Gender</th>
-                            <th className="p-4 font-normal text-center">Resume</th>
-                            <th className="p-4 font-normal text-center">Action</th>
-                            <th className="p-4 font-normal text-center">Progress Bar</th>
-                        </tr>
-                    </thead>
-                    <tbody className="text-black text-sm font-medium">
-                        {loading ? (
-                            <tr><td colSpan="9" className="p-10 text-center text-gray-500">Loading candidates...</td></tr>
-                        ) : filteredCandidates.length === 0 ? (
-                            <tr><td colSpan="9" className="p-10 text-center text-gray-500">No candidates found</td></tr>
-                        ) : (
-                            filteredCandidates.map((candidate) => (
-                                <tr key={candidate.id} className="border-b border-gray-200 hover:bg-yellow-50/10 transition group">
-                                    <td className="p-4 text-left">
-                                        <input
-                                            type="checkbox"
-                                            className="w-4 h-4 rounded border-gray-400 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer"
-                                            checked={selectedIds.includes(candidate.id)}
-                                            onChange={() => handleSelectOne(candidate.id)}
-                                        />
-                                    </td>
-                                    <td className="p-4 text-gray-900 font-semibold text-center">{candidate.name}</td>
-                                    <td className="p-4 text-gray-800 text-center">{candidate.role}</td>
-                                    <td className="p-4 text-gray-800 font-medium text-center">{candidate.phone}</td>
-                                    <td className="p-4 text-gray-800 text-center">{candidate.email}</td>
-                                    <td className="p-4 text-gray-800 text-center">{candidate.gender}</td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center">
-                                            {candidate.resume && hasPermission(PERM_RESUME) ? (
-                                                <a href={candidate.resume} target="_blank" rel="noopener noreferrer"
-                                                    className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition text-gray-700">
-                                                    <FileText size={18} />
-                                                </a>
-                                            ) : (
-                                                <span className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-gray-300 cursor-not-allowed">
-                                                    <FileText size={18} />
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex gap-2 justify-center">
-                                            <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
-                                                <Eye size={18} />
-                                            </button>
-                                            {hasPermission(PERM_DELETE) && (
-                                                <button
-                                                    className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded hover:bg-red-200 transition"
-                                                    title="Delete"
-                                                    onClick={() => handleDelete(candidate.id)}
-                                                >
-                                                    <Trash2 size={18} />
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-[#FFB300] text-gray-800 font-semibold text-sm">
+                                <th className="p-4 w-[50px] text-left"></th> {/* Checkbox Column */}
+                                <th className="p-4 min-w-[150px] font-normal text-center">Applicants Name</th>
+                                <th className="p-4 font-normal text-center">Job role</th>
+                                <th className="p-4 font-normal text-center">Phone Number</th>
+                                <th className="p-4 font-normal text-center">Email</th>
+                                <th className="p-4 font-normal text-center">Gender</th>
+                                <th className="p-4 font-normal text-center">Resume</th>
+                                <th className="p-4 font-normal text-center">Action</th>
+                                <th className="p-4 font-normal text-center">Progress Bar</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-black text-sm font-medium">
+                            {loading ? (
+                                <tr><td colSpan="9" className="p-10 text-center text-gray-500">Loading candidates...</td></tr>
+                            ) : filteredCandidates.length === 0 ? (
+                                <tr><td colSpan="9" className="p-10 text-center text-gray-500">No candidates found</td></tr>
+                            ) : (
+                                filteredCandidates.map((candidate) => (
+                                    <tr key={candidate.id} className="border-b border-gray-200 hover:bg-yellow-50/10 transition group">
+                                        <td className="p-4 text-left">
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-gray-400 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer"
+                                                checked={selectedIds.includes(candidate.id)}
+                                                onChange={() => handleSelectOne(candidate.id)}
+                                            />
+                                        </td>
+                                        <td className="p-4 text-gray-900 font-semibold text-center">{candidate.name}</td>
+                                        <td className="p-4 text-gray-800 text-center">{candidate.role}</td>
+                                        <td className="p-4 text-gray-800 font-medium text-center">{candidate.phone}</td>
+                                        <td className="p-4 text-gray-800 text-center">{candidate.email}</td>
+                                        <td className="p-4 text-gray-800 text-center">{candidate.gender}</td>
+                                        <td className="p-4 text-center">
+                                            <div className="flex justify-center">
+                                                {candidate.resume && hasPermission(PERM_RESUME) ? (
+                                                    <a href={candidate.resume} target="_blank" rel="noopener noreferrer"
+                                                        className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300 transition text-gray-700">
+                                                        <FileText size={18} />
+                                                    </a>
+                                                ) : (
+                                                    <span className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-gray-300 cursor-not-allowed">
+                                                        <FileText size={18} />
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <div className="flex gap-2 justify-center">
+                                                <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
+                                                    <Eye size={18} />
                                                 </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center">
-                                            <CircularProgress percentage={candidate.progress} />
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                                {hasPermission(PERM_DELETE) && (
+                                                    <button
+                                                        className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded hover:bg-red-200 transition"
+                                                        title="Delete"
+                                                        onClick={() => handleDelete(candidate.id)}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <div className="flex justify-center">
+                                                <CircularProgress percentage={candidate.progress} />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-            {/* Footer / Pagination Placeholder */}
-            <div className="flex justify-end mt-8">
-                <div className="flex items-center gap-2 border border-black rounded px-3 py-1 bg-white shadow-sm cursor-pointer hover:bg-gray-50">
-                    <span className="text-sm font-bold text-gray-900">6</span>
-                    <ArrowUpDown size={14} className="text-gray-500" />
+                {/* Footer / Pagination Placeholder */}
+                <div className="flex justify-end mt-8">
+                    <div className="flex items-center gap-2 border border-black rounded px-3 py-1 bg-white shadow-sm cursor-pointer hover:bg-gray-50">
+                        <span className="text-sm font-bold text-gray-900">6</span>
+                        <ArrowUpDown size={14} className="text-gray-500" />
+                    </div>
                 </div>
             </div>
         </div>

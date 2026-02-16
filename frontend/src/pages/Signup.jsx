@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { API_URL } from "../config";
+
 import loginIllustration from "../assets/illustrations/login-illustration.png";
 import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 

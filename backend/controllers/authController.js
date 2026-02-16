@@ -20,20 +20,33 @@ export const googleAuth = async (req, res) => {
         if (user) {
             if (!user.googleId) {
                 user.googleId = sub;
-                await user.save();
+            }
+            user.lastLogin = new Date();
+            await user.save();
+
+            // Check Status - Block if inactive
+            if (user.role === 'admin' && user.status === 'inactive') {
+                return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
             }
         } else {
             user = await User.create({
                 name,
                 email,
                 googleId: sub,
-                password: await bcrypt.hash(Math.random().toString(36), 10),
+                password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
                 role: "jobseeker",
-                permissions: []
+                role: "jobseeker",
+                permissions: [],
+                lastLogin: new Date()
             });
         }
 
-        console.log(`[DEBUG] Google Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
+        if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
+            user.permissions = DEFAULT_REPAIR_PERMISSIONS;
+            await user.save();
+            console.log("Auto-repaired admin permissions");
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
@@ -90,7 +103,12 @@ export const linkedinAuth = async (req, res) => {
         if (user) {
             if (!user.linkedinId) {
                 user.linkedinId = sub;
-                await user.save();
+            }
+            user.lastLogin = new Date();
+            await user.save();
+            // Check Status - Block if inactive
+            if (user.role === 'admin' && user.status === 'inactive') {
+                return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
             }
         } else {
             user = await User.create({
@@ -99,11 +117,18 @@ export const linkedinAuth = async (req, res) => {
                 linkedinId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10),
                 role: "jobseeker",
-                permissions: []
+                role: "jobseeker",
+                permissions: [],
+                lastLogin: new Date()
             });
         }
 
-        console.log(`[DEBUG] LinkedIn Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
+        if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
+            user.permissions = DEFAULT_REPAIR_PERMISSIONS;
+            await user.save();
+            console.log("Auto-repaired admin permissions");
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,
@@ -169,7 +194,22 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        console.log(`[DEBUG] Login Auth - User: ${user.email}, Role: ${user.role}, Perms: ${user.permissions?.length}`);
+        // Check Status - Block if inactive
+        if (user.role === 'admin' && user.status === 'inactive') {
+            return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
+        }
+
+        // Auto Repair Permissions
+        if (user.role === 'admin' && (!user.permissions || user.permissions.length === 0)) {
+            user.permissions = DEFAULT_REPAIR_PERMISSIONS;
+            await user.save();
+            console.log("Auto-repaired admin permissions");
+        }
+
+        // Update Last Login
+        user.lastLogin = new Date();
+        await user.save();
+
         const token = jwt.sign(
             { id: user._id, role: user.role, permissions: user.permissions },
             process.env.JWT_SECRET,

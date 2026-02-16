@@ -27,7 +27,7 @@ const Login = () => {
             try {
                 setLoading(true);
 
-                const res = await axios.post(`${config.API_URL}/api/auth/google`, {
+                const res = await axios.post("http://localhost:8000/api/auth/google", {
                     access_token: tokenResponse.access_token,
                 });
 

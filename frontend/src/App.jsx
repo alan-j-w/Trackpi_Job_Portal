@@ -1,21 +1,30 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 /* Pages */
 import Home from "./pages/Home";
 /* Admin Pages */
-/* Admin Pages */
+
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminJobs from "./pages/admin/AdminJobs";
 import PostJob from "./pages/admin/PostJob";
 import AdminApplicants from "./pages/admin/AdminApplicants";
 import AdminManagement from "./pages/admin/AdminManagement";
+import AdminTestimonials from "./pages/admin/AdminTestimonials";
+import AdminHiringPartners from "./pages/admin/AdminHiringPartners";
+import AddHiringPartner from "./pages/admin/AddHiringPartner";
+import HiringPartnerDetails from "./pages/admin/HiringPartnerDetails";
+import EditHiringPartner from "./pages/admin/EditHiringPartner";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
 import UserDashboard from "./pages/user/UserDashboard";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import PermissionManagement from "./pages/admin/PermissionManagement";
 import CreatePermission from "./pages/admin/CreatePermission";
 import AdminLogin from "./pages/admin/AdminLogin";
+import UserManagement from "./pages/admin/UserManagement";
+import FormManagement from "./pages/admin/FormManagement";
+import FormDetails from "./pages/admin/FormDetails";
 
 
 import ContactUs from "./pages/ContactUs";
@@ -24,7 +33,9 @@ import Signup from "./pages/Signup";
 import LinkedInCallback from "./pages/LinkedInCallback";
 import CreateProfile from "./pages/CreateProfile";
 import Profile from "./pages/Profile";
-
+import AddTestimonial from "./pages/admin/AddTestimonial";
+import TestimonialDetails from "./pages/admin/TestimonialDetails";
+import EditTestimonial from "./pages/admin/EditTestimonial";
 /* Route Protection */
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -42,6 +53,7 @@ import Jobs from "./pages/Jobs";
 function App() {
   return (
     <Router>
+      <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* =================================================================
             1. PUBLIC ROUTES (Accessible to ALL, never blocked or redirected)
@@ -84,8 +96,16 @@ function App() {
             ================================================================= */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route path="/admin" element={<ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>}>
-          {/* Dashboard */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedAdminRoute>
+              <AdminLayout />
+            </ProtectedAdminRoute>
+          }
+
+        >
+          {/* Dashboard Route */}
           <Route path="dashboard" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}><AdminDashboard /></ProtectedAdminRoute>} />
 
           {/* Jobs */}
@@ -96,6 +116,12 @@ function App() {
 
           {/* Applicants */}
           <Route path="candidates/applicants" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.APPLICANTS_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
+          <Route path="/admin/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIEW_APPLICATIONS}><AddTestimonial /></ProtectedAdminRoute>} />
+          <Route path="testimonials/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><TestimonialDetails /></ProtectedAdminRoute>} />
+          <Route path="/admin/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}><EditTestimonial /></ProtectedAdminRoute>} />
+
+
+          {/* Signup Candidates */}
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
 
           {/* Super Admin */}
@@ -104,7 +130,26 @@ function App() {
           <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
           <Route path="permissions/edit/:id" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
 
-          <Route path="*" element={<div className="p-10">Page Under Construction</div>} />
+          {/* User Management */}
+          <Route path="users" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.USERS_EDIT}><UserManagement /></ProtectedAdminRoute>} />
+          <Route path="forms" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.FORMS_MANAGE}><FormManagement /></ProtectedAdminRoute>} />
+          <Route path="forms/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.FORMS_MANAGE}><FormDetails /></ProtectedAdminRoute>} />
+          {/* Placeholder routes for others to prevent crashes if clicked */}
+          <Route path="partners" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}>
+            <AdminHiringPartners />
+          </ProtectedAdminRoute>} />
+          <Route path="/admin/partners/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}><AddHiringPartner /></ProtectedAdminRoute>} />
+          <Route path="partners/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}><HiringPartnerDetails /></ProtectedAdminRoute>} />
+          <Route path="/admin/partners/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_PARTNERS}><EditHiringPartner /></ProtectedAdminRoute>} />
+
+          <Route
+            path="testimonials"
+            element={
+              <ProtectedAdminRoute requiredPermission={PERMISSIONS.MANAGE_TESTIMONIALS}>
+                <AdminTestimonials />
+              </ProtectedAdminRoute>
+            }
+          />
         </Route>
 
         {/* Catch all for main app if needed, or 404 */}
