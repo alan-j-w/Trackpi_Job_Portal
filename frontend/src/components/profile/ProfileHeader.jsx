@@ -55,7 +55,7 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
     }, [showCoverMenu, showProfileMenu]);
 
     return (
-        <div className="relative pt-20">
+        <div className="relative pt-[74px]">
             {/* Hidden Inputs */}
             <input
                 type="file"
@@ -206,7 +206,12 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                             <Tag key={index} label={skill} />
                                         ))
                                     ) : (
-                                        <span className="text-gray-400 text-sm italic">Add skills to showcase your expertise</span>
+                                        <span
+                                            className="text-gray-400 text-sm italic cursor-pointer hover:text-[#FFB300] transition-colors"
+                                            onClick={onEdit}
+                                        >
+                                            Add skills to showcase your expertise
+                                        </span>
                                     )}
                                 </div>
                             </div>
@@ -255,31 +260,7 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                             </div>
                         </div>
 
-                        {/* Info Row */}
-                        <div className="border-t border-b border-gray-200 py-6 grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8 text-sm text-gray-800 font-medium">
-                            <div className="flex items-center gap-3">
-                                <span className="capitalize">{profile.workStatus}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span>{profile.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className={!profile.education?.length ? "text-gray-400 italic" : ""}>
-                                    {profile.education?.length > 0 ? profile.education[0].degree : "Add education"}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="capitalize">
-                                    {profile.gender === 'male' ? 'He/Him' : profile.gender === 'female' ? 'She/Her' : profile.gender || 'Add gender'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="truncate">{profile.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span>{locationString}</span>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>

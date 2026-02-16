@@ -183,6 +183,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
     const [showEducationModal, setShowEducationModal] = useState(false);
     const [editingEducationIndex, setEditingEducationIndex] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showLanguageDeleteConfirm, setShowLanguageDeleteConfirm] = useState(false);
 
     // Single Dropdown State
     const [openDropdown, setOpenDropdown] = useState(null); // 'level' | 'course' | 'university' | 'startYear' | 'endYear' | null
@@ -283,7 +284,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             } catch (err) {
                 if (!axios.isCancel(err)) {
                     console.error("Failed to fetch universities", err);
-                    setFilteredUniversities([]);
+                    // Fallback to just "Other" on error
+                    setFilteredUniversities([{ name: "Other", domain: null }]);
                 }
             } finally {
                 // Only turn off loading if this was the latest request
@@ -367,8 +369,6 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
         const dataToSave = {
             ...educationForm,
-            course: finalCourse,
-            // Strip UI fields
             course: finalCourse,
             university: finalUniversity,
             // Strip UI fields
@@ -485,8 +485,10 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                     {/* Skills */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                        <div className="absolute top-4 right-4">
+                            <div className={`${formData.skills && formData.skills.length > 0 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} rounded-full p-1 transition-colors duration-300`}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                            </div>
                         </div>
                         <label className="block text-sm font-bold text-black mb-2">Skills</label>
 
@@ -546,8 +548,10 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                     {/* Language */}
                     {/* Language */}
                     <div id="language-section" className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                        <div className="absolute top-4 right-4">
+                            <div className={`${formData.languages && formData.languages.length > 0 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} rounded-full p-1 transition-colors duration-300`}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                            </div>
                         </div>
                         <div className="flex justify-between items-start mb-4">
                             <label className="block text-sm font-bold text-black">Language <span className="text-red-500">*</span></label>
@@ -591,7 +595,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                     {/* Preferred Job Location */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.preferredLocations?.[0] ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Preferred job Location</label>
@@ -635,7 +639,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                     {/* Preferred Work Mode */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.preferredWorkMode ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Preferred Work Mode</label>
@@ -654,7 +658,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                     {/* Education */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className="absolute top-4 right-4 bg-[#FFB300] rounded-full p-1">
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.educationList?.length > 0 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <div className="flex justify-between items-start mb-1">
@@ -800,28 +804,28 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                         {/* Actions */}
                         <div className="flex justify-end gap-4 items-center">
                             <button
+                                type="button"
                                 onClick={() => setShowLanguageModal(false)}
                                 className="px-8 py-2.5 rounded-lg border border-[#FFB300] text-[#FFB300] font-medium hover:bg-[#FFF9E5] transition"
                             >
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={handleLanguageSave}
                                 className="px-8 py-2.5 rounded-lg bg-[#FFB300] text-black font-bold hover:bg-[#E6A200] transition shadow-md"
                             >
                                 Save
                             </button>
-                            {editingLanguageIndex !== null && (
-                                <button
-                                    onClick={() => {
-                                        handleLanguageDelete(editingLanguageIndex);
-                                        setShowLanguageModal(false);
-                                    }}
-                                    className="ml-2 text-red-500 hover:bg-red-50 p-2 rounded-full transition"
-                                >
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
-                            )}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowLanguageDeleteConfirm(true);
+                                }}
+                                className="ml-2 text-red-500 hover:bg-red-50 p-2 rounded-full transition"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -830,7 +834,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             {showEducationModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
                     <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative animate-scaleIn max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => setShowEducationModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition">
+                        <button type="button" onClick={() => setShowEducationModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
 
@@ -853,6 +857,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         placeholder="Add graduate/doctorate/Phd"
                                         value={eduSearch}
                                         readOnly
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'level' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                 </div>
@@ -891,6 +896,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={educationForm.course}
                                         onChange={(e) => setEducationForm({ ...educationForm, course: e.target.value })}
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 ) : (
                                     // Dropdown for others
@@ -920,6 +926,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                     e.stopPropagation();
                                                     setOpenDropdown('course');
                                                 }}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                             />
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'course' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                         </div>
@@ -964,6 +971,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={customCourse}
                                         autoFocus
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 </div>
                             )}
@@ -978,6 +986,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={educationForm.university}
                                         onChange={(e) => setEducationForm({ ...educationForm, university: e.target.value })}
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 ) : (
                                     <>
@@ -1001,6 +1010,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                     e.stopPropagation();
                                                     setOpenDropdown('university');
                                                 }}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                             />
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'university' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                         </div>
@@ -1021,9 +1031,9 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                         className="px-6 py-4 cursor-pointer text-sm font-medium text-gray-800 hover:bg-gray-50 border-b border-gray-100 last:border-none transition-colors"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            setEducationForm({ ...educationForm, university: uni });
-                                                            setUniversitySearch(uni);
-                                                            if (uni !== "Other") {
+                                                            setEducationForm({ ...educationForm, university: uni.name || uni });
+                                                            setUniversitySearch(uni.name || uni);
+                                                            if ((uni.name || uni) !== "Other") {
                                                                 setCustomUniversity("");
                                                             } else {
                                                                 // If "Other" is selected, we might want to ensure customUniversity is reset or ready
@@ -1031,7 +1041,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                                             setOpenDropdown(null);
                                                         }}
                                                     >
-                                                        {uni}
+                                                        {uni.name || uni}
                                                     </div>
                                                 ))}
                                                 {!isSearchingUni && filteredUniversities.length === 0 && (
@@ -1056,6 +1066,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         value={customUniversity}
                                         autoFocus
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
                                 </div>
                             )}
@@ -1160,27 +1171,28 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                         {/* Actions */}
                         <div className="flex justify-end gap-4 mt-10 items-center">
                             <button
+                                type="button"
                                 onClick={() => setShowEducationModal(false)}
                                 className="px-8 py-3 rounded-xl border border-[#FFB300] text-[#FFB300] font-bold hover:bg-[#FFF9E5] transition"
                             >
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={handleEducationSave}
                                 className="px-10 py-3 rounded-xl bg-[#FFB300] text-black font-bold hover:bg-[#E6A200] transition shadow-md"
                             >
                                 Save
                             </button>
-                            {editingEducationIndex !== null && (
-                                <button
-                                    onClick={() => {
-                                        setShowDeleteConfirm(true);
-                                    }}
-                                    className="ml-2 text-red-500 hover:bg-red-50 p-2 rounded-full transition"
-                                >
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
-                            )}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowDeleteConfirm(true);
+                                }}
+                                className="ml-2 text-red-500 hover:bg-red-50 p-2 rounded-full transition"
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1199,18 +1211,58 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
                         <div className="flex gap-4 w-full px-2">
                             <button
+                                type="button"
                                 onClick={() => setShowDeleteConfirm(false)}
                                 className="flex-1 py-3 rounded-xl border border-[#FFB300] text-[#FFB300] font-bold hover:bg-[#FFF9E5] transition text-sm"
                             >
                                 Cancel
                             </button>
                             <button
+                                type="button"
                                 onClick={() => {
                                     if (editingEducationIndex !== null) {
                                         handleEducationDelete(editingEducationIndex);
                                     }
                                     setShowEducationModal(false);
                                     setShowDeleteConfirm(false);
+                                }}
+                                className="flex-1 py-3 rounded-xl bg-[#FFB300] text-black font-bold hover:bg-[#E6A200] transition shadow-md text-sm"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Language Delete Confirmation Modal */}
+            {showLanguageDeleteConfirm && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-white rounded-2xl p-8 w-[420px] flex flex-col items-center shadow-2xl relative animate-scaleIn">
+                        {/* Illustration */}
+                        <div className="w-64 h-48 mb-2 flex items-center justify-center">
+                            <img src={deleteEducationImg} alt="Delete" className="w-full h-full object-contain" />
+                        </div>
+
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Delete Language?</h3>
+                        <p className="text-sm text-gray-500 mb-8 font-medium">Sure you want to delete</p>
+
+                        <div className="flex gap-4 w-full px-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowLanguageDeleteConfirm(false)}
+                                className="flex-1 py-3 rounded-xl border border-[#FFB300] text-[#FFB300] font-bold hover:bg-[#FFF9E5] transition text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (editingLanguageIndex !== null) {
+                                        handleLanguageDelete(editingLanguageIndex);
+                                    }
+                                    setShowLanguageModal(false);
+                                    setShowLanguageDeleteConfirm(false);
                                 }}
                                 className="flex-1 py-3 rounded-xl bg-[#FFB300] text-black font-bold hover:bg-[#E6A200] transition shadow-md text-sm"
                             >

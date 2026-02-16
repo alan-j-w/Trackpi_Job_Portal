@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getUserRole } from "./auth";
-import { API_URL } from "../config";
+import config from "../config";
 
 export const redirectAfterLogin = async (navigate) => {
     const token = localStorage.getItem("token");
@@ -19,14 +19,16 @@ export const redirectAfterLogin = async (navigate) => {
     //    return;
     // }
 
+
+
     try {
-        const res = await axios.get(`${API_URL}/api/profile/status`, {
+        const res = await axios.get("http://localhost:8000/api/profile/status", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
 
-        if (res.data?.hasProfile) {
+        if (res.data?.profileCompleted) {
             navigate("/profile");
         } else {
             navigate("/create-profile");
@@ -34,10 +36,17 @@ export const redirectAfterLogin = async (navigate) => {
     } catch (err) {
         console.error("Redirect error:", err);
 
-        // Token invalid or expired → force logout
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
+        // Token invalid or expired → force logout (Scorched Earth Policy)
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        // Force reload to login to be safe, or just navigate
+        window.location.href = "/login";
     }
 };
 

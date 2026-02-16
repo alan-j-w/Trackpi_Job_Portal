@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import config from "../../config";
 
 const JobListing = ({ limit }) => {
     const [jobs, setJobs] = useState([]);
@@ -10,7 +11,7 @@ const JobListing = ({ limit }) => {
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/api/jobs");
+                const res = await axios.get(`${config.API_URL}/api/jobs`);
                 setJobs(res.data);
                 setLoading(false);
             } catch (error) {

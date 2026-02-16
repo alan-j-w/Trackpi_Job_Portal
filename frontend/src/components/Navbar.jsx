@@ -5,19 +5,39 @@ import "remixicon/fonts/remixicon.css";
 import logo from "../assets/logo.png";
 import LogoutModal from "./LogoutModal";
 
-const Navbar = () => {
+const Navbar = ({ mode = "auto" }) => {
   const [open, setOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem("token");
+
+  // If mode is "public", force token to null for rendering purposes
+  // If mode is "private", use actual token
+  // If mode is "auto", use actual token (default behavior)
+  const storedToken = localStorage.getItem("token");
+  const token = mode === "public" ? null : storedToken;
 
   // Handle Logout Confirmation
+  // Handle Logout Confirmation
+  // Handle Logout Confirmation
   const confirmLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user"); // Clear user info if stored
-    setShowLogoutModal(false);
-    navigate("/");
+    // 1. Clear Local Storage
+    localStorage.clear();
+
+    // 2. Clear Session Storage
+    sessionStorage.clear();
+
+    // 3. Clear Cookies (Manual Hack since we don't have a cookie library imported yet, or we can just hope clearing storage is enough. 
+    // Usually tokens are in localStorage as per code seen. 
+    // But let's be safe and try to expire common cookies if possible, though HttpOnly won't be touched.)
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
+    // 4. Force full reload
+    window.location.href = "/";
   };
 
   return (

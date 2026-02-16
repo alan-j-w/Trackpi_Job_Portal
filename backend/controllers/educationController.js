@@ -37,82 +37,52 @@ export const searchUniversities = async (req, res) => {
             return res.status(200).json([]);
         }
 
-        const searchQuery = query.toLowerCase().trim();
-
-        // Promise.allSettled for Resilience
-        const [clearbitResult, hipolabsResult, gdResult, localResult] = await Promise.allSettled([
-            // 0. Clearbit Autocomplete API (Best for logos & global coverage)
-            axios.get(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(query)}`, { timeout: 3000 })
-                .then(res => res.data.map(item => ({
-                    name: item.name,
-                    domain: item.domain,
-                    logo: item.logo
-                }))),
-
-            // 1. Hipolabs API
-            axios.get(`http://universities.hipolabs.com/search?name=${encodeURIComponent(query)}`, { timeout: 3000 })
-                .then(res => res.data.slice(0, 20).map(u => ({ name: u.name, domain: u.domains?.[0] || null }))),
-
-            // 2. Github College List (Cached)
-            (async () => {
-                if (!global.cachedColleges) {
-                    try {
-                        const collegeRes = await axios.get("https://raw.githubusercontent.com/VarthanV/Indian-Colleges-List/master/colleges.json", { timeout: 3000 });
-                        global.cachedColleges = collegeRes.data;
-                    } catch (e) {
-                        return [];
-                    }
-                }
-                return global.cachedColleges
-                    ? global.cachedColleges
-                        .filter(c => c.college && c.college.toLowerCase().includes(searchQuery))
-                        .slice(0, 20)
-                        .map(c => ({
-                            name: c.college.replace(/\s*\(Id:.*?\)/i, "").trim(),
-                            domain: null
-                        }))
-                    : [];
-            })(),
-
-            // 3. Local DB
+        // 1. Local DB Search (Fastest) in parallel with Hipolabs
+        const [localResults, hipolabsResults] = await Promise.allSettled([
             University.find({ name: { $regex: new RegExp(query, "i") } })
                 .limit(10)
                 .select("name domain")
-                .then(docs => docs.map(d => ({ name: d.name, domain: d.domain || null })))
+                .lean(),
+
+            axios.get(`http://universities.hipolabs.com/search?name=${encodeURIComponent(query)}`, { timeout: 5000 })
         ]);
 
-        // Aggregate results
-        let allResults = [];
-        if (clearbitResult.status === 'fulfilled') allResults.push(...clearbitResult.value);
-        if (hipolabsResult.status === 'fulfilled') allResults.push(...hipolabsResult.value);
-        if (gdResult.status === 'fulfilled') allResults.push(...gdResult.value);
-        if (localResult.status === 'fulfilled') allResults.push(...localResult.value);
+        let results = [];
 
-        // Deduplication (Case-Insensitive) & Prefer Domain/Logo
-        const uniqueResults = new Map();
+        // Add Local Results
+        if (localResults.status === 'fulfilled') {
+            results.push(...localResults.value.map(d => ({ name: d.name, domain: d.domain || null })));
+        }
 
-        for (const item of allResults) {
-            const normalizedName = item.name.trim().toLowerCase();
+        // Add Hipolabs Results
+        if (hipolabsResults.status === 'fulfilled') {
+            const apiData = hipolabsResults.value.data.slice(0, 20).map(u => ({
+                name: u.name,
+                domain: u.domains?.[0] || null
+            }));
+            results.push(...apiData);
+        }
 
-            // Update if:
-            // 1. Not exists
-            // 2. Current has no domain but new one does
-            // 3. Current has domain but new one has explicitly defined logo
-            const current = uniqueResults.get(normalizedName);
-            if (!current) {
-                uniqueResults.set(normalizedName, item);
-            } else if (!current.domain && item.domain) {
-                uniqueResults.set(normalizedName, item);
-            } else if (!current.logo && item.logo) {
-                uniqueResults.set(normalizedName, item);
+        // Deduplicate by name
+        const uniqueResults = [];
+        const seenNames = new Set();
+
+        for (const item of results) {
+            const normalized = item.name.trim().toLowerCase();
+            if (!seenNames.has(normalized)) {
+                seenNames.add(normalized);
+                uniqueResults.push(item);
             }
         }
 
-        // Return values
-        res.status(200).json(Array.from(uniqueResults.values()).slice(0, 50));
+        // Ensure "Other" is NOT in the backend response (Frontend handles injection)
+        // But if we wanted to be safe we could, but let's stick to returning valid unis.
+
+        res.status(200).json(uniqueResults.slice(0, 50));
+
     } catch (error) {
         console.error("Error searching institutions:", error.message);
-        // Resilience: Return empty array on critical failure
+        // Return empty array on critical failure to prevent frontend crash
         res.status(200).json([]);
     }
 };

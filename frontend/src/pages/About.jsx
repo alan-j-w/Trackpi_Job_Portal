@@ -12,7 +12,7 @@ import WhoWeAreTitle from "../components/AboutUs/WhoWeAreTitle";
 const About = () => {
   return (
     <div className="">
-      <Navbar />
+      <Navbar mode="public" />
       <AboutHero />
       <WhyChoose />
       <WhoWeAreTitle />
