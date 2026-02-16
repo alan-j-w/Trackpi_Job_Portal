@@ -2,6 +2,13 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import PERMISSIONS from "../config/permissions.js";
+
+const DEFAULT_REPAIR_PERMISSIONS = [
+    PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.JOBS_VIEW,
+    PERMISSIONS.APPLICANTS_VIEW
+];
 
 // ============================
 // GOOGLE AUTH
@@ -15,7 +22,12 @@ export const googleAuth = async (req, res) => {
 
         const { email, name, sub } = googleRes.data;
 
-        let user = await User.findOne({ email });
+        if (!email) {
+            return res.status(400).json({ message: "Google account does not have a verified email." });
+        }
+
+        // Case-insensitive search
+        let user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
 
         if (user) {
             if (!user.googleId) {
@@ -24,9 +36,10 @@ export const googleAuth = async (req, res) => {
             user.lastLogin = new Date();
             await user.save();
 
-            // Check Status - Block if inactive
-            if (user.role === 'admin' && user.status === 'inactive') {
-                return res.status(403).json({ message: "Access Denied: Your account has been deactivated by the administrator." });
+            // Check Status - Block if inactive (Admin only check, or global?)
+            // Only block admins/superusers if inactive
+            if (['admin', 'superadmin', 'superuser'].includes(user.role) && user.status === 'inactive') {
+                return res.status(403).json({ message: "Access Denied: Your account has been deactivated." });
             }
         } else {
             user = await User.create({
@@ -34,7 +47,6 @@ export const googleAuth = async (req, res) => {
                 email,
                 googleId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
-                role: "jobseeker",
                 role: "jobseeker",
                 permissions: [],
                 lastLogin: new Date()
@@ -63,8 +75,11 @@ export const googleAuth = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Google Auth Error:", error);
-        res.status(500).json({ message: "Google authentication failed" });
+        console.error("Google Auth Controller Error:", error.message);
+        if (error.response) {
+            console.error("Google API Response:", error.response.data);
+        }
+        res.status(500).json({ message: "Google authentication failed", error: error.message });
     }
 };
 
