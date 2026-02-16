@@ -9,12 +9,17 @@ import {
 
 } from "../controllers/hiringpartnersController.js";
 
-import upload from "../middleware/uploadMiddleware.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
 /* ================= LIST ================= */
 router.get("/hiringpartners", getPublicHiringPartners);
+
+// Admin routes
+router.use("/admin", protect, authorize("admin", "superadmin", "superuser"));
+
 router.get("/admin/hiringpartners", getAdminHiringPartners);
 
 /* ================= ADD (STATIC – IMPORTANT) ================= */
@@ -28,7 +33,7 @@ router.post(
   "/admin/hiringpartners",
   upload.fields([
     { name: "logo", maxCount: 1 },
-    
+
   ]),
   createHiringPartners
 );
@@ -40,7 +45,7 @@ router.put(
   "/admin/hiringpartners/:id",
   upload.fields([
     { name: "logo", maxCount: 1 },
-    
+
   ]),
   updateHiringPartners
 );

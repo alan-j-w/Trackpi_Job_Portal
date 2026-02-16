@@ -22,7 +22,7 @@ const EditHiringPartner = () => {
         const fetchData = async () => {
             try {
                 const res = await fetch(
-                    `http://localhost:8000/api/admin/hiringpartners/${id}`,
+                    `${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const json = await res.json();
@@ -67,7 +67,7 @@ const EditHiringPartner = () => {
 
         try {
             const res = await fetch(
-                `http://localhost:8000/api/admin/hiringpartners/${id}`,
+                `${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`,
                 {
                     method: "PUT",
                     headers: { Authorization: `Bearer ${token}` },

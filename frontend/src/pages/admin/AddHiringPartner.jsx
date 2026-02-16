@@ -40,7 +40,7 @@ const AddHiringPartner = () => {
 
         try {
             const res = await fetch(
-                "http://localhost:8000/api/admin/hiringpartners",
+                `${import.meta.env.VITE_API_URL}/api/admin/hiringpartners`,
                 {
                     method: "POST",
                     headers: { Authorization: `Bearer ${token}` },
