@@ -54,3 +54,7 @@ const testimonialStorage = new CloudinaryStorage({
 });
 
 export const uploadTestimonial = multer({ storage: testimonialStorage });
+
+export const upload = multer({ storage: multer.memoryStorage() });
+
+export default uploadTestimonial;
