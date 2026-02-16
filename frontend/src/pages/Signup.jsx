@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { API_URL } from "../config";
+
 import loginIllustration from "../assets/illustrations/login-illustration.png";
 import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 
@@ -11,7 +13,7 @@ const Signup = () => {
     const handleGoogleSignup = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
-                const res = await axios.post("http://localhost:8000/api/auth/google", {
+                const res = await axios.post(`${API_URL}/api/auth/google`, {
                     access_token: tokenResponse.access_token,
                 });
 

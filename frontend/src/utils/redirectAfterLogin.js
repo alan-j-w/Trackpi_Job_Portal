@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getUserRole } from "./auth";
+import { API_URL } from "../config";
 
 export const redirectAfterLogin = async (navigate) => {
     const token = localStorage.getItem("token");
@@ -19,7 +20,7 @@ export const redirectAfterLogin = async (navigate) => {
     // }
 
     try {
-        const res = await axios.get("http://localhost:8000/api/profile/status", {
+        const res = await axios.get(`${API_URL}/api/profile/status`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

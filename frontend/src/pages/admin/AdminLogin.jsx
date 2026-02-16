@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { redirectAfterLogin } from "../../utils/redirectAfterLogin";
 import { getUserRole } from "../../utils/auth";
+import { API_URL } from "../../config";
 import logo from "../../assets/logo.png"; // Assuming logo exists
 
 const AdminLogin = () => {
@@ -41,7 +42,7 @@ const AdminLogin = () => {
             try {
                 setLoading(true);
                 setError("");
-                const res = await axios.post("http://localhost:8000/api/auth/google", {
+                const res = await axios.post(`${API_URL}/api/auth/google`, {
                     access_token: tokenResponse.access_token,
                 });
                 handleAdminLoginSuccess(res.data.user, res.data.token);

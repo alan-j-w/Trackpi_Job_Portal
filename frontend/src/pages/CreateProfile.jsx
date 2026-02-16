@@ -163,8 +163,10 @@ const CreateProfile = () => {
             // Simulate loading delay for visual effect (as requested)
             await new Promise(resolve => setTimeout(resolve, 3000));
 
-            await axios.post("http://localhost:8000/api/profile", payload, {
-                headers: { Authorization: `Bearer ${token}` }
+            await axios.post(`${API_URL}/api/profile`, payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
             navigate("/profile");

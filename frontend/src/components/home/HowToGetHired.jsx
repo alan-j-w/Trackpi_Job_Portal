@@ -1,5 +1,5 @@
-import { motion, useInView } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 // 🔹 import icons
 import apply from "../../assets/howToHire/apply.png";
@@ -9,7 +9,7 @@ import salesInterview from "../../assets/howToHire/salesInterview.png";
 import walkin from "../../assets/howToHire/walkin.png";
 import placed from "../../assets/howToHire/placed.png";
 
-// 📌 Sizes: Desktop / Mobile
+// 📌 Sizes
 const circleDesktop = 650;
 const circleMobile = 380;
 
@@ -25,13 +25,8 @@ export default function HowToGetHired() {
   const [activeStep, setActiveStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [size, setSize] = useState(circleDesktop);
-  const [hasEntered, setHasEntered] = useState(false);
-  const intervalRef = useRef(null);
-  const sectionRef = useRef(null);
-  // Trigger earlier (amount: 0.2) and allow re-trigger if needed, but we gate it with hasEntered
-  const isInView = useInView(sectionRef, { amount: 0.2 });
 
-  // 📱 Detect Screen Size
+  // 📱 Responsive size
   useEffect(() => {
     const updateSize = () => {
       setSize(window.innerWidth < 768 ? circleMobile : circleDesktop);
@@ -47,55 +42,36 @@ export default function HowToGetHired() {
   const circumference = 2 * Math.PI * normalizedRadius;
   const iconDistance = radius - (size < 500 ? 75 : 100);
 
-  const startLoop = () => {
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
+  // 🔄 Auto Step Loop
+  useEffect(() => {
+    const interval = setInterval(() => {
       setActiveStep((prev) => {
         if (prev === steps.length - 1) {
-          clearInterval(intervalRef.current);
           setIsCompleted(true);
           setTimeout(() => {
             setIsCompleted(false);
             setActiveStep(0);
-            startLoop();
           }, 2000);
           return prev;
         }
         return prev + 1;
       });
     }, 2000);
-  };
 
-  useEffect(() => {
-    if (isInView) {
-      if (!hasEntered) {
-        setHasEntered(true);
-        setTimeout(() => {
-          setActiveStep(1);
-          startLoop();
-        }, 500);
-      }
-    } else {
-      setHasEntered(false);
-      setIsCompleted(false);
-      setActiveStep(0);
-      clearInterval(intervalRef.current);
-    }
-  }, [isInView]);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="py-16 md:py-24 bg-white flex flex-col items-center overflow-hidden min-h-[600px]"
-    >
+    <section className="py-16 md:py-24 bg-white flex flex-col items-center overflow-hidden min-h-[600px]">
 
+      {/* TITLE */}
       <h2 className="text-3xl md:text-5xl font-bold mb-10 md:mb-16 text-center">
         How to <span className="text-[#FFB300]">get Hired</span>
       </h2>
 
       <div
         className="relative"
-        style={{ width: size, height: size, transition: "0.3s ease-in-out" }}
+        style={{ width: size, height: size }}
       >
 
         {/* Base Circle */}
@@ -103,128 +79,51 @@ export default function HowToGetHired() {
           width={size}
           height={size}
           className="absolute top-0 left-0 -rotate-90"
-          viewBox={`0 0 ${size} ${size}`}
         >
-          <motion.circle
+          <circle
             cx={radius}
             cy={radius}
             r={normalizedRadius}
             fill="none"
             stroke="#E6E6E6"
             strokeWidth={strokeWidth}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: hasEntered ? 1 : 0 }}
-            transition={{ duration: 1, delay: 0.5 }}
           />
 
+          {/* Progress Line */}
           <motion.circle
             cx={radius}
             cy={radius}
-            r={normalizedRadius - 2}
-            fill={isCompleted ? "#FFB300" : "transparent"}
-            transition={{ duration: 0.5 }}
+            r={normalizedRadius}
+            fill="none"
+            stroke="#FFB300"
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={
+              circumference -
+              (activeStep / (steps.length - 1)) * circumference
+            }
+            transition={{ duration: 0.6 }}
           />
-
-          {hasEntered && (
-            <motion.circle
-              cx={radius}
-              cy={radius}
-              r={normalizedRadius}
-              fill="none"
-              stroke="#FFB300"
-              strokeWidth={strokeWidth + 2}
-              strokeLinecap="butt"
-              strokeDasharray={`0 ${circumference}`} // Initial state
-              initial={{
-                rotate: -steps[0].angle + 90, // Align start to the first step
-              }}
-              style={{
-                originX: "50%",
-                originY: "50%",
-              }}
-              animate={{
-                strokeDasharray: `${((steps[0].angle - steps[activeStep].angle) / 360) * circumference} ${circumference}`,
-                opacity: isCompleted ? 0 : 1,
-              }}
-              transition={{ type: "tween", duration: 0.5, ease: "easeInOut" }}
-            />
-          )}
         </svg>
 
-        {/* 🎯 Center (Placed) */}
+        {/* 🎯 CENTER */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-20">
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={hasEntered ? { scale: 1, opacity: 1 } : {}}
-            transition={{ duration: 0.8, ease: "backOut" }}
-          >
-            <motion.img
-              src={placed}
-              alt="Placed"
-              className="w-28 md:w-64 drop-shadow"
-              animate={{
-                scale: isCompleted ? 1.2 : 1,
-                opacity: isCompleted ? 1 : 0.3,
-              }}
-            />
-            <motion.p
-              className="mt-3 text-lg md:text-3xl font-bold"
-              animate={{ opacity: isCompleted ? 1 : 0.3 }}
-            >
-              Placed
-            </motion.p>
-          </motion.div>
+          <motion.img
+            src={placed}
+            alt="Placed"
+            className="w-28 md:w-64 drop-shadow"
+            animate={{
+              scale: isCompleted ? 1.2 : 1,
+              opacity: isCompleted ? 1 : 0.4,
+            }}
+            transition={{ duration: 0.5 }}
+          />
+          <p className="mt-2 text-xl md:text-3xl font-bold">
+            Placed
+          </p>
         </div>
 
-        {/* ⏩ Chevrons (>>) */}
-        {hasEntered && steps.map((step, index) => {
-          if (index === steps.length - 1) return null; // No chevrons after last step
-
-          const nextStep = steps[index + 1];
-          const angleDiff = step.angle - nextStep.angle;
-          const chevronAngles = [
-            step.angle - angleDiff * 0.33,
-            step.angle - angleDiff * 0.66,
-          ];
-
-          return chevronAngles.map((angle, i) => {
-            const rad = (angle * Math.PI) / 180;
-            // Standard Math Logic: x = r*cos, y = r*sin. Center (radius, radius)
-            // Left = radius + x, Top = radius - y
-            const x = normalizedRadius * Math.cos(rad);
-            const y = normalizedRadius * Math.sin(rad);
-
-            return (
-              <div
-                key={`chevron-${index}-${i}`}
-                className="absolute flex items-center justify-center pointer-events-none z-10"
-                style={{
-                  left: radius + x,
-                  top: radius - y,
-                  width: 20, // Approximate size
-                  height: 20,
-                  transform: `translate(-50%, -50%) rotate(${90 - angle}deg)`,
-                }}
-              >
-                {/* Chevron Icon > */}
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </div>
-            );
-          });
-        })}
-
-        {/* 📌 Steps */}
+        {/* 📌 STEPS */}
         {steps.map((step, index) => {
           const rad = (step.angle * Math.PI) / 180;
           const x = iconDistance * Math.cos(rad);
@@ -234,34 +133,31 @@ export default function HowToGetHired() {
           return (
             <motion.div
               key={index}
-              className="absolute flex flex-col items-center"
-              initial={{ left: radius, top: radius, scale: 0, opacity: 0 }}
-              animate={hasEntered ? {
+              className="absolute flex flex-col items-center text-center"
+              style={{
                 left: radius + x,
                 top: radius - y,
-                scale: 1,
-                opacity: isCompleted ? 0.3 : 1,
-              } : {}}
-              transition={{
-                duration: 1,
-                ease: "circOut",
-                delay: index * 0.1
-              }}
-              style={{
                 translate: "-50% -50%",
-                width: size < 500 ? 120 : 250,
+                width: size < 500 ? 140 : 280,
               }}
+              animate={{
+                opacity: isCompleted ? 0.3 : 1,
+                scale: isActive ? 1.1 : 1,
+              }}
+              transition={{ duration: 0.4 }}
             >
-              <div className="flex flex-col items-center">
-                <img
-                  src={step.image}
-                  alt={step.label}
-                  className="w-32 h-32 md:w-60 md:h-60 object-contain"
-                />
-              </div>
+              {/* IMAGE */}
+              <img
+                src={step.image}
+                alt={step.label}
+                className="w-32 h-32 md:w-56 md:h-56 object-contain"
+              />
+
+              {/* TEXT */}
               <p
-                className={`text-[10px] md:text-sm font-semibold mt-2 text-center ${isActive ? "text-black" : "text-gray-400"
-                  }`}
+                className={`mt-1 text-sm md:text-xl font-semibold leading-tight ${
+                  isActive ? "text-black" : "text-gray-400"
+                }`}
               >
                 {step.label}
               </p>
@@ -272,3 +168,4 @@ export default function HowToGetHired() {
     </section>
   );
 }
+

@@ -1,31 +1,34 @@
+// models/Testimonial.js
 import mongoose from "mongoose";
 
 const testimonialSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
+    name: { type: String, required: true },
+    jobTitle: { type: String, required: true },
+    about: { type: String, required: true },
+
+    // Store file paths or URLs
+    coverImage: { 
+      public_id: String,
+      url: String,
+      originalName: String
     },
-    role: {
-      type: String,
-      required: true,
+    thumbnailImage: { 
+      public_id: String,
+      url: String,
+      originalName: String
     },
-    image: {
-      type: String, // image URL
-      required: true,
+    video: { 
+      public_id: String,
+      url: String,
+      originalName: String,
+      mimetype: String,
+      size: Number
     },
-    video: {
-      type: String, // Vimeo / YouTube embed URL
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
+
+    isActive: { type: Boolean, default: true }
   },
   { timestamps: true }
 );
 
-const Testimonial = mongoose.model("Testimonial", testimonialSchema);
-
-export default Testimonial;
+export default mongoose.model("Testimonial", testimonialSchema);
