@@ -26,7 +26,14 @@ const ProtectedAdminRoute = ({ children, requiredPermission, requiredRole }) => 
     if (role === "superuser") {
         if (requiredPermission && !userPermissions.includes(requiredPermission)) {
             // Redirect if authorized but no permission for specific page
-            return <Navigate to="/admin/dashboard" replace />;
+            // Redirect if authorized but no permission for specific page
+            // blocked to prevent infinite loops if dashboard itself is restricted
+            return (
+                <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-gray-400">
+                    <p className="text-lg font-medium">Access Restricted</p>
+                    <p className="text-sm">You do not have permission to view this page.</p>
+                </div>
+            );
         }
         return children;
     }

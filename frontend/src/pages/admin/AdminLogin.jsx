@@ -16,14 +16,14 @@ const AdminLogin = () => {
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = getUserRole();
-        if (token && (role === "admin" || role === "superadmin")) {
+        if (token && (role === "admin" || role === "superadmin" || role === "superuser")) {
             navigate("/admin/dashboard");
         }
     }, [navigate]);
 
     const handleAdminLoginSuccess = (user, token) => {
         // Strict Role Check
-        if (user.role === "admin" || user.role === "superadmin") {
+        if (user.role === "admin" || user.role === "superadmin" || user.role === "superuser") {
             // Save Check
             localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(user));
@@ -47,8 +47,10 @@ const AdminLogin = () => {
                 });
                 handleAdminLoginSuccess(res.data.user, res.data.token);
             } catch (error) {
-                console.error("Google login failed:", error);
-                setError("Google login failed. Please try again.");
+                console.error("Google login failed (Frontend):", error);
+                // Extract precise message if available
+                const msg = error.response?.data?.message || "Google login failed. Please try again.";
+                setError(msg);
             } finally {
                 setLoading(false);
             }
