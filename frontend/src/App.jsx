@@ -143,9 +143,9 @@ function App() {
 
           {/* Super Admin Routes */}
           <Route path="management" element={<ProtectedAdminRoute><AdminManagement /></ProtectedAdminRoute>} />
-          <Route path="permissions" element={<ProtectedAdminRoute requiredRole="superadmin"><PermissionManagement /></ProtectedAdminRoute>} />
-          <Route path="permissions/create" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
-          <Route path="permissions/edit/:id" element={<ProtectedAdminRoute requiredRole="superadmin"><CreatePermission /></ProtectedAdminRoute>} />
+          <Route path="permissions" element={<ProtectedAdminRoute><PermissionManagement /></ProtectedAdminRoute>} />
+          <Route path="permissions/create" element={<ProtectedAdminRoute><CreatePermission /></ProtectedAdminRoute>} />
+          <Route path="permissions/edit/:id" element={<ProtectedAdminRoute><CreatePermission /></ProtectedAdminRoute>} />
 
           {/* User Management */}
           <Route path="users" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.USERS_EDIT}><UserManagement /></ProtectedAdminRoute>} />

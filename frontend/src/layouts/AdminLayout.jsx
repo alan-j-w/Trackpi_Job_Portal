@@ -46,8 +46,8 @@ const AdminLayout = () => {
         { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_DOWNLOAD }, // Adjust if better view key
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
-        { name: "Admin management", path: "/admin/management", icon: ShieldCheck, superAdminOnly: true },
-        { name: "User permission", path: "/admin/permissions", icon: Lock, superAdminOnly: true },
+        { name: "Admin management", path: "/admin/management", icon: ShieldCheck }, // Visible to Admin (Read Only) & Super Admin
+        { name: "User permission", path: "/admin/permissions", icon: Lock }, // Visible to Admin (Read Only) & Super Admin
         { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_EDIT },
         { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
         { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_ADD }, // No view key?
@@ -86,13 +86,20 @@ const AdminLayout = () => {
                     <ul className="space-y-1 px-2">
                         {menuItems.map((item, index) => {
                             // Filter Logic
-                            if (role !== "superadmin") {
+                            // Super Admin & Admin see everything (except superAdminOnly items for Admin)
+                            if (role !== "superadmin" && role !== "admin") {
                                 if (item.superAdminOnly) return null;
                                 // If item has specific perm requirment and user doesn't have it
                                 if (item.permission && !userPermissions.includes(item.permission)) {
                                     // Skip rendering
                                     return null;
                                 }
+                            }
+
+                            // Additional check for Safe Admin Mode for Admin role
+                            // If we want to hide "superAdminOnly" items from Admin explicitly
+                            if (role === "admin" && item.superAdminOnly) {
+                                return null;
                             }
 
                             const isActive = location.pathname === item.path;

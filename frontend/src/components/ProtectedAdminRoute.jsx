@@ -17,21 +17,22 @@ const ProtectedAdminRoute = ({ children, requiredPermission, requiredRole }) => 
         return <Navigate to="/admin/dashboard" replace />;
     }
 
-    if (role === "superadmin") {
+    // Super Admin & Admin bypass permission checks (Full Access)
+    if (role === "superadmin" || role === "admin") {
         return children;
     }
 
-    if (role === "admin") {
-        // If a specific permission is required, check for it
+    // Super User (Restricted Admin) - Check Permissions
+    if (role === "superuser") {
         if (requiredPermission && !userPermissions.includes(requiredPermission)) {
-            // Redirect to admin dashboard if authorized but no permission for specific page
+            // Redirect if authorized but no permission for specific page
             return <Navigate to="/admin/dashboard" replace />;
         }
         return children;
-    } else {
-        // User is logged in but not an admin
-        return <Navigate to="/admin/login" replace />;
     }
+
+    // Not an admin role
+    return <Navigate to="/admin/login" replace />;
 };
 
 export default ProtectedAdminRoute;
