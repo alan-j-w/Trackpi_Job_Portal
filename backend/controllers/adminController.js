@@ -331,6 +331,7 @@ export const toggleAdminStatus = async (req, res) => {
 };
 
 // Update Super User (Restricted Staff) - Admin & Super Admin
+// Update Super User (Restricted Staff) - Admin & Super Admin
 export const updateSuperUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -354,7 +355,18 @@ export const updateSuperUser = async (req, res) => {
             const r = await AdminRole.findById(roleId);
             if (r) {
                 user.permissions = r.permissions;
-                // Assuming we don't change 'role' from 'superuser' here unless promoting?
+
+                // Sync AdminRole Collections
+                // 1. Remove user from ALL other AdminRole documents first
+                await AdminRole.updateMany(
+                    { users: user._id },
+                    { $pull: { users: user._id } }
+                );
+
+                // 2. Add user to the NEW AdminRole document
+                await AdminRole.findByIdAndUpdate(roleId, {
+                    $addToSet: { users: user._id }
+                });
             }
         }
 
