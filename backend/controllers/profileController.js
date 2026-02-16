@@ -67,7 +67,11 @@ export const createOrUpdateProfile = async (req, res) => {
 
         // Also update User model ONLY if final submission
         if (isFinalSubmission) {
-            await User.findByIdAndUpdate(userId, { profileCompleted: true });
+            const userUpdates = { profileCompleted: true };
+            if (bodyData.fullName) {
+                userUpdates.name = bodyData.fullName;
+            }
+            await User.findByIdAndUpdate(userId, userUpdates);
         }
 
         return res.status(200).json({

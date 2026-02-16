@@ -13,6 +13,8 @@ import EditSummaryModal from "../components/profile/EditSummaryModal";
 import EditEducationModal from "../components/profile/EditEducationModal";
 import EditLanguageModal from "../components/profile/EditLanguageModal";
 import EditResumeModal from "../components/profile/EditResumeModal";
+import EditSocialLinksModal from "../components/profile/EditSocialLinksModal";
+import EditAdditionalDetailsModal from "../components/profile/EditAdditionalDetailsModal";
 import DeleteConfirmationModal from "../components/profile/DeleteConfirmationModal";
 
 import ProfileHeader from "../components/profile/ProfileHeader";
@@ -83,6 +85,12 @@ const Profile = () => {
     const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
     const [isResumeEditing, setIsResumeEditing] = useState(false);
 
+    // Social Links Modal State
+    const [isSocialLinksModalOpen, setIsSocialLinksModalOpen] = useState(false);
+
+    // Additional Details Modal State
+    const [isAdditionalDetailsModalOpen, setIsAdditionalDetailsModalOpen] = useState(false);
+
     const navigate = useNavigate();
 
     // Fetch Profile
@@ -131,7 +139,8 @@ const Profile = () => {
             'language': { id: 'language-section', open: handleAddLanguage },
             'summary': { id: 'summary-section', open: () => setIsSummaryModalOpen(true) },
             'resume': { id: 'resume-section', open: () => setIsResumeModalOpen(true) },
-            'social': { open: () => setIsEditModalOpen(true) },
+            'social': { open: () => setIsSocialLinksModalOpen(true) },
+            'additional': { open: () => setIsAdditionalDetailsModalOpen(true) },
             'phone': { open: () => setIsEditModalOpen(true) },
             'marital': { open: () => setIsEditModalOpen(true) },
             'dob': { open: () => setIsEditModalOpen(true) },
@@ -783,6 +792,76 @@ const Profile = () => {
                 onSave={handleSaveResume}
                 currentResumeUrl={profile.resume}
                 isEditing={isResumeEditing}
+            />
+
+            <EditSocialLinksModal
+                isOpen={isSocialLinksModalOpen}
+                onClose={() => setIsSocialLinksModalOpen(false)}
+                socialLinks={profile.socialLinks}
+                onSave={async (newLinks) => {
+                    const loadingToast = toast.loading("Updating social links...");
+                    try {
+                        const token = localStorage.getItem("token");
+                        await axios.post(`${config.API_URL}/api/profile`, { socialLinks: newLinks }, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setProfile(prev => ({ ...prev, socialLinks: newLinks }));
+                        setIsSocialLinksModalOpen(false);
+                        toast.success("Social links updated!", { id: loadingToast });
+                    } catch (err) {
+                        console.error("Update social links failed", err);
+                        toast.error("Failed to update social links", { id: loadingToast });
+                    }
+                }}
+            />
+
+            <EditAdditionalDetailsModal
+                isOpen={isAdditionalDetailsModalOpen}
+                onClose={() => setIsAdditionalDetailsModalOpen(false)}
+                details={{
+                    alternatePhone: profile.alternatePhone,
+                    drivingLicenses: profile.drivingLicenses,
+                    dateOfBirth: profile.dateOfBirth,
+                    careerBreak: profile.careerBreak,
+                    preferredWorkMode: profile.preferredWorkMode,
+                    maritalStatus: profile.maritalStatus
+                }}
+                onSave={async (formData) => {
+                    const loadingToast = toast.loading("Updating additional details...");
+                    try {
+                        const token = localStorage.getItem("token");
+
+                        // Transform UI data to Backend Schema
+                        // Driving License: UI is boolean, Backend seems to expect array or checking length? 
+                        // Let's assume backend accepts 'drivingLicenses' array. 
+                        // If true -> ["Yes"] (dummy value) or ["License"]? 
+                        // ProfileSidebar checks `length > 0`. Let's send ["Available"] if true, [] if false.
+                        const drivingLicenses = formData.drivingLicense ? ["Available"] : [];
+
+                        const payload = {
+                            alternatePhone: formData.fullAltPhone,
+                            drivingLicenses: drivingLicenses,
+                            dateOfBirth: formData.dob,
+                            careerBreak: formData.careerBreak,
+                            preferredWorkMode: formData.preferredWorkMode,
+                            maritalStatus: formData.maritalStatus
+                        };
+
+                        await axios.post(`${config.API_URL}/api/profile`, payload, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+
+                        setProfile(prev => ({
+                            ...prev,
+                            ...payload
+                        }));
+                        setIsAdditionalDetailsModalOpen(false);
+                        toast.success("Details updated!", { id: loadingToast });
+                    } catch (err) {
+                        console.error("Update details failed", err);
+                        toast.error("Failed to update details", { id: loadingToast });
+                    }
+                }}
             />
 
             <DeleteConfirmationModal

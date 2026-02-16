@@ -67,7 +67,7 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete })
                                 <span className="text-[10px] font-bold text-red-500">PDF</span>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-medium text-gray-900 truncate">Resume.pdf</p>
+                                <p className="text-sm font-medium text-gray-900 truncate" title={resumeUrl.split('/').pop()}>{decodeURIComponent(resumeUrl.split('/').pop())}</p>
                                 <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FFB300] hover:underline">View Resume</a>
                             </div>
                         </>

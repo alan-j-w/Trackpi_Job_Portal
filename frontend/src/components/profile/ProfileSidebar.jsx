@@ -161,7 +161,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
                 <div>
                     <div className="flex justify-between items-center">
                         <h3 className="font-bold text-lg">Additional Details</h3>
-                        <EditIcon className="w-[18px] h-[18px]" />
+                        <EditIcon className="w-[18px] h-[18px]" onClick={() => onAction && onAction('additional')} />
                     </div>
                     {/* Light Gray Underline */}
                     <div className="w-full h-[1px] bg-gray-100 mt-3 mb-6"></div>
@@ -215,7 +215,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
                 <div>
                     <div className="flex justify-between items-center">
                         <h3 className="font-bold text-lg">Social Links</h3>
-                        <EditIcon className="w-[18px] h-[18px]" />
+                        <EditIcon className="w-[18px] h-[18px]" onClick={() => onAction && onAction('social')} />
                     </div>
                     {/* Yellow Underline */}
                     <div className="w-full h-[1.5px] bg-[#FFB300] mt-3 mb-6"></div>
