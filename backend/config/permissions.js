@@ -38,11 +38,13 @@ const PERMISSIONS = {
     TESTIMONIALS_DELETE: "testimonials.delete",
 
     // Admin Management
+    ADMIN_VIEW: "admin.view",
     ADMIN_ADD: "admin.add",
     ADMIN_EDIT: "admin.edit",
     ADMIN_STATUS: "admin.status",
 
     // User Permission (Roles)
+    ROLES_VIEW: "roles.view",
     ROLES_EDIT: "roles.edit",
     ROLES_DELETE: "roles.delete",
 

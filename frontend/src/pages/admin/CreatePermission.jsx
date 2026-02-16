@@ -76,6 +76,7 @@ const MODULES_CONFIG = [
         label: "Admin management",
         key: "admin_mgmt",
         permissions: [
+            { label: "View", value: PERMISSIONS.ADMIN_VIEW },
             { label: "Add admin", value: PERMISSIONS.ADMIN_ADD },
             { label: "Edit", value: PERMISSIONS.ADMIN_EDIT },
             { label: "Status", value: PERMISSIONS.ADMIN_STATUS },
@@ -85,6 +86,7 @@ const MODULES_CONFIG = [
         label: "User permission",
         key: "user_perm",
         permissions: [
+            { label: "View", value: PERMISSIONS.ROLES_VIEW },
             { label: "Edit", value: PERMISSIONS.ROLES_EDIT },
             { label: "delete", value: PERMISSIONS.ROLES_DELETE },
         ]

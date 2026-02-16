@@ -46,8 +46,8 @@ const AdminLayout = () => {
         { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_DOWNLOAD }, // Adjust if better view key
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
-        { name: "Admin management", path: "/admin/management", icon: ShieldCheck }, // Visible to Admin (Read Only) & Super Admin
-        { name: "User permission", path: "/admin/permissions", icon: Lock }, // Visible to Admin (Read Only) & Super Admin
+        { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW }, // Visible to Admin (Read Only) & Super Admin
+        { name: "User permission", path: "/admin/permissions", icon: Lock, permission: PERMISSIONS.ROLES_VIEW }, // Visible to Admin (Read Only) & Super Admin
         { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_EDIT },
         { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
         { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_ADD }, // No view key?
