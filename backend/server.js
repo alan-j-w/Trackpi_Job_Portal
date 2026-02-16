@@ -18,6 +18,7 @@ import testimonialsRoutes from "./routes/testimonialsRoutes.js";
 import educationRoutes from "./routes/educationRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import hiringpartnersRoutes from "./routes/hiringpartnersRoutes.js";
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/languages", languageRoutes);
 app.use("/api/education", educationRoutes);
+app.use("/api", hiringpartnersRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend Running");
