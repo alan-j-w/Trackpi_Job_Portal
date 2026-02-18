@@ -74,12 +74,12 @@ export const checkPermission = (requiredPermission) => {
         if (user.role === "admin") {
             const RESTRICTED_PERMISSIONS = [
                 // Admin Management Restrictions
-                "admin.add",
-                "admin.edit",
-                "admin.status",
+                "admin_management.add_admin",
+                "admin_management.edit",
+                "admin_management.update_status",
                 // Role Management Restrictions - ALLOWED now
-                // "roles.edit", 
-                // "roles.delete"
+                // "user_permission.edit", 
+                // "user_permission.delete"
             ];
 
             if (RESTRICTED_PERMISSIONS.includes(requiredPermission)) {

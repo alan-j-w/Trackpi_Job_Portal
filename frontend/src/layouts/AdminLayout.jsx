@@ -38,23 +38,46 @@ const AdminLayout = () => {
         navigate("/login");
     };
 
+    // DEBUG: Fetch fresh permissions on mount
+    const [debugPermissions, setDebugPermissions] = useState(null);
+    useState(() => {
+        const fetchMe = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                console.log("=== DEBUG PERMISSIONS ===");
+                console.log("Token Role:", role);
+                console.log("Token Permissions:", userPermissions);
+                console.log("DB Role:", data.role);
+                console.log("DB Permissions:", data.permissions);
+                setDebugPermissions(data.permissions);
+            } catch (error) {
+                console.error("Debug fetch failed:", error);
+            }
+        };
+        fetchMe();
+    }, []);
+
     const menuItems = [
         { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_VIEW },
         { name: "Jobs", path: "/admin/jobs", icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
         { name: "Signup candidates", path: "/admin/candidates/signup", icon: UserPlus, permission: PERMISSIONS.SIGNUP_VIEW },
         { name: "Job applicants", path: "/admin/candidates/applicants", icon: Users, permission: PERMISSIONS.APPLICANTS_VIEW },
-        { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_DOWNLOAD }, // Adjust if better view key
+        { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_VIEW },
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
-        { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW }, // Visible to Admin (Read Only) & Super Admin
-        { name: "User permission", path: "/admin/permissions", icon: Lock, permission: PERMISSIONS.ROLES_VIEW }, // Visible to Admin (Read Only) & Super Admin
+        { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW },
+        { name: "User permission", path: "/admin/permissions", icon: Lock, permission: PERMISSIONS.ROLES_VIEW },
         { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_VIEW },
         { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
-        { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_ADD }, // No view key?
-        { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS },
-        { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES },
-        { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.VIDEO_ADD },
-        { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.WINNERS_ADD },
+        { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_VIEW },
+        { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW },
+        { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES_VIEW },
+        { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.VIDEO_VIEW },
+        { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.WINNERS_VIEW },
     ];
 
     return (

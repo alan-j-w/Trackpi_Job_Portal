@@ -7,8 +7,10 @@ import {
     googleAuth,
     linkedinAuth,
     sendOtp,
-    verifyOtp
+    verifyOtp,
+    getMe
 } from "../controllers/authController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 // Auth routes
 router.post("/register", registerUser);
@@ -17,5 +19,6 @@ router.post("/google", googleAuth);
 router.post("/linkedin", linkedinAuth);
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
+router.get("/me", protect, getMe);
 
 export default router;
