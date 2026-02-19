@@ -71,6 +71,10 @@ export const createOrUpdateProfile = async (req, res) => {
             if (bodyData.fullName) {
                 userUpdates.name = bodyData.fullName;
             }
+            // Sync Phone to User Model (Critical for OTP Login)
+            if (bodyData.phone) {
+                userUpdates.phone = bodyData.phone;
+            }
             await User.findByIdAndUpdate(userId, userUpdates);
         }
 

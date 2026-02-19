@@ -2,7 +2,7 @@ import React from "react";
 
 const Stats = () => {
   return (
-    <section className="w-full bg-white py-12 px-4 flex justify-center">
+    <section className="w-full bg-white py-12 px-4 flex justify-center font-cabinet">
       {/* ⭐⭐ COMPONENT WRAPPER ⭐⭐
         - max-w-[1086px]: Matches Figma width constraint.
         - -skew-x-12: Creates the parallelogram slant (/) 

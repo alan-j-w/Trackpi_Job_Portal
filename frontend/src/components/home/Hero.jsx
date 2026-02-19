@@ -6,6 +6,17 @@ import meeting from "../../assets/hero/meeting.png";
 import lady from "../../assets/hero/lady.png";
 import mobile from "../../assets/hero/mobile.png";
 
+import {
+  FaInstagram,
+  FaFacebookF,
+  FaYoutube,
+  FaLinkedinIn,
+  FaQuora,
+  FaBloggerB,
+  FaMediumM,
+  FaWhatsapp
+} from "react-icons/fa";
+
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const sectionRef = useRef(null);
@@ -25,8 +36,117 @@ const Hero = () => {
     <section
       ref={sectionRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full bg-white pt-24 pb-16 lg:pt-32 lg:pb-24 font-cabinet overflow-hidden group"
+      className="relative w-full bg-white pt-24 pb-8 lg:pt-32 lg:pb-12 font-cabinet overflow-hidden group pl-[80px] min-h-[800px]" // Reduced min-h and padding
     >
+      {/* ---------------- SOCIAL SIDEBAR (LEFT) ---------------- */}
+      {/* Fixed near the Resume Generator button: Positioned absolute so it scrolls with the page. 
+          Using fixed pixel/rem top to align with the text/button flow better than %. */}
+      {/* Updated to allow width expansion for hover effect */}
+      <div className="fixed left-0 top-1/2 -translate-y-1/2 flex flex-col items-start gap-4 z-50 pl-4 w-auto">
+
+        {/* Instagram */}
+        <a
+          href="https://www.instagram.com/trackpi_official/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[140px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaInstagram size={18} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-2">INSTAGRAM</span>
+        </a>
+
+        {/* Facebook */}
+        <a
+          href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-[#1877F2] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[140px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaFacebookF size={18} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap ml-2">FACEBOOK</span>
+        </a>
+
+        {/* YouTube */}
+        <a
+          href="https://www.youtube.com/@trackpi"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-[#FF0000] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaYoutube size={18} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap ml-2">YOUTUBE</span>
+        </a>
+
+        {/* LinkedIn */}
+        <a
+          href="https://www.linkedin.com/company/trackpi-private-limited/posts/?feedView=all&viewAsMember=true"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-[#0A66C2] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaLinkedinIn size={18} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap ml-2">LINKEDIN</span>
+        </a>
+
+        {/* Quora */}
+        <a
+          href="https://www.quora.com/profile/Trackpi-Private-Limited"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-[#cf2e2e] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[120px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaQuora size={16} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap ml-2">QUORA</span>
+        </a>
+
+        {/* Blogger */}
+        <a
+          href="https://trackpi.blogspot.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-[#F57D00] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaBloggerB size={18} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap ml-2">BLOGGER</span>
+        </a>
+
+        {/* Medium */}
+        <a
+          href="https://medium.com/@trackpi"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[36px] flex items-center bg-black text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[120px] hover:rounded-r-md"
+        >
+          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+            <FaMediumM size={18} />
+          </div>
+          <span className="text-xs font-bold whitespace-nowrap ml-2">MEDIUM</span>
+        </a>
+      </div>
+
+      {/* ---------------- WHATSAPP BUTTON (RIGHT) ---------------- */}
+      <a
+        href="https://wa.me/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-8 right-8 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-300 animate-bounce-slow"
+      >
+        <FaWhatsapp size={32} />
+      </a>
+
+
       {/* ---------------- TORCH EFFECT ---------------- */}
       <div
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100"
@@ -55,18 +175,20 @@ const Hero = () => {
               onClick={() => navigate("/resume-gen")}
               className="bg-[#FFB300] px-8 py-3.5 rounded-xl font-bold text-black text-lg shadow-md hover:bg-[#ffca2c] hover:shadow-lg transform active:scale-95 transition-all duration-200"
             >
-              Resume Generator
+              Resume generator
             </button>
-            <button className="border-2 border-black px-8 py-3.5 rounded-xl font-bold text-lg text-black hover:bg-black hover:text-white transform active:scale-95 transition-all duration-200">
-              Browse Jobs
+            <button
+              onClick={() => navigate("/jobs")}
+              className="border-2 border-black px-8 py-3.5 rounded-xl font-bold text-lg text-black hover:bg-black hover:text-white transform active:scale-95 transition-all duration-200">
+              Browse jobs
             </button>
           </div>
 
-          <div className="pt-6 mt-10 flex flex-col md:flex-row md:items-baseline gap-2.5 md:gap-4">
-            <p className="italic font-extrabold text-xl uppercase tracking-wider text-gray-900" style={{ WebkitTextStroke: '0.5px rgba(0,0,0,0.8)' }}>
-              <em>"WE WON'T LET YOU STAY JOBLESS"</em>
+          <div className="pt-6 mt-10 flex flex-row items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
+            <p className="italic font-bold text-sm md:text-base tracking-[0.14em] text-black uppercase shrink-0" style={{ fontFamily: '"Playfair Display", serif', lineHeight: '1', textShadow: '0px 2px 2px rgba(0, 0, 0, 0.45)' }}>
+              "WE WON'T LET YOU STAY JOBLESS"
             </p>
-            <p className="font-medium text-sm tracking-wide" style={{ fontFamily: "Ponnala, sans-serif" }}>
+            <p className="font-medium text-[10px] md:text-xs tracking-wide whitespace-nowrap pt-1 text-gray-800 shrink-0" style={{ fontFamily: "Ponnala, sans-serif" }}>
               — By Trackpi HR Department
             </p>
           </div>
@@ -114,7 +236,7 @@ const Hero = () => {
               {/* Tooltip */}
               <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md w-[85%] px-4 py-3 rounded-xl shadow-sm border border-gray-200 text-center">
                 <p className="text-[11px] font-bold text-gray-800 leading-snug">
-                  Let Us Help You Find A Job That Suits You!
+                  Let Us Help You Find A Job That Suits You The Best!
                 </p>
               </div>
             </div>
