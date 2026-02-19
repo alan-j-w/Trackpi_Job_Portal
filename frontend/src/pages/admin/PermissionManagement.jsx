@@ -14,7 +14,8 @@ const PermissionManagement = () => {
     const [selectedRoles, setSelectedRoles] = useState([]);
 
     const currentUserRole = getUserRole();
-    const isSuperAdmin = currentUserRole === "superadmin";
+    // Allow both Super Admin and Admin to manage permissions
+    const canManagePermissions = currentUserRole === "superadmin" || currentUserRole === "admin";
 
     useEffect(() => {
         fetchRoles();
@@ -93,7 +94,7 @@ const PermissionManagement = () => {
                     <p className="text-gray-500 mt-1">Manage super-user access permissions.</p>
                 </div>
 
-                {isSuperAdmin && (
+                {canManagePermissions && (
                     <button
                         onClick={() => navigate("/admin/permissions/create")}
                         className="flex items-center gap-2 bg-[#FFB300] hover:bg-[#e09e00] text-black px-6 py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg transform active:scale-95 duration-200"
@@ -123,7 +124,7 @@ const PermissionManagement = () => {
                             <span className="text-[#FFB300] font-bold">{selectedRoles.length}</span> selected
                         </span>
                         <div className="h-4 w-[1px] bg-gray-200"></div>
-                        {isSuperAdmin && (
+                        {canManagePermissions && (
                             <button className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 transition-colors">
                                 <Trash2 size={14} /> Delete Selected
                             </button>
@@ -149,7 +150,7 @@ const PermissionManagement = () => {
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Assigned Super Users</th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Created By</th>
                                 <th className="p-5 text-xs uppercase tracking-wider font-bold text-gray-500">Created At</th>
-                                {isSuperAdmin && <th className="p-5 pr-8 text-right text-xs uppercase tracking-wider font-bold text-gray-500">Actions</th>}
+                                {canManagePermissions && <th className="p-5 pr-8 text-right text-xs uppercase tracking-wider font-bold text-gray-500">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -173,7 +174,7 @@ const PermissionManagement = () => {
                                     return (
                                         <tr key={role._id} className="group hover:bg-yellow-50/30 transition-colors duration-150">
                                             <td className="p-5 pl-8">
-                                                {isSuperAdmin && (
+                                                {canManagePermissions && (
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedRoles.includes(role._id)}
@@ -181,7 +182,7 @@ const PermissionManagement = () => {
                                                         className="w-5 h-5 rounded-[4px] border-gray-300 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer transition-all"
                                                     />
                                                 )}
-                                                {!isSuperAdmin && <span className="text-gray-400">#</span>}
+                                                {!canManagePermissions && <span className="text-gray-400">#</span>}
                                             </td>
                                             <td className="p-5">
                                                 <div className="flex items-center gap-3">
@@ -215,7 +216,7 @@ const PermissionManagement = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            {isSuperAdmin && (
+                                            {canManagePermissions && (
                                                 <td className="p-5 pr-8 text-right">
                                                     <div className="flex justify-end gap-2">
                                                         <button

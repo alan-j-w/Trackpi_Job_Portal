@@ -87,7 +87,7 @@ export const createSuperUser = async (req, res) => {
             await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: newUser._id } });
         }
 
-        res.status(201).json({ message: "Super User created", user: newUser });
+        res.status(201).json({ message: "Super User created", user: newUser, password: password });
     } catch (error) {
         res.status(500).json({ message: "Failed to create Super User", error: error.message });
     }

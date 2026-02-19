@@ -17,7 +17,7 @@ const AdminHiringPartners = () => {
     const fetchHiringPartners = async () => {
         try {
             setLoading(true);
-            const res = await fetch("http://localhost:8000/api/admin/hiringpartners?limit=100", {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners?limit=100`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -44,7 +44,7 @@ const AdminHiringPartners = () => {
     /* DELETE */
     const handleDelete = async (id) => {
         if (!window.confirm("Delete testimonial?")) return;
-        await fetch(`http://localhost:8000/api/admin/hiringpartners/${id}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -73,7 +73,7 @@ const AdminHiringPartners = () => {
 
         await Promise.all(
             selectedIds.map((id) =>
-                fetch(`http://localhost:8000/api/admin/hiringpartners/${id}`, {
+                fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`, {
                     method: "DELETE",
                     headers: { Authorization: `Bearer ${token}` }
                 })

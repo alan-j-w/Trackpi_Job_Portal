@@ -180,7 +180,6 @@ const UserManagement = () => {
             // Refresh roles too as user list in roles changes
             fetchRoles();
         } catch (error) {
-            console.error("Error demoting user(s):", error);
             alert("Failed to demote user(s)");
         } finally {
             cancelDelete();
@@ -223,7 +222,6 @@ const UserManagement = () => {
             fetchRoles();
             setFormData({ name: "", employeeId: "", email: "", permission: "" });
         } catch (error) {
-            console.error("Error saving user:", error);
             alert(error.response?.data?.message || "Failed to save user");
         } finally {
             setIsSubmitting(false);
