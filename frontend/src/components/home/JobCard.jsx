@@ -7,6 +7,7 @@ import "remixicon/fonts/remixicon.css";
 import verifiedJob from "../../assets/badges/verified-job.png";
 import trackpiLogo from "../../assets/badges/trackpi-striped.png";
 import LoginRequiredModal from "../LoginRequiredModal";
+import ApplyJobForm from "./ApplyJobForm";
 
 const JobCard = ({
   id,
@@ -18,12 +19,23 @@ const JobCard = ({
   salary = "Not disclosed",
   experience = "Not specified",
   workMode = "On-site",
+  gender = "Any",
   status = "New",
   statusColor = "green",
   onDetailsClick,
 }) => {
   const navigate = useNavigate();
   const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [showApplyForm, setShowApplyForm] = useState(false);
+
+  const handleApplyClick = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setShowApplyForm(true);
+    } else {
+      setShowLoginPopup(true);
+    }
+  };
 
   /* Status Ribbon */
   const ribbonGradient =
@@ -86,6 +98,7 @@ const JobCard = ({
 
               {/* JOB DETAILS */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-y-3 gap-x-4 text-[13px] font-semibold mt-4">
+                {/* Row 1 */}
                 <div className="flex items-center gap-2">
                   <i className="ri-briefcase-line text-[#FFB300] text-lg"></i>
                   {jobType}
@@ -94,6 +107,17 @@ const JobCard = ({
                 <div className="flex items-center gap-2">
                   <i className="ri-graduation-cap-line text-[#FFB300] text-lg"></i>
                   {education}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <i className="ri-briefcase-4-line text-[#FFB300] text-lg"></i>
+                  {workMode}
+                </div>
+
+                {/* Row 2 */}
+                <div className="flex items-center gap-2">
+                  <i className="ri-user-line text-[#FFB300] text-lg"></i>
+                  {gender}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -111,7 +135,7 @@ const JobCard = ({
             {/* ACTION PANEL */}
             <div className="flex flex-col items-center justify-center gap-4 min-w-[180px] border-l border-gray-200 pl-6 my-4">
               <button
-                onClick={() => setShowLoginPopup(true)}
+                onClick={handleApplyClick}
                 className="w-full bg-[#FFB300] text-black px-6 py-3 rounded-[12px] font-bold text-[15px] hover:bg-[#FFB813] transition-all shadow-sm mt-8"
               >
                 Apply Now
@@ -131,6 +155,20 @@ const JobCard = ({
       {/* ================= LOGIN POPUP ================= */}
       {showLoginPopup && (
         <LoginRequiredModal onClose={() => setShowLoginPopup(false)} />
+      )}
+
+      {/* ================= APPLY FORM POPUP ================= */}
+      {showApplyForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-[80vh] overflow-hidden flex flex-col">
+            <ApplyJobForm
+              jobId={id}
+              job={{ title, company, location }}
+              onCancel={() => setShowApplyForm(false)}
+              onSuccess={() => setShowApplyForm(false)}
+            />
+          </div>
+        </div>
       )}
     </>
   );

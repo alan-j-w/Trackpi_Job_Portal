@@ -318,13 +318,50 @@ export const verifyOtp = async (req, res) => {
             });
         }
 
-        // Success
+        // OTP Verified Success
         delete otpStore[phone];
 
-        res.status(200).json({
-            success: true,
-            message: "Phone verified successfully"
-        });
+        // CHECK IF USER EXISTS
+        let user = await User.findOne({ phone });
+
+        if (user) {
+            // LOGIN USER
+            if (user.status === 'inactive') {
+                return res.status(403).json({ message: "Access Denied: Your account has been deactivated." });
+            }
+
+            user.lastLogin = new Date();
+            await user.save();
+
+            const token = jwt.sign(
+                { id: user._id, role: user.role, permissions: user.permissions },
+                process.env.JWT_SECRET,
+                { expiresIn: "7d" }
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "Login successful",
+                token,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    phone: user.phone
+                }
+            });
+        } else {
+            // NEW USER -> PROMPT REGISTRATION
+            // We cannot create a full user yet because we need Name/Email/Password(maybe)
+            return res.status(200).json({
+                success: true,
+                message: "OTP verified. Please complete registration.",
+                action: "register",
+                phone: phone // Send back confirmed phone
+            });
+        }
+
     } catch (error) {
         console.error("Verify OTP Error:", error);
         res.status(500).json({
