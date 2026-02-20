@@ -84,11 +84,24 @@ export const createSuperUser = async (req, res) => {
 
         // Add to Role
         if (roleId) {
-            await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: newUser._id } });
+            console.log(`[CreateSuperUser] Attempting to add User ${newUser._id} to Role ${roleId}`);
+
+            const roleDoc = await AdminRole.findById(roleId);
+            if (roleDoc) {
+                // Check if user is already in role (shouldn't be for new user, but good sanity check)
+                if (!roleDoc.users.includes(newUser._id)) {
+                    roleDoc.users.push(newUser._id);
+                    await roleDoc.save();
+                    console.log(`[CreateSuperUser] Successfully linked User ${newUser._id} to Role ${roleDoc.name}`);
+                }
+            } else {
+                console.warn(`[CreateSuperUser] Role ID ${roleId} not found.`);
+            }
         }
 
         res.status(201).json({ message: "Super User created", user: newUser, password: password });
     } catch (error) {
+        console.error("[CreateSuperUser] Error:", error);
         res.status(500).json({ message: "Failed to create Super User", error: error.message });
     }
 };

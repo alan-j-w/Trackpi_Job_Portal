@@ -67,7 +67,11 @@ const UserManagement = () => {
     const findUserRole = (userId) => {
         // Robustly check if user exists in any role group
         if (!roles || roles.length === 0) return null;
-        return roles.find(role => role.users?.some(u => String(u._id || u) === String(userId)));
+        return roles.find(role => role.users?.some(u => {
+            if (!u) return false;
+            const id = u._id || u;
+            return String(id) === String(userId);
+        }));
     };
 
     const fetchUsers = async () => {
@@ -218,8 +222,11 @@ const UserManagement = () => {
 
             setIsModalOpen(false);
             setEditingUser(null);
-            fetchUsers();
-            fetchRoles();
+
+            // Await these to ensure UI updates after backend is definitely done
+            await fetchUsers();
+            await fetchRoles();
+
             setFormData({ name: "", employeeId: "", email: "", permission: "" });
         } catch (error) {
             alert(error.response?.data?.message || "Failed to save user");
@@ -401,7 +408,7 @@ const UserManagement = () => {
                         </div>
 
                         <div className="text-center mb-8">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete User</h3>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Super User</h3>
                             <p className="text-gray-500 text-sm">Sure you want to delete {isBulkDelete ? 'these users' : 'this user'}?</p>
                         </div>
 
