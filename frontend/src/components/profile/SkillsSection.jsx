@@ -30,20 +30,18 @@ const PlusIcon = ({ className, onClick }) => (
     </svg>
 );
 
-const SkillsSection = ({ skills, onEdit, onAdd, onDelete, readOnly }) => {
+const SkillsSection = ({ skills, onEdit, onAdd, onDelete }) => {
     return (
-        <div className="py-5 border-b border-gray-200">
+        <div className="py-5 border-b border-black">
             <div className="flex justify-between items-center mb-5">
                 <h2 className="font-bold text-lg text-black">Skills</h2>
-                {!readOnly && (
-                    <div className="flex gap-4">
-                        <PlusIcon onClick={onAdd} />
-                    </div>
-                )}
+                <div className="flex gap-4">
+                    <PlusIcon onClick={onAdd} />
+                </div>
             </div>
             <div className="flex flex-wrap gap-3">
                 {skills?.map((skill, idx) => (
-                    <Tag key={idx} label={skill} deletable={!readOnly} onDelete={() => onDelete(skill)} onClick={() => !readOnly && onEdit()} />
+                    <Tag key={idx} label={skill} deletable onDelete={() => onDelete(skill)} onClick={onEdit} />
                 ))}
             </div>
         </div>

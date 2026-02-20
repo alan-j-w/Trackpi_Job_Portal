@@ -469,15 +469,15 @@ const Profile = () => {
         if (!file) return;
 
         const validTypes = type === "resume"
-            ? ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+            ? ["application/pdf"]
             : ["image/jpeg", "image/png", "image/webp"];
 
         if (!validTypes.includes(file.type)) {
-            toast.error(type === "resume" ? "Invalid file type. Upload PDF or DOC." : "Invalid image format.");
+            toast.error(type === "resume" ? "Invalid file type. Upload PDF only." : "Invalid image format.");
             return;
         }
 
-        const maxSize = type === "resume" ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+        const maxSize = 5 * 1024 * 1024; // 5MB for both images and resume
         if (file.size > maxSize) {
             toast.error("File size too large.");
             return;
@@ -577,47 +577,51 @@ const Profile = () => {
                     <div className="flex-1 lg:max-w-[822px]">
 
                         {/* User Details Grid (Inline) */}
-                        <div className="rounded-lg border border-[#0091FF] px-6 py-5 mb-8 bg-white max-w-[822px]">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
+                        {/* User Details Grid (Inline) */}
+                        <div className="mb-8 max-w-[822px]">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-12">
                                 {/* Col 1 */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <DetailItem
-                                        icon={<i className="ri-briefcase-line"></i>}
+                                        icon={<i className="ri-briefcase-line text-lg"></i>}
                                         text={profile.workStatus ? (profile.workStatus.charAt(0).toUpperCase() + profile.workStatus.slice(1)) : "Add work status"}
                                     />
                                     <DetailItem
-                                        icon={profile.gender === 'female' ? <i className="ri-women-line"></i> : <i className="ri-men-line"></i>}
+                                        icon={profile.gender === 'female' ? <i className="ri-women-line text-lg"></i> : <i className="ri-men-line text-lg"></i>}
                                         text={profile.gender === 'male' ? 'He/Him' : profile.gender === 'female' ? 'She/Her' : profile.gender || 'Add gender'}
                                     />
                                 </div>
 
                                 {/* Col 2 */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <DetailItem
-                                        icon={<i className="ri-phone-line"></i>}
-                                        text={profile.phone || "Add phone"}
+                                        icon={<i className="ri-phone-line text-lg"></i>}
+                                        text={<span className="font-medium text-black">{profile.phone || "Add phone"}</span>}
                                     />
                                     <DetailItem
-                                        icon={<i className="ri-mail-line"></i>}
-                                        text={profile.email}
+                                        icon={<i className="ri-mail-line text-lg"></i>}
+                                        text={<span className="font-medium text-black">{profile.email}</span>}
                                         isLink={true}
                                         href={`mailto:${profile.email}`}
                                     />
                                 </div>
 
                                 {/* Col 3 */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <DetailItem
-                                        icon={<i className="ri-graduation-cap-line"></i>}
+                                        icon={<i className="ri-graduation-cap-line text-lg"></i>}
                                         text={profile.education?.length > 0 ? profile.education[0].degree : "Add education"}
                                     />
                                     <DetailItem
-                                        icon={<i className="ri-map-pin-line"></i>}
+                                        icon={<i className="ri-map-pin-line text-lg"></i>}
                                         text={locationString}
                                     />
                                 </div>
                             </div>
                         </div>
+
+                        {/* Divider */}
+                        <div className="border-t border-black mb-8 max-w-[822px]"></div>
 
                         <div id="summary-section">
                             <ProfileSummary

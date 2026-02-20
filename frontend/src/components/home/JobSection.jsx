@@ -5,7 +5,7 @@ import Pagination from "./Pagination";
 import "remixicon/fonts/remixicon.css";
 import { API_URL } from "../../config";
 
-const JobSection = () => {
+const JobSection = ({ className = "" }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedJobId, setSelectedJobId] = useState(null);
@@ -234,7 +234,7 @@ const JobSection = () => {
   const activeFilterCount = Object.values(filters).flat().length - (filters.posted ? filters.posted.length : 0);
 
   return (
-    <section className="py-16 bg-white font-['Poppins']">
+    <section className={`py-16 bg-white font-['Poppins'] ${className}`}>
       <div className="max-w-[1200px] mx-auto px-4">
 
         {/* 1. Header Title */}

@@ -36,3 +36,25 @@ export const applyForJob = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
+// @desc    Get applications for the logged-in user
+// @route   GET /api/applications/my-applications
+// @access  Private
+export const getAppliedJobs = async (req, res) => {
+    try {
+        const userId = req.user._id; // Assumes middleware sets req.user
+
+        const applications = await Application.find({ userId })
+            .populate('jobId') // Populate job details
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: applications.length,
+            applications
+        });
+    } catch (error) {
+        console.error("Error fetching applied jobs:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
