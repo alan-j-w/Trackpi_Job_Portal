@@ -10,6 +10,24 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         experience: "",
         portfolio: "",
     });
+
+    // Load user data on mount
+    React.useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                setFormData(prev => ({
+                    ...prev,
+                    name: user.name || "",
+                    email: user.email || ""
+                }));
+            } catch (e) {
+                console.error("Error parsing user data", e);
+            }
+        }
+    }, []);
+
     const [resume, setResume] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
@@ -29,9 +47,9 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                 e.target.value = null; // Reset input
                 return;
             }
-            const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const validTypes = ['application/pdf'];
             if (!validTypes.includes(file.type)) {
-                setFileError("Invalid format. Please upload PDF, DOC, or DOCX.");
+                setFileError("Invalid format. Please upload PDF only.");
                 setResume(null);
                 e.target.value = null;
                 return;
@@ -59,6 +77,20 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         data.append("phone", formData.phone);
         data.append("experience", formData.experience);
         data.append("portfolio", formData.portfolio);
+
+        // Append User ID if available
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                if (user._id || user.id) {
+                    data.append("userId", user._id || user.id);
+                }
+            } catch (e) {
+                // Ignore if parse fails
+            }
+        }
+
         if (resume) {
             data.append("resume", resume);
         }
@@ -128,6 +160,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                         {error}
                     </div>
                 )}
+
 
                 {/* 1. Personal Information */}
                 <div>
@@ -214,14 +247,14 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                                     <span className="text-[9px] font-bold text-black">Choose file</span>
                                     <input
                                         type="file"
-                                        accept=".pdf,.doc,.docx"
+                                        accept=".pdf"
                                         onChange={handleFileChange}
                                         className="absolute inset-0 opacity-0 cursor-pointer"
                                     />
                                 </div>
                                 <span className="text-[9px] text-gray-500 truncate max-w-[150px]">{resume ? resume.name : ""}</span>
                             </div>
-                            <p className="text-[#8A8A8A] text-[9px] mt-0.5 tracking-wide leading-tight">PDF/DOC, file size limit</p>
+                            <p className="text-[#8A8A8A] text-[9px] mt-0.5 tracking-wide leading-tight">PDF only, 2MB limit</p>
                             {fileError && (
                                 <p className="text-red-500 text-[9px] mt-0.5 flex items-center gap-1 animate-pulse">
                                     <i className="ri-error-warning-line"></i> {fileError}

@@ -11,6 +11,10 @@ const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing 
         const file = e.target.files[0];
         if (file) {
             // Basic validation
+            if (file.type !== "application/pdf") {
+                toast.error("Only PDF files are allowed.");
+                return;
+            }
             if (file.size > 5 * 1024 * 1024) { // 5MB limit
                 toast.error("File size should be less than 5MB");
                 return;
@@ -84,7 +88,7 @@ const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing 
                         ref={fileInputRef}
                         onChange={handleFileChange}
                         className="hidden"
-                        accept=".pdf,.doc,.docx"
+                        accept=".pdf"
                     />
                 </div>
 

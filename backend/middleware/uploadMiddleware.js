@@ -36,12 +36,19 @@ const resumeStorage = new CloudinaryStorage({
 
 export const uploadImage = multer({
     storage: imageStorage,
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 export const uploadResume = multer({
     storage: resumeStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "application/pdf") {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed!"), false);
+        }
+    }
 });
 
 /* TESTIMONIAL STORAGE (Images + Video) */

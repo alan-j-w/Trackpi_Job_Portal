@@ -30,6 +30,7 @@ const JobCard = ({
 
   const handleApplyClick = () => {
     const token = localStorage.getItem("token");
+    // Ensure we have a token before showing apply form
     if (token) {
       setShowApplyForm(true);
     } else {

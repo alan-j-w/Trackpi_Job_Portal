@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { applyForJob } from '../controllers/applicationController.js';
+import { applyForJob, getAppliedJobs } from '../controllers/applicationController.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -23,14 +23,14 @@ const storage = multer.diskStorage({
 
 // File filter
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = /pdf|doc|docx/;
+    const allowedTypes = /pdf/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
 
     if (extname && mimetype) {
         return cb(null, true);
     } else {
-        cb(new Error('Only PDF and DOC/DOCX files are allowed!'));
+        cb(new Error('Only PDF files are allowed!'));
     }
 };
 
@@ -40,6 +40,9 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
+import { protect } from '../middleware/authMiddleware.js';
+
 router.post('/:jobId/apply', upload.single('resume'), applyForJob);
+router.get('/my-applications', protect, getAppliedJobs);
 
 export default router;
