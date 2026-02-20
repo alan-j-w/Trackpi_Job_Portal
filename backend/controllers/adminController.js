@@ -155,6 +155,33 @@ export const getAllCandidates = async (req, res) => {
     }
 };
 
+// Get Single Candidate Profile
+export const getCandidateById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if user exists and is a jobseeker (optional restriction)
+        const user = await User.findById(id).select("-password");
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Candidate not found" });
+        }
+
+        const profile = await Profile.findOne({ user: id }).populate("user", "name email");
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "Profile not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            profile
+        });
+    } catch (error) {
+        console.error("Error fetching candidate profile:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch candidate profile" });
+    }
+};
+
 // Delete Candidate
 export const deleteCandidate = async (req, res) => {
     try {

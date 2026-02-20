@@ -13,7 +13,7 @@ const PlusIcon = ({ className, onClick }) => (
     </svg>
 );
 
-const LanguageSection = ({ languages, onAdd, onManage }) => {
+const LanguageSection = ({ languages, onAdd, onManage, readOnly }) => {
     // Helper to convert proficiency string to 1-4 level
     const getLevel = (proficiency) => {
         switch (proficiency?.toLowerCase()) {
@@ -29,10 +29,12 @@ const LanguageSection = ({ languages, onAdd, onManage }) => {
         <div className="py-5 border-b border-gray-200">
             <div className="flex justify-between items-center mb-5">
                 <h2 className="font-bold text-lg text-black">Language</h2>
-                <div className="flex gap-4">
-                    <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
-                    <PlusIcon onClick={onAdd} />
-                </div>
+                {!readOnly && (
+                    <div className="flex gap-4">
+                        <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
+                        <PlusIcon onClick={onAdd} />
+                    </div>
+                )}
             </div>
 
             {languages?.length > 0 ? (

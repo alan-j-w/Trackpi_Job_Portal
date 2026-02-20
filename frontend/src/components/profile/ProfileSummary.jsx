@@ -6,16 +6,16 @@ const EditIcon = ({ className, onClick }) => (
     </svg>
 );
 
-const ProfileSummary = ({ summary, onEdit, onAdd }) => {
+const ProfileSummary = ({ summary, onEdit, onAdd, readOnly }) => {
     return (
         <div className="pb-8 border-b border-gray-200">
             <div className="flex justify-between items-start mb-3">
                 <h2 className="font-bold text-lg text-black">Profile Summary</h2>
-                <EditIcon className="w-[18px] h-[18px] text-black" onClick={summary ? onEdit : onAdd} />
+                {!readOnly && <EditIcon className="w-[18px] h-[18px] text-black" onClick={summary ? onEdit : onAdd} />}
             </div>
             <p
-                className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition"
-                onClick={summary ? onEdit : onAdd}
+                className={`text-gray-700 text-sm leading-relaxed whitespace-pre-wrap ${!readOnly ? 'cursor-pointer hover:bg-gray-50' : ''} rounded p-1 -m-1 transition`}
+                onClick={() => !readOnly && (summary ? onEdit() : onAdd())}
             >
                 {summary || "Add a summary about yourself..."}
             </p>

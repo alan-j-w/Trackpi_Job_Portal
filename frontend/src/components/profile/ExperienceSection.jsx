@@ -13,15 +13,17 @@ const PlusIcon = ({ className }) => (
     </svg>
 );
 
-const ExperienceSection = ({ workExperience, onAddExperience, onManage }) => {
+const ExperienceSection = ({ workExperience, onAddExperience, onManage, readOnly }) => {
     return (
         <div className="py-5 border-b border-gray-200">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="font-bold text-lg text-black">Experience</h2>
-                <div className="flex gap-4">
-                    <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
-                    <div onClick={() => onAddExperience && onAddExperience()}><PlusIcon /></div>
-                </div>
+                {!readOnly && (
+                    <div className="flex gap-4">
+                        <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
+                        <div onClick={() => onAddExperience && onAddExperience()}><PlusIcon /></div>
+                    </div>
+                )}
             </div>
             {workExperience?.length > 0 ? (
                 <div className="space-y-6">

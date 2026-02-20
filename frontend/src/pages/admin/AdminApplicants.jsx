@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Eye, Trash2, FileText, Search, Filter, ArrowUpDown } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import { API_URL } from "../../config";
@@ -54,6 +54,7 @@ const AdminApplicants = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isSignupPage = location.pathname.includes("signup");
     const PERM_RESUME = isSignupPage ? PERMISSIONS.SIGNUP_RESUME : PERMISSIONS.APPLICANTS_RESUME;
@@ -258,7 +259,11 @@ const AdminApplicants = () => {
                                         <td className="p-4 text-center">
                                             <div className="flex gap-2 justify-center">
                                                 {hasPermission(PERM_VIEW_DETAILS) && (
-                                                    <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
+                                                    <button
+                                                        onClick={() => navigate(`/admin/candidates/${candidate.id}`)}
+                                                        className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition"
+                                                        title="View"
+                                                    >
                                                         <Eye size={18} />
                                                     </button>
                                                 )}

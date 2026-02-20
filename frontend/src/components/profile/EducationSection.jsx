@@ -13,15 +13,17 @@ const PlusIcon = ({ className, onClick }) => (
     </svg>
 );
 
-const EducationSection = ({ education, onAdd, onManage }) => {
+const EducationSection = ({ education, onAdd, onManage, readOnly }) => {
     return (
         <div className="py-5 border-b border-gray-200">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="font-bold text-lg text-black">Education</h2>
-                <div className="flex gap-4">
-                    <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
-                    <PlusIcon onClick={onAdd} />
-                </div>
+                {!readOnly && (
+                    <div className="flex gap-4">
+                        <EditIcon className="w-[18px] h-[18px]" onClick={onManage} />
+                        <PlusIcon onClick={onAdd} />
+                    </div>
+                )}
             </div>
             {education?.map((edu, idx) => (
                 <div key={idx} onClick={onManage} className="cursor-pointer hover:bg-gray-50 rounded-lg transition p-1 -m-1">
