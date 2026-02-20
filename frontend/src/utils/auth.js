@@ -28,6 +28,18 @@ export const getUserRole = () => {
 export const hasPermission = (requiredPermission) => {
     const role = getUserRole();
     if (role === 'superadmin') return true;
+
+    if (role === 'admin') {
+        const RESTRICTED_PERMISSIONS = [
+            "admin_management.add_admin",
+            "admin_management.edit",
+            "admin_management.update_status"
+        ];
+        // Admin has full access except for these specific actions
+        if (RESTRICTED_PERMISSIONS.includes(requiredPermission)) return false;
+        return true;
+    }
+
     const decoded = getDecodedToken();
     const permissions = decoded?.permissions || [];
     return permissions.includes(requiredPermission);

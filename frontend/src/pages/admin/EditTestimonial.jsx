@@ -32,7 +32,7 @@ const EditTestimonial = () => {
         const json = await res.json();
         if (!res.ok) throw new Error();
 
-        const t = json.data;
+        const t = json.data || json;
 
         setFormData({
           name: t.name,
@@ -161,38 +161,38 @@ const EditTestimonial = () => {
       {/* FOOTER */}
       {/* FOOTER */}
 
-  <div className="flex items-center justify-between pt-10">
-  {/* LEFT — View Profile */}
-  <button
-    type="button"
-    onClick={() => navigate(`/admin/testimonials/${id}`)}
-    className="text-yellow-500 font-medium flex items-center gap-2 hover:underline"
-  >
-    View Profile
-    <span className="text-lg">→</span>
-  </button>
-  <div className="flex items-center gap-4">
-    <button
-      type="submit"
-      className="bg-gradient-to-r from-yellow-300 to-yellow-500
+      <div className="flex items-center justify-between pt-10">
+        {/* LEFT — View Profile */}
+        <button
+          type="button"
+          onClick={() => navigate(`/admin/testimonials/${id}`)}
+          className="text-yellow-500 font-medium flex items-center gap-2 hover:underline"
+        >
+          View Profile
+          <span className="text-lg">→</span>
+        </button>
+        <div className="flex items-center gap-4">
+          <button
+            type="submit"
+            className="bg-gradient-to-r from-yellow-300 to-yellow-500
                  text-black px-10 py-3 rounded-lg font-medium shadow"
-    >
-      Cancel
-    </button>
+          >
+            Cancel
+          </button>
 
-  
-  {/* Save */}
-  <button
-    type="button"
-    onClick={handleSubmit}
-    className="bg-gradient-to-r from-yellow-300 to-yellow-500
+
+          {/* Save */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="bg-gradient-to-r from-yellow-300 to-yellow-500
                  text-black px-10 py-3 rounded-lg font-medium shadow"
-  >
-    Save 
-  </button>
-</div>
-</div>
-</div>
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

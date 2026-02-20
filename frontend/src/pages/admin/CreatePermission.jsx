@@ -9,15 +9,14 @@ const MODULES_CONFIG = [
         label: "Dashboard",
         key: "dashboard",
         permissions: [
-            { label: "View Dashboard", value: PERMISSIONS.DASHBOARD_VIEW }
+            { label: "View Dashboard", value: PERMISSIONS.DASHBOARD_VIEW, isView: true }
         ]
     },
     {
         label: "Jobs",
         key: "jobs",
-        isToggle: true,
         permissions: [
-            { label: "View", value: PERMISSIONS.JOBS_VIEW },
+            { label: "View", value: PERMISSIONS.JOBS_VIEW, isView: true },
             { label: "Post job", value: PERMISSIONS.JOBS_POST },
             { label: "job status", value: PERMISSIONS.JOBS_UPDATE_STATUS },
             { label: "View more about job", value: PERMISSIONS.JOBS_VIEW_DETAILS },
@@ -31,7 +30,7 @@ const MODULES_CONFIG = [
         label: "Signup candidates",
         key: "signup_candidates",
         permissions: [
-            { label: "View", value: PERMISSIONS.SIGNUP_VIEW },
+            { label: "View", value: PERMISSIONS.SIGNUP_VIEW, isView: true },
             { label: "Download Resume", value: PERMISSIONS.SIGNUP_DOWNLOAD_RESUME },
             { label: "View Details", value: PERMISSIONS.SIGNUP_VIEW_DETAILS },
             { label: "Delete", value: PERMISSIONS.SIGNUP_DELETE },
@@ -41,7 +40,7 @@ const MODULES_CONFIG = [
         label: "Job applicants",
         key: "job_applicants",
         permissions: [
-            { label: "View", value: PERMISSIONS.APPLICANTS_VIEW },
+            { label: "View", value: PERMISSIONS.APPLICANTS_VIEW, isView: true },
             { label: "Download Resume", value: PERMISSIONS.APPLICANTS_DOWNLOAD_RESUME },
             { label: "View Details", value: PERMISSIONS.APPLICANTS_VIEW_DETAILS },
             { label: "Delete", value: PERMISSIONS.APPLICANTS_DELETE },
@@ -51,7 +50,7 @@ const MODULES_CONFIG = [
         label: "Resume build candidates",
         key: "resume_build_candidates",
         permissions: [
-            { label: "View", value: PERMISSIONS.RESUME_VIEW },
+            { label: "View", value: PERMISSIONS.RESUME_VIEW, isView: true },
             { label: "Download Resume", value: PERMISSIONS.RESUME_DOWNLOAD },
             { label: "Delete", value: PERMISSIONS.RESUME_DELETE },
         ]
@@ -60,7 +59,7 @@ const MODULES_CONFIG = [
         label: "Hiring partners",
         key: "hiring_partners",
         permissions: [
-            { label: "View", value: PERMISSIONS.PARTNERS_VIEW },
+            { label: "View", value: PERMISSIONS.PARTNERS_VIEW, isView: true },
             { label: "Add", value: PERMISSIONS.PARTNERS_ADD },
             { label: "View Details", value: PERMISSIONS.PARTNERS_VIEW_DETAILS },
             { label: "Edit", value: PERMISSIONS.PARTNERS_EDIT },
@@ -71,7 +70,7 @@ const MODULES_CONFIG = [
         label: "Testimonials",
         key: "testimonials",
         permissions: [
-            { label: "View", value: PERMISSIONS.TESTIMONIALS_VIEW },
+            { label: "View", value: PERMISSIONS.TESTIMONIALS_VIEW, isView: true },
             { label: "Add", value: PERMISSIONS.TESTIMONIALS_ADD },
             { label: "View Details", value: PERMISSIONS.TESTIMONIALS_VIEW_DETAILS },
             { label: "Edit", value: PERMISSIONS.TESTIMONIALS_EDIT },
@@ -79,45 +78,17 @@ const MODULES_CONFIG = [
         ]
     },
     {
-        label: "Admin management",
-        key: "admin_management",
-        permissions: [
-            { label: "View", value: PERMISSIONS.ADMIN_VIEW },
-            { label: "Add Admin", value: PERMISSIONS.ADMIN_ADD },
-            { label: "Edit", value: PERMISSIONS.ADMIN_EDIT },
-            { label: "Update Status", value: PERMISSIONS.ADMIN_STATUS },
-        ]
-    },
-    {
-        label: "User permission",
-        key: "user_permission",
-        permissions: [
-            { label: "View", value: PERMISSIONS.ROLES_VIEW },
-            { label: "Edit", value: PERMISSIONS.ROLES_EDIT },
-            { label: "Delete", value: PERMISSIONS.ROLES_DELETE },
-        ]
-    },
-    {
-        label: "User management",
-        key: "user_management",
-        permissions: [
-            { label: "View", value: PERMISSIONS.USERS_VIEW },
-            { label: "Edit", value: PERMISSIONS.USERS_EDIT },
-            { label: "Delete", value: PERMISSIONS.USERS_DELETE },
-        ]
-    },
-    {
         label: "Form management",
         key: "form_management",
         permissions: [
-            { label: "View", value: PERMISSIONS.FORMS_MANAGE },
+            { label: "View", value: PERMISSIONS.FORMS_MANAGE, isView: true },
         ]
     },
     {
         label: "Ad competition",
         key: "ad_competition",
         permissions: [
-            { label: "View", value: PERMISSIONS.COMPETITION_VIEW },
+            { label: "View", value: PERMISSIONS.COMPETITION_VIEW, isView: true },
             { label: "Add", value: PERMISSIONS.COMPETITION_ADD },
             { label: "Edit", value: PERMISSIONS.COMPETITION_EDIT },
         ]
@@ -126,7 +97,7 @@ const MODULES_CONFIG = [
         label: "Competition Testimonials",
         key: "competition_testimonials",
         permissions: [
-            { label: "View", value: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW },
+            { label: "View", value: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW, isView: true },
             { label: "Edit", value: PERMISSIONS.COMPETITION_TESTIMONIALS_EDIT },
             { label: "Delete", value: PERMISSIONS.COMPETITION_TESTIMONIALS_DELETE },
         ]
@@ -135,14 +106,14 @@ const MODULES_CONFIG = [
         label: "Competition Candidates",
         key: "competition_candidates",
         permissions: [
-            { label: "View", value: PERMISSIONS.COMPETITION_CANDIDATES_VIEW },
+            { label: "View", value: PERMISSIONS.COMPETITION_CANDIDATES_VIEW, isView: true },
         ]
     },
     {
         label: "Video management",
         key: "video_management",
         permissions: [
-            { label: "View", value: PERMISSIONS.VIDEO_VIEW },
+            { label: "View", value: PERMISSIONS.VIDEO_VIEW, isView: true },
             { label: "Add", value: PERMISSIONS.VIDEO_ADD },
             { label: "Edit", value: PERMISSIONS.VIDEO_EDIT },
             { label: "Delete", value: PERMISSIONS.VIDEO_DELETE },
@@ -152,7 +123,7 @@ const MODULES_CONFIG = [
         label: "Previous Winners",
         key: "previous_winners",
         permissions: [
-            { label: "View", value: PERMISSIONS.WINNERS_VIEW },
+            { label: "View", value: PERMISSIONS.WINNERS_VIEW, isView: true },
             { label: "Add", value: PERMISSIONS.WINNERS_ADD },
             { label: "Edit", value: PERMISSIONS.WINNERS_EDIT },
             { label: "Delete", value: PERMISSIONS.WINNERS_DELETE },
@@ -217,14 +188,26 @@ const CreatePermission = () => {
 
     // Helper to toggle all in a section
     const handleToggleSection = (sectionPermissions) => {
+        // Only target NON-HIDDEN permissions for UI toggling
+        // OR target ALL for selection, but filter "isView" for deselection logic? 
+        // Simplest: Toggle all real permissions. The "isView" one is auto-handled on save.
+        // Wait, if we toggle ON, we should select all visible. If OFF, deselect all.
+        // The "isView" perm will also be selected/deselected internally to keep state consistent?
+        // Actually, let's just toggle ALL values including hidden ones so state is clean.
+        // But if hidden ones are not in UI, user can't uncheck them individually. 
+
         const allValues = sectionPermissions.map(p => p.value);
+        // Check if any *visible* permission is selected to decide toggle state
+        // OR just check if any in the list (including hidden) is selected.
+        // Let's check based on *any* selected to determine if we turn OFF or ON.
         const hasSomeSelected = allValues.some(val => selectedPermissions.includes(val));
 
         if (hasSomeSelected) {
-            // If any are selected, turn off the whole section (Deselect All)
+            // Deselect All (including hidden)
             setSelectedPermissions(selectedPermissions.filter(p => !allValues.includes(p)));
         } else {
-            // Select all
+            // Select All (including hidden)
+            // This ensures if user toggles module ON, they get view access + all access.
             const newPerms = [...selectedPermissions];
             allValues.forEach(val => {
                 if (!newPerms.includes(val)) newPerms.push(val);
@@ -256,9 +239,25 @@ const CreatePermission = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
+
+            // Auto-inject hidden "View" permissions if any other permission in the module is selected
+            let finalPermissions = [...selectedPermissions];
+
+            MODULES_CONFIG.forEach(module => {
+                const modulePermissionValues = module.permissions.map(p => p.value);
+                const hasSelectedInModule = modulePermissionValues.some(val => finalPermissions.includes(val));
+
+                if (hasSelectedInModule) {
+                    const viewPerm = module.permissions.find(p => p.isView);
+                    if (viewPerm && !finalPermissions.includes(viewPerm.value)) {
+                        finalPermissions.push(viewPerm.value);
+                    }
+                }
+            });
+
             const payload = {
                 name: roleName,
-                permissions: selectedPermissions,
+                permissions: finalPermissions,
                 users: selectedAdmins
             };
 
@@ -328,7 +327,7 @@ const CreatePermission = () => {
 
                                 {/* Right: Grid of Sub-Permissions */}
                                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-8">
-                                    {module.permissions.map((perm) => (
+                                    {module.permissions.filter(p => !p.isView).map((perm) => (
                                         <label key={perm.value} className="flex items-center gap-2 cursor-pointer group">
                                             <div className="relative flex items-center">
                                                 <input

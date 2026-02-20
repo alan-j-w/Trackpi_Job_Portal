@@ -35,7 +35,7 @@ const AdminLayout = () => {
 
     const handleLogout = () => {
         localStorage.removeItem("token");
-        navigate("/login");
+        navigate("/admin/login");
     };
 
     // DEBUG: Fetch fresh permissions on mount
@@ -163,10 +163,9 @@ const AdminLayout = () => {
                         <LogOut size={20} />
                         {isSidebarOpen && <span className="font-medium text-sm">Logout</span>}
                     </button>
-                    {/* DEBUG INFO - REMOVE LATER */}
                     {isSidebarOpen && (
-                        <div className="mt-2 text-[10px] text-gray-400 text-center">
-                            {role} | {userPermissions.length} Perms
+                        <div className="mt-2 text-xs font-bold text-gray-400 text-center uppercase tracking-wider">
+                            {role === "superadmin" ? "Super Admin" : role === "admin" ? "Admin" : "Super User"}
                         </div>
                     )}
                 </div>
