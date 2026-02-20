@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, ExternalLink, Play, Search } from "lucide-react";
+import { hasPermission } from "../../utils/auth";
+import { PERMISSIONS } from "../../constants/permissions";
 
 const AdminTestimonials = () => {
   const navigate = useNavigate();
@@ -10,14 +12,13 @@ const AdminTestimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
 
   /* FETCH */
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/api/admin/testimonials?limit=100", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -44,12 +45,16 @@ const AdminTestimonials = () => {
   /* DELETE */
   const handleDelete = async (id) => {
     if (!window.confirm("Delete testimonial?")) return;
-    await fetch(`http://localhost:8000/api/admin/testimonials/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    toast.success("Deleted");
-    fetchTestimonials();
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Deleted");
+      fetchTestimonials();
+    } catch (error) {
+      toast.error("Failed to delete");
+    }
   };
 
   /* SELECT */
@@ -71,158 +76,165 @@ const AdminTestimonials = () => {
     if (!selectedIds.length) return;
     if (!window.confirm(`Delete ${selectedIds.length} testimonials?`)) return;
 
-    await Promise.all(
-      selectedIds.map((id) =>
-        fetch(`http://localhost:8000/api/admin/testimonials/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      )
-    );
+    try {
+      await Promise.all(
+        selectedIds.map((id) =>
+          fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        )
+      );
 
-    toast.success("Deleted successfully");
-    setSelectedIds([]);
-    fetchTestimonials();
+      toast.success("Deleted successfully");
+      setSelectedIds([]);
+      fetchTestimonials();
+    } catch (error) {
+      toast.error("Failed to delete selected");
+    }
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white min-h-screen">
       {/* TOP */}
-      <div className="flex justify-between mb-10">
+      <div className="flex justify-between items-center mb-8">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             placeholder="Search for candidates or job title"
-            className="w-[420px] h-[45px] border px-4 pl-10 rounded-lg outline-none focus:border-yellow-400 transition-colors"
+            className="w-[420px] h-[45px] border px-4 pl-10 rounded-lg outline-none focus:border-[#FFB300] transition-colors"
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <button
-          onClick={() => navigate("/admin/testimonials/add")}
-          className="bg-[#FFB300] text-white px-5 py-2 rounded-lg font-medium"
-        >
-          Add more +
-        </button>
-      </div>
-
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Testimonials</h1>
-        <button
-          onClick={toggleSelectAll}
-          className="text-sm font-medium text-yellow-500 hover:text-yellow-600"
-        >
-          {selectedIds.length === filteredTestimonials.length && filteredTestimonials.length > 0
-            ? "Unselect all →"
-            : "Select all →"}
-        </button>
-      </div>
-
-      {/* TABLE */}
-      <div className="bg-white border rounded-xl overflow-hidden p-3">
-        <div className="grid grid-cols-12 px-4 py-3 border border-yellow-400 rounded-lg font-semibold">
-          <div className="col-span-2">Name</div>
-          <div className="col-span-2 ">Job title</div>
-          <div className="col-span-2 text-center">Video</div>
-          <div className="col-span-3 pl-6 text-center">About</div>
-          <div className="col-span-2 pl-4 text-center">Action</div>
-        </div>
-
-        {filteredTestimonials.map((t) => (
-          <div
-            key={t._id}
-            className="grid grid-cols-12 px-3 py-5 border-b last:border-0 items-center "
+        {hasPermission(PERMISSIONS.TESTIMONIALS_ADD) && (
+          <button
+            onClick={() => navigate("/admin/testimonials/add")}
+            className="bg-[#FFB300] text-white px-5 py-2 rounded-lg font-medium hover:bg-[#e5a100] transition"
           >
-            {/* NAME + CHECKBOX */}
-            <div className="col-span-2 flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="w-3 h-3 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500 cursor-pointer"
-                checked={selectedIds.includes(t._id)}
-                onChange={() => toggleSelect(t._id)}
-              />
-              <span className="font-semibold">{t.name}</span>
-            </div>
-
-            <div className="col-span-2 font-semibold">{t.jobTitle}</div>
-
-            <div className="col-span-2 flex justify-center">
-              <div className="w-[120px] h-[50px] bg-gray-300  flex items-center justify-center">
-                <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow">
-                  <Play className="w-5 h-5 fill-yellow-500 text-yellow-500 ml-1" />
-                </div>
-              </div>
-            </div>
-            <div className="col-span-3 pl-6 text-sm text-black-600 font-semibold leading-relaxed">
-              {expandedId === t._id ? (
-                <>
-                  <p>{t.about}</p>
-                  <span
-                    className="block mt-1 text-orange-500 cursor-pointer"
-                    onClick={() => setExpandedId(null)}
-                  >
-                    See less
-                  </span>
-                </>
-              ) : (
-                <>
-                  <p>{t.about.slice(0, 70)}...</p>
-                  <span
-                    className="block mt-1 text-orange-500 cursor-pointer"
-                    onClick={() => setExpandedId(t._id)}
-                  >
-                    See more.....
-                  </span>
-                </>
-              )}
-            </div>
-            <div className="col-span-3 pl-14 flex items-center justify-between">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => navigate(`/admin/testimonials/edit/${t._id}`)}
-                  className="p-2 bg-gray-300 rounded-lg"
-                >
-                  <Pencil size={18} />
-                </button>
-
-                <button
-                  onClick={() => handleDelete(t._id)}
-                  className="p-2 bg-gray-300 text-red-600 rounded-lg"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-
-              <button
-                onClick={() => navigate(`/admin/testimonials/${t._id}`)}
-                className="flex items-center gap-1 text-orange-500 text-sm"
-              >
-                View Details <ExternalLink size={14} />
-              </button>
-            </div>
-
-          </div>
-        ))}
-
-        {!loading && filteredTestimonials.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
-            No testimonials yet. Click <strong>Add more +</strong>
-          </div>
+            Add more +
+          </button>
         )}
       </div>
 
-      {/* FOOTER */}
-      {selectedIds.length > 0 && (
-        <div className="flex items-center gap-2 mt-6 text-sm">
-          <span className="text-gray-600">
-            Selected <span className="text-yellow-500 font-bold">{selectedIds.length}</span> items
-          </span>
+      <h2 className="text-xl font-bold mb-6 text-gray-800">Testimonials</h2>
+
+      <div className="flex justify-end mb-2">
+        {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
           <button
-            onClick={handleBulkDelete}
-            className="text-yellow-500 font-medium hover:underline flex items-center gap-1"
+            onClick={toggleSelectAll}
+            className="text-sm font-medium text-[#FFB300] hover:text-[#e5a100]"
           >
-            Delete →
+            {selectedIds.length === filteredTestimonials.length && filteredTestimonials.length > 0
+              ? "Unselect all →"
+              : "Select all →"}
           </button>
+        )}
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-[#FFB300] text-gray-800 font-semibold text-sm">
+                <th className="p-4 pl-6 w-[50px]"></th>
+                <th className="p-4">Name</th>
+                <th className="p-4">Job Title</th>
+                <th className="p-4 text-center">Video</th>
+                <th className="p-4 w-1/3">About</th>
+                <th className="p-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <tr><td colSpan="6" className="p-8 text-center text-gray-500">Loading...</td></tr>
+              ) : filteredTestimonials.length === 0 ? (
+                <tr><td colSpan="6" className="p-8 text-center text-gray-500">No testimonials found.</td></tr>
+              ) : (
+                filteredTestimonials.map((t) => (
+                  <tr key={t._id} className="hover:bg-yellow-50/10 transition-colors">
+                    <td className="p-4 pl-6">
+                      {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-gray-300 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer"
+                          checked={selectedIds.includes(t._id)}
+                          onChange={() => toggleSelect(t._id)}
+                        />
+                      )}
+                    </td>
+                    <td className="p-4 font-semibold text-gray-800">{t.name}</td>
+                    <td className="p-4 text-gray-700 font-medium">{t.jobTitle}</td>
+                    <td className="p-4 text-center">
+                      <div className="w-[100px] h-[40px] bg-gray-50 flex items-center justify-center rounded border border-gray-200 mx-auto">
+                        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow">
+                          <Play className="w-4 h-4 fill-[#FFB300] text-[#FFB300] ml-0.5" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 text-sm text-gray-600">
+                      {t.about}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-center gap-4">
+                        <div className="flex gap-2">
+                          {hasPermission(PERMISSIONS.TESTIMONIALS_EDIT) && (
+                            <button
+                              onClick={() => navigate(`/admin/testimonials/edit/${t._id}`)}
+                              className="p-2 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                          {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
+                            <button
+                              onClick={() => handleDelete(t._id)}
+                              className="p-2 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                        {hasPermission(PERMISSIONS.TESTIMONIALS_VIEW_DETAILS) && (
+                          <button
+                            onClick={() => navigate(`/admin/testimonials/${t._id}`)}
+                            className="flex items-center gap-1 text-[#DFB31F] text-sm hover:underline font-medium"
+                          >
+                            View Details <ExternalLink size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination (Static) */}
+        <div className="flex justify-end p-4">
+          <button className="flex items-center gap-1 border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
+            6
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Footer Selection Status */}
+      {selectedIds.length > 0 && (
+        <div className="mt-4 text-sm text-gray-600 flex items-center gap-4">
+          <span>
+            Selected <span className="text-[#FFB300] font-bold">{selectedIds.length}</span> items
+          </span>
+          {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
+            <button
+              onClick={handleBulkDelete}
+              className="text-[#FFB300] font-medium hover:underline flex items-center gap-1"
+            >
+              Delete →
+            </button>
+          )}
         </div>
       )}
     </div>

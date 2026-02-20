@@ -159,15 +159,15 @@ const AdminJobs = () => {
                                         <td className="p-4">
                                             <div className="relative">
                                                 <button
-                                                    disabled={!hasPermission(PERMISSIONS.JOBS_STATUS)} // Disable if no permission
+                                                    disabled={!hasPermission(PERMISSIONS.JOBS_UPDATE_STATUS)} // Disable if no permission
                                                     onClick={() => setOpenDropdownId(openDropdownId === job._id ? null : job._id)}
-                                                    className={`flex items-center justify-between w-28 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 transition-colors ${hasPermission(PERMISSIONS.JOBS_STATUS) ? 'hover:border-gray-400 focus:outline-none cursor-pointer' : 'cursor-not-allowed opacity-70'}`}
+                                                    className={`flex items-center justify-between w-28 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 transition-colors ${hasPermission(PERMISSIONS.JOBS_UPDATE_STATUS) ? 'hover:border-gray-400 focus:outline-none cursor-pointer' : 'cursor-not-allowed opacity-70'}`}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span className={`w-2 h-2 rounded-full ${job.status !== 'closed' ? 'bg-green-500' : 'bg-red-500'}`}></span>
                                                         <span>{job.status !== 'closed' ? 'Open' : 'Closed'}</span>
                                                     </div>
-                                                    {hasPermission(PERMISSIONS.JOBS_STATUS) && (
+                                                    {hasPermission(PERMISSIONS.JOBS_UPDATE_STATUS) && (
                                                         <svg className={`w-4 h-4 text-gray-500 transition-transform ${openDropdownId === job._id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
@@ -210,12 +210,12 @@ const AdminJobs = () => {
                                         {/* New/Urgent - Toggle */}
                                         <td className="p-4">
                                             <button
-                                                disabled={job.status === 'closed' || !hasPermission(PERMISSIONS.JOBS_URGENT)}
+                                                disabled={job.status === 'closed' || !hasPermission(PERMISSIONS.JOBS_NEW_URGENT_JOB)}
                                                 onClick={() => {
                                                     const newStatus = job.status === 'urgent' ? 'new' : 'urgent';
                                                     updateJobStatus(job._id, newStatus);
                                                 }}
-                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.status === 'urgent' ? 'bg-red-500' : 'bg-green-500'} ${job.status === 'closed' || !hasPermission(PERMISSIONS.JOBS_URGENT) ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${job.status === 'urgent' ? 'bg-red-500' : 'bg-green-500'} ${job.status === 'closed' || !hasPermission(PERMISSIONS.JOBS_NEW_URGENT_JOB) ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''}`}
                                             >
                                                 <span className="sr-only">Toggle Urgent</span>
                                                 <span
@@ -227,11 +227,13 @@ const AdminJobs = () => {
                                         {/* Actions */}
                                         <td className="p-4 pr-6 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => navigate(`/admin/jobs/view/${job._id}`)}
-                                                    className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
-                                                    <Eye size={16} />
-                                                </button>
+                                                {hasPermission(PERMISSIONS.JOBS_VIEW_DETAILS) && (
+                                                    <button
+                                                        onClick={() => navigate(`/admin/jobs/view/${job._id}`)}
+                                                        className="p-1.5 bg-gray-200 rounded text-gray-600 hover:bg-gray-300 transition">
+                                                        <Eye size={16} />
+                                                    </button>
+                                                )}
                                                 {hasPermission(PERMISSIONS.JOBS_EDIT) && (
                                                     <button
                                                         onClick={() => navigate(`/admin/jobs/edit/${job._id}`)}

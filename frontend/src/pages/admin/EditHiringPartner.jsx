@@ -28,7 +28,7 @@ const EditHiringPartner = () => {
                 const json = await res.json();
                 if (!res.ok) throw new Error();
 
-                const data = json.data;
+                const data = json.data || json;
 
                 setFormData({
                     organizationname: data.organizationname,

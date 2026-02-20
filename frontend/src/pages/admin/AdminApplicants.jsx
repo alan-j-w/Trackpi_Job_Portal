@@ -58,6 +58,7 @@ const AdminApplicants = () => {
     const isSignupPage = location.pathname.includes("signup");
     const PERM_RESUME = isSignupPage ? PERMISSIONS.SIGNUP_RESUME : PERMISSIONS.APPLICANTS_RESUME;
     const PERM_DELETE = isSignupPage ? PERMISSIONS.SIGNUP_DELETE : PERMISSIONS.APPLICANTS_DELETE;
+    const PERM_VIEW_DETAILS = isSignupPage ? PERMISSIONS.SIGNUP_VIEW_DETAILS : PERMISSIONS.APPLICANTS_VIEW_DETAILS;
 
 
     // Calculate profile completion percentage
@@ -256,9 +257,11 @@ const AdminApplicants = () => {
                                         </td>
                                         <td className="p-4 text-center">
                                             <div className="flex gap-2 justify-center">
-                                                <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
-                                                    <Eye size={18} />
-                                                </button>
+                                                {hasPermission(PERM_VIEW_DETAILS) && (
+                                                    <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
+                                                        <Eye size={18} />
+                                                    </button>
+                                                )}
                                                 {hasPermission(PERM_DELETE) && (
                                                     <button
                                                         className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded hover:bg-red-200 transition"

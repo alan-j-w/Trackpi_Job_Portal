@@ -9,22 +9,25 @@ import {
 } from "../controllers/testimonialsController.js";
 
 import { uploadTestimonial as upload } from "../middleware/uploadMiddleware.js";
+import { protect, authorize, checkPermission } from "../middleware/authMiddleware.js";
+import PERMISSIONS from "../config/permissions.js";
 
 const router = express.Router();
 
 /* ================= LIST ================= */
 router.get("/testimonials", getPublicTestimonials);
-router.get("/admin/testimonials", getAdminTestimonials);
+router.get("/admin/testimonials", protect, authorize("admin", "superadmin", "superuser"), checkPermission(PERMISSIONS.TESTIMONIALS_VIEW), getAdminTestimonials);
 
 /* ================= ADD (STATIC – IMPORTANT) ================= */
 // prevents "/add" from being treated as ":id"
-router.get("/admin/testimonials/add", (req, res) => {
+router.get("/admin/testimonials/add", protect, authorize("admin", "superadmin", "superuser"), (req, res) => {
   return res.status(200).json({ success: true });
 });
 
 /* ================= CREATE ================= */
 router.post(
   "/admin/testimonials",
+  protect, authorize("admin", "superadmin", "superuser"), checkPermission(PERMISSIONS.TESTIMONIALS_ADD),
   upload.fields([
     { name: "coverImage", maxCount: 1 },
     { name: "thumbnailImage", maxCount: 1 },
@@ -34,10 +37,11 @@ router.post(
 );
 
 /* ================= DYNAMIC (ALWAYS LAST) ================= */
-router.get("/admin/testimonials/:id", getAdminTestimonialById);
+router.get("/admin/testimonials/:id", protect, authorize("admin", "superadmin", "superuser"), checkPermission(PERMISSIONS.TESTIMONIALS_VIEW_DETAILS), getAdminTestimonialById);
 
 router.put(
   "/admin/testimonials/:id",
+  protect, authorize("admin", "superadmin", "superuser"), checkPermission(PERMISSIONS.TESTIMONIALS_EDIT),
   upload.fields([
     { name: "coverImage", maxCount: 1 },
     { name: "thumbnailImage", maxCount: 1 },
@@ -46,6 +50,6 @@ router.put(
   updateTestimonial
 );
 
-router.delete("/admin/testimonials/:id", deleteTestimonial);
+router.delete("/admin/testimonials/:id", protect, authorize("admin", "superadmin", "superuser"), checkPermission(PERMISSIONS.TESTIMONIALS_DELETE), deleteTestimonial);
 
 export default router;
