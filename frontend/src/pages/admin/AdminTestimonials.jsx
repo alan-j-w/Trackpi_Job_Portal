@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, ExternalLink, Play, Search } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
+import DeleteUserModal from "../../components/admin/DeleteUserModal";
 
 const AdminTestimonials = () => {
   const navigate = useNavigate();
@@ -13,6 +14,24 @@ const AdminTestimonials = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null); // ID for single delete
+  const [isBulkDelete, setIsBulkDelete] = useState(false); // Flag for bulk delete
+
+  /* SELECT */
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredTestimonials.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredTestimonials.map((t) => t._id));
+    }
+  };
 
   /* FETCH */
   const fetchTestimonials = async () => {
@@ -42,55 +61,49 @@ const AdminTestimonials = () => {
       t.jobTitle.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* DELETE */
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete testimonial?")) return;
+  /* DELETE HANDLERS */
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setIsBulkDelete(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (!selectedIds.length) return;
+    setIsBulkDelete(true);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success("Deleted");
+      if (isBulkDelete) {
+        // Bulk Delete Logic
+        await Promise.all(
+          selectedIds.map((id) =>
+            fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials/${id}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` }
+            })
+          )
+        );
+        toast.success("Deleted successfully");
+        setSelectedIds([]);
+      } else {
+        // Single Delete Logic
+        if (!deleteId) return;
+        await fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials/${deleteId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success("Deleted");
+      }
       fetchTestimonials();
     } catch (error) {
       toast.error("Failed to delete");
-    }
-  };
-
-  /* SELECT */
-  const toggleSelect = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === filteredTestimonials.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(filteredTestimonials.map((t) => t._id));
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (!selectedIds.length) return;
-    if (!window.confirm(`Delete ${selectedIds.length} testimonials?`)) return;
-
-    try {
-      await Promise.all(
-        selectedIds.map((id) =>
-          fetch(`${import.meta.env.VITE_API_URL}/api/admin/testimonials/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        )
-      );
-
-      toast.success("Deleted successfully");
-      setSelectedIds([]);
-      fetchTestimonials();
-    } catch (error) {
-      toast.error("Failed to delete selected");
+    } finally {
+      setIsDeleteModalOpen(false);
+      setDeleteId(null);
+      setIsBulkDelete(false);
     }
   };
 
@@ -189,7 +202,7 @@ const AdminTestimonials = () => {
                           )}
                           {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
                             <button
-                              onClick={() => handleDelete(t._id)}
+                              onClick={() => handleDeleteClick(t._id)}
                               className="p-2 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
                             >
                               <Trash2 size={16} />
@@ -229,7 +242,7 @@ const AdminTestimonials = () => {
           </span>
           {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
             <button
-              onClick={handleBulkDelete}
+              onClick={handleBulkDeleteClick}
               className="text-[#FFB300] font-medium hover:underline flex items-center gap-1"
             >
               Delete →
@@ -237,6 +250,15 @@ const AdminTestimonials = () => {
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteUserModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title={isBulkDelete ? "Delete testimonials" : "Delete testimonial"}
+        message={isBulkDelete ? `Sure you want to delete ${selectedIds.length} testimonials?` : "Sure you want to delete?"}
+      />
     </div>
   );
 };
