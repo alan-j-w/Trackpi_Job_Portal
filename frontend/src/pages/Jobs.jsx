@@ -50,8 +50,8 @@ const Jobs = () => {
     return (
         <div className="font-poppins min-h-screen flex flex-col">
             <Navbar />
-            <div className="pt-20 flex-grow">
-                <JobSection />
+            <div className="flex-grow">
+                <JobSection className="pt-32 pb-16" />
             </div>
             <Footer />
         </div>

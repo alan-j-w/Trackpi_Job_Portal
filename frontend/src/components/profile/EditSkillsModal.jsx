@@ -35,7 +35,7 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-[#FFFFF0] rounded-xl shadow-2xl w-full max-w-2xl p-10 relative" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-10 relative" onClick={(e) => e.stopPropagation()}>
 
                 <h2 className="text-2xl font-bold mb-8 text-black">Manage Skills</h2>
 

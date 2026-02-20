@@ -677,10 +677,14 @@ const Step1BasicInfo = ({
                                 type="file"
                                 id="resume-upload"
                                 className="hidden"
-                                accept=".pdf,.doc,.docx"
+                                accept=".pdf"
                                 onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
+                                        if (file.type !== "application/pdf") {
+                                            alert("Only PDF files are allowed.");
+                                            return;
+                                        }
                                         if (file.size > 5 * 1024 * 1024) {
                                             alert("File size too large (max 5MB)");
                                             return;

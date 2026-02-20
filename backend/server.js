@@ -57,7 +57,7 @@ const limiter = rateLimit({
 app.use("/api", limiter);
 
 app.use("/api/auth", authRoutes);
-app.use("/api/jobs", applicationRoutes); // Mount before jobRoutes to catch /apply
+app.use("/api/applications", applicationRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api", testimonialsRoutes);
 app.use("/api/profile", profileRoutes);

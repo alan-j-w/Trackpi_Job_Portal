@@ -64,7 +64,7 @@ const JobListing = ({ limit }) => {
                     const badgeProps = getBadgeProps(job.status);
 
                     return (
-                        <div key={job._id || idx} className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow duration-300 flex flex-col items-start border border-gray-100 relative overflow-hidden">
+                        <div key={job._id || idx} className="bg-white rounded-[32px] p-6 shadow-[0_0_15px_rgba(0,0,0,0.08)] hover:shadow-[0_0_20px_rgba(0,0,0,0.12)] transition-shadow duration-300 flex flex-col items-start border border-gray-100 relative overflow-hidden">
 
                             {/* 1. Header: Logo, Info, Verified */}
                             <div className="flex justify-between items-start w-full mb-5">

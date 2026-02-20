@@ -32,7 +32,7 @@ const PlusIcon = ({ className, onClick }) => (
 
 const SkillsSection = ({ skills, onEdit, onAdd, onDelete }) => {
     return (
-        <div className="py-5 border-b border-gray-200">
+        <div className="py-5 border-b border-black">
             <div className="flex justify-between items-center mb-5">
                 <h2 className="font-bold text-lg text-black">Skills</h2>
                 <div className="flex gap-4">

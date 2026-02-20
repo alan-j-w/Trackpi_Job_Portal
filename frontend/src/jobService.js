@@ -12,7 +12,7 @@ export const getJobById = async (id) => {
 };
 
 export const applyForJob = async (id, formData) => {
-    const res = await fetch(`${API_URL}/${id}/apply`, {
+    const res = await fetch(`${BASE_URL}/api/applications/${id}/apply`, {
         method: "POST",
         body: formData, // No Content-Type header needed for FormData
     });

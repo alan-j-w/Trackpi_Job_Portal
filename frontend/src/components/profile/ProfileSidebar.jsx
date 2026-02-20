@@ -67,7 +67,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
 
             {/* 1. Profile Strength */}
             <div
-                className={`bg-white rounded-[20px] border ${isComplete ? 'border-[#FFB300] shadow-[0_4px_20px_rgba(255,179,0,0.15)]' : 'border-gray-200 shadow-sm'} ${isComplete ? 'p-6 mb-8 flex flex-col items-center relative overflow-hidden' : 'p-8 mb-8 pb-10 flex flex-col items-center relative'}`}
+                className={`bg-white rounded-[20px] border ${isComplete ? 'border-[#FFB300] shadow-[0_4px_20px_rgba(255,179,0,0.15)]' : 'border-gray-200 shadow-[0_0_15px_rgba(0,0,0,0.08)]'} ${isComplete ? 'p-6 mb-8 flex flex-col items-center relative overflow-hidden' : 'p-8 mb-8 pb-10 flex flex-col items-center relative'}`}
                 style={{ minHeight: isComplete ? 'auto' : '635px' }}
             >
 
@@ -155,7 +155,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
 
             {/* 2. Additional Details */}
             <div
-                className="bg-white rounded-[32px] border border-gray-200 p-8 mb-8 shadow-sm flex flex-col pt-6"
+                className="bg-white rounded-[32px] border border-gray-200 p-8 mb-8 shadow-[0_0_15px_rgba(0,0,0,0.08)] flex flex-col pt-6"
                 style={{ width: '100%', maxWidth: '425px', minHeight: '550px' }}
             >
                 <div>
@@ -209,7 +209,7 @@ const ProfileSidebar = ({ profile, onAction }) => {
 
             {/* 3. Social Links */}
             <div
-                className="bg-white rounded-[32px] border border-gray-200 p-8 mb-0 shadow-sm flex flex-col pt-6"
+                className="bg-white rounded-[32px] border border-gray-200 p-8 mb-0 shadow-[0_0_15px_rgba(0,0,0,0.08)] flex flex-col pt-6"
                 style={{ width: '100%', maxWidth: '425px', minHeight: '356px' }}
             >
                 <div>
