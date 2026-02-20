@@ -2,7 +2,7 @@ import meetingImg from "../../assets/about images/meeting.png";
 
 const AboutHero = () => {
     return (
-        <section className="max-w-7xl mx-auto px-6 pt-20 pb-10 grid lg:grid-cols-2 gap-12 items-center">
+        <section className="max-w-7xl mx-auto px-6 pt-28 lg:pt-32 pb-10 grid lg:grid-cols-2 gap-12 items-center">
             <div>
                 <h2 className="text-[50px] font-bold mb-4 leading-[36px]">
                     About <span className="text-yellow-400">Trackpi</span>

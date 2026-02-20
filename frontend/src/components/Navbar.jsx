@@ -40,9 +40,14 @@ const Navbar = ({ mode = "auto" }) => {
     window.location.href = "/";
   };
 
+  const isTransparentPage = ["/", "/about", "/testimonials", "/contact"].includes(location.pathname);
+
   return (
-    <header className="w-full fixed top-0 left-0 bg-white shadow-md z-50">
-      <nav className="max-w-7xl mx-auto flex items-center justify-start py-4 px-6 md:px-10">
+    <header
+      className={`w-full top-0 left-0 z-50 ${isTransparentPage ? "absolute bg-transparent py-6" : "fixed bg-white shadow-md"
+        }`}
+    >
+      <nav className={`max-w-7xl mx-auto flex items-center justify-start px-6 md:px-10 ${isTransparentPage ? "py-2" : "py-4"}`}>
 
         {/* 🔥 LOGO LEFT */}
         <Link to="/" className="flex items-center">
@@ -85,11 +90,36 @@ const Navbar = ({ mode = "auto" }) => {
             ) : (
               // 🔵 Guest / Landing Page Menu
               <>
-                <Link to="/" className="hover:text-[#FFB300]">Home</Link>
-                <Link to="/about" className="hover:text-[#FFB300]">About us</Link>
-                <Link to="/testimonials" className="hover:text-[#FFB300]">Testimonial</Link>
-                <Link to="/talent-league" className="hover:text-[#FFB300]">Talent League</Link>
-                <Link to="/contact" className="hover:text-[#FFB300]">Contact us</Link>
+                <Link
+                  to="/"
+                  className={`${location.pathname === "/" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : "hover:text-[#FFB300]"}`}
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/about"
+                  className={`${location.pathname === "/about" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : "hover:text-[#FFB300]"}`}
+                >
+                  About us
+                </Link>
+                <Link
+                  to="/testimonials"
+                  className={`${location.pathname === "/testimonials" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : "hover:text-[#FFB300]"}`}
+                >
+                  Testimonial
+                </Link>
+                <Link
+                  to="/talent-league"
+                  className="text-[#1877F2] border-b-2 border-[#1877F2] pb-1"
+                >
+                  Talent League
+                </Link>
+                <Link
+                  to="/contact"
+                  className={`${location.pathname === "/contact" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : "hover:text-[#FFB300]"}`}
+                >
+                  Contact us
+                </Link>
               </>
             )}
           </ul>
@@ -151,11 +181,11 @@ const Navbar = ({ mode = "auto" }) => {
             ) : (
               // 🔵 Guest Mobile Menu
               <>
-                <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-                <Link to="/about" onClick={() => setOpen(false)}>About us</Link>
-                <Link to="/testimonials" onClick={() => setOpen(false)}>Testimonial</Link>
-                <Link to="/talent-league" onClick={() => setOpen(false)}>Talent League</Link>
-                <Link to="/contact" onClick={() => setOpen(false)}>Contact us</Link>
+                <Link to="/" onClick={() => setOpen(false)} className={`w-fit ${location.pathname === "/" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : ""}`}>Home</Link>
+                <Link to="/about" onClick={() => setOpen(false)} className={`w-fit ${location.pathname === "/about" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : ""}`}>About us</Link>
+                <Link to="/testimonials" onClick={() => setOpen(false)} className={`w-fit ${location.pathname === "/testimonials" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : ""}`}>Testimonial</Link>
+                <Link to="/talent-league" onClick={() => setOpen(false)} className="w-fit text-[#1877F2] border-b-2 border-[#1877F2] pb-1">Talent League</Link>
+                <Link to="/contact" onClick={() => setOpen(false)} className={`w-fit ${location.pathname === "/contact" ? "text-[#FFB300] border-b-2 border-[#FFB300] pb-1" : ""}`}>Contact us</Link>
               </>
             )}
           </ul>

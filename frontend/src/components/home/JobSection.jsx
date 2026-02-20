@@ -35,7 +35,7 @@ const JobSection = () => {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 2;
+  const jobsPerPage = 4;
 
   // Refs
   const filterRef = useRef(null);
@@ -447,6 +447,7 @@ const JobSection = () => {
                 salary={job.salary}
                 experience={job.experience}
                 workMode={job.workMode}
+                gender={job.gender || "Any"}
                 onDetailsClick={() => setSelectedJobId(job._id)}
               />
             ))}

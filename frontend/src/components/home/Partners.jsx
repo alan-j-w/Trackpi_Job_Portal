@@ -25,9 +25,9 @@ const Partners = () => {
   if (!partners.length) return null;
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white font-cabinet">
       <h2 className="text-center text-3xl md:text-4xl font-bold mb-12">
-        <span className="text-[#FFB300]">Our Hiring Partners</span>
+        <span className="text-[#FFB300]">OUR HIRING PARTNERS</span>
       </h2>
 
       <div className="w-full overflow-hidden">

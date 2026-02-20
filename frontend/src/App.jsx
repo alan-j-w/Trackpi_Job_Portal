@@ -49,6 +49,7 @@ import Testimonials from "./pages/Testimonials";
 import TalentLeague from "./pages/TalentLeague";
 import Creators from "./pages/Creators";
 import Jobs from "./pages/Jobs";
+import Terms from "./pages/Terms";
 
 function App() {
   return (
@@ -65,6 +66,8 @@ function App() {
         <Route path="/talent-league" element={<TalentLeague />} />
         <Route path="/creators" element={<Creators />} />
         <Route path="/resume-gen" element={<ResumeGen />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Helper for LinkedIn Callback (Public but handles its own logic) */}
         <Route path="/linkedin/callback" element={<LinkedInCallback />} />
@@ -87,7 +90,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/user/dashboard" element={<UserDashboard />} />
-          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/user/dashboard" element={<UserDashboard />} />
 
         </Route>
 
