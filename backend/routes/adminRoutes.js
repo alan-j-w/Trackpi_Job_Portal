@@ -43,13 +43,13 @@ router.put(
 
 router.get(
     "/users",
-    checkPermission(PERMISSIONS.USERS_EDIT),
+    checkPermission(PERMISSIONS.USERS_VIEW),
     adminController.getAllUsers
 );
 
 // Role Management (Super Admin & Admin)
 router.post("/permissions", authorize("superadmin", "admin"), adminController.createRole);
-router.get("/permissions", authorize("superadmin", "admin"), adminController.getAllRoles);
+router.get("/permissions", checkPermission(PERMISSIONS.ROLES_VIEW), adminController.getAllRoles);
 router.put("/permissions/:id", authorize("superadmin", "admin"), adminController.updateRole);
 router.delete("/permissions/:id", authorize("superadmin", "admin"), adminController.deleteRole);
 

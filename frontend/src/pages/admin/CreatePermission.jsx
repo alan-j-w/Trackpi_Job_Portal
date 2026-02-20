@@ -9,135 +9,124 @@ const MODULES_CONFIG = [
         label: "Dashboard",
         key: "dashboard",
         permissions: [
-            { label: "View Dashboard", value: PERMISSIONS.DASHBOARD_VIEW }
+            { label: "View Dashboard", value: PERMISSIONS.DASHBOARD_VIEW, isView: true }
         ]
     },
     {
         label: "Jobs",
         key: "jobs",
-        isToggle: true, // Main toggle for the section? Or just a header.
         permissions: [
+            { label: "View", value: PERMISSIONS.JOBS_VIEW, isView: true },
             { label: "Post job", value: PERMISSIONS.JOBS_POST },
-            { label: "job status", value: PERMISSIONS.JOBS_STATUS },
-            { label: "View more about job", value: PERMISSIONS.JOBS_VIEW },
-            { label: "Pending candidates", value: PERMISSIONS.JOBS_PENDING },
-            { label: "All candidates", value: PERMISSIONS.JOBS_ALL },
-            { label: "New job / Urgent job", value: PERMISSIONS.JOBS_URGENT },
+            { label: "job status", value: PERMISSIONS.JOBS_UPDATE_STATUS },
+            { label: "View more about job", value: PERMISSIONS.JOBS_VIEW_DETAILS },
+            { label: "Pending candidates", value: PERMISSIONS.JOBS_VIEW_PENDING_CANDIDATES },
+            { label: "All candidates", value: PERMISSIONS.JOBS_VIEW_ALL_CANDIDATES },
+            { label: "New/Urgent Job", value: PERMISSIONS.JOBS_NEW_URGENT_JOB },
             { label: "Edit", value: PERMISSIONS.JOBS_EDIT },
         ]
     },
     {
         label: "Signup candidates",
-        key: "signup",
+        key: "signup_candidates",
         permissions: [
-            { label: "Resume download", value: PERMISSIONS.SIGNUP_RESUME },
-            { label: "view more about candidates", value: PERMISSIONS.SIGNUP_VIEW },
-            { label: "delete", value: PERMISSIONS.SIGNUP_DELETE },
+            { label: "View", value: PERMISSIONS.SIGNUP_VIEW, isView: true },
+            { label: "Download Resume", value: PERMISSIONS.SIGNUP_DOWNLOAD_RESUME },
+            { label: "View Details", value: PERMISSIONS.SIGNUP_VIEW_DETAILS },
+            { label: "Delete", value: PERMISSIONS.SIGNUP_DELETE },
         ]
     },
     {
         label: "Job applicants",
-        key: "applicants",
+        key: "job_applicants",
         permissions: [
-            { label: "Resume download", value: PERMISSIONS.APPLICANTS_RESUME },
-            { label: "view more about candidates", value: PERMISSIONS.APPLICANTS_VIEW },
-            { label: "delete", value: PERMISSIONS.APPLICANTS_DELETE },
+            { label: "View", value: PERMISSIONS.APPLICANTS_VIEW, isView: true },
+            { label: "Download Resume", value: PERMISSIONS.APPLICANTS_DOWNLOAD_RESUME },
+            { label: "View Details", value: PERMISSIONS.APPLICANTS_VIEW_DETAILS },
+            { label: "Delete", value: PERMISSIONS.APPLICANTS_DELETE },
         ]
     },
     {
         label: "Resume build candidates",
-        key: "resume_build",
+        key: "resume_build_candidates",
         permissions: [
-            { label: "Resume download", value: PERMISSIONS.RESUME_DOWNLOAD },
-            { label: "delete", value: PERMISSIONS.RESUME_DELETE },
+            { label: "View", value: PERMISSIONS.RESUME_VIEW, isView: true },
+            { label: "Download Resume", value: PERMISSIONS.RESUME_DOWNLOAD },
+            { label: "Delete", value: PERMISSIONS.RESUME_DELETE },
         ]
     },
     {
-        label: "Our hiring partners",
-        key: "partners",
+        label: "Hiring partners",
+        key: "hiring_partners",
         permissions: [
-            { label: "Add users", value: PERMISSIONS.PARTNERS_ADD },
-            { label: "view more", value: PERMISSIONS.PARTNERS_VIEW },
+            { label: "View", value: PERMISSIONS.PARTNERS_VIEW, isView: true },
+            { label: "Add", value: PERMISSIONS.PARTNERS_ADD },
+            { label: "View Details", value: PERMISSIONS.PARTNERS_VIEW_DETAILS },
             { label: "Edit", value: PERMISSIONS.PARTNERS_EDIT },
-            { label: "delete", value: PERMISSIONS.PARTNERS_DELETE },
+            { label: "Delete", value: PERMISSIONS.PARTNERS_DELETE },
         ]
     },
     {
         label: "Testimonials",
         key: "testimonials",
         permissions: [
-            { label: "Add testimonials", value: PERMISSIONS.TESTIMONIALS_ADD },
-            { label: "view more", value: PERMISSIONS.TESTIMONIALS_VIEW },
+            { label: "View", value: PERMISSIONS.TESTIMONIALS_VIEW, isView: true },
+            { label: "Add", value: PERMISSIONS.TESTIMONIALS_ADD },
+            { label: "View Details", value: PERMISSIONS.TESTIMONIALS_VIEW_DETAILS },
             { label: "Edit", value: PERMISSIONS.TESTIMONIALS_EDIT },
-            { label: "delete", value: PERMISSIONS.TESTIMONIALS_DELETE },
-        ]
-    },
-    {
-        label: "Admin management",
-        key: "admin_mgmt",
-        permissions: [
-            { label: "Add admin", value: PERMISSIONS.ADMIN_ADD },
-            { label: "Edit", value: PERMISSIONS.ADMIN_EDIT },
-            { label: "Status", value: PERMISSIONS.ADMIN_STATUS },
-        ]
-    },
-    {
-        label: "User permission",
-        key: "user_perm",
-        permissions: [
-            { label: "Edit", value: PERMISSIONS.ROLES_EDIT },
-            { label: "delete", value: PERMISSIONS.ROLES_DELETE },
-        ]
-    },
-    {
-        label: "User management",
-        key: "user_mgmt",
-        permissions: [
-            { label: "Edit", value: PERMISSIONS.USERS_EDIT },
-            { label: "delete", value: PERMISSIONS.USERS_DELETE },
+            { label: "Delete", value: PERMISSIONS.TESTIMONIALS_DELETE },
         ]
     },
     {
         label: "Form management",
-        key: "form_mgmt",
+        key: "form_management",
         permissions: [
-            // Assuming simple access for now based on image not showing sub-items clearly or simpler
-            // If image shows sub items, add them. Assuming generic for now.
-            { label: "Manage", value: PERMISSIONS.FORMS_MANAGE },
+            { label: "View", value: PERMISSIONS.FORMS_MANAGE, isView: true },
         ]
     },
     {
         label: "Ad competition",
-        key: "ad_comp",
+        key: "ad_competition",
         permissions: [
-            { label: "Add competition", value: PERMISSIONS.COMPETITION_ADD },
+            { label: "View", value: PERMISSIONS.COMPETITION_VIEW, isView: true },
+            { label: "Add", value: PERMISSIONS.COMPETITION_ADD },
             { label: "Edit", value: PERMISSIONS.COMPETITION_EDIT },
         ]
     },
     {
-        label: "competition Testimonials",
-        key: "comp_test",
+        label: "Competition Testimonials",
+        key: "competition_testimonials",
         permissions: [
-            { label: "Edit", value: "comp_test.edit" }, // Placeholder if not in list
-            { label: "delete", value: "comp_test.delete" },
+            { label: "View", value: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW, isView: true },
+            { label: "Edit", value: PERMISSIONS.COMPETITION_TESTIMONIALS_EDIT },
+            { label: "Delete", value: PERMISSIONS.COMPETITION_TESTIMONIALS_DELETE },
+        ]
+    },
+    {
+        label: "Competition Candidates",
+        key: "competition_candidates",
+        permissions: [
+            { label: "View", value: PERMISSIONS.COMPETITION_CANDIDATES_VIEW, isView: true },
         ]
     },
     {
         label: "Video management",
-        key: "videos",
+        key: "video_management",
         permissions: [
-            { label: "Add video", value: PERMISSIONS.VIDEO_ADD },
+            { label: "View", value: PERMISSIONS.VIDEO_VIEW, isView: true },
+            { label: "Add", value: PERMISSIONS.VIDEO_ADD },
             { label: "Edit", value: PERMISSIONS.VIDEO_EDIT },
-            { label: "delete", value: PERMISSIONS.VIDEO_DELETE },
+            { label: "Delete", value: PERMISSIONS.VIDEO_DELETE },
         ]
     },
     {
         label: "Previous Winners",
-        key: "winners",
+        key: "previous_winners",
         permissions: [
-            { label: "Add Winner", value: PERMISSIONS.WINNERS_ADD },
+            { label: "View", value: PERMISSIONS.WINNERS_VIEW, isView: true },
+            { label: "Add", value: PERMISSIONS.WINNERS_ADD },
             { label: "Edit", value: PERMISSIONS.WINNERS_EDIT },
-            { label: "delete", value: PERMISSIONS.WINNERS_DELETE },
+            { label: "Delete", value: PERMISSIONS.WINNERS_DELETE },
         ]
     }
 ];
@@ -199,14 +188,26 @@ const CreatePermission = () => {
 
     // Helper to toggle all in a section
     const handleToggleSection = (sectionPermissions) => {
+        // Only target NON-HIDDEN permissions for UI toggling
+        // OR target ALL for selection, but filter "isView" for deselection logic? 
+        // Simplest: Toggle all real permissions. The "isView" one is auto-handled on save.
+        // Wait, if we toggle ON, we should select all visible. If OFF, deselect all.
+        // The "isView" perm will also be selected/deselected internally to keep state consistent?
+        // Actually, let's just toggle ALL values including hidden ones so state is clean.
+        // But if hidden ones are not in UI, user can't uncheck them individually. 
+
         const allValues = sectionPermissions.map(p => p.value);
+        // Check if any *visible* permission is selected to decide toggle state
+        // OR just check if any in the list (including hidden) is selected.
+        // Let's check based on *any* selected to determine if we turn OFF or ON.
         const hasSomeSelected = allValues.some(val => selectedPermissions.includes(val));
 
         if (hasSomeSelected) {
-            // If any are selected, turn off the whole section (Deselect All)
+            // Deselect All (including hidden)
             setSelectedPermissions(selectedPermissions.filter(p => !allValues.includes(p)));
         } else {
-            // Select all
+            // Select All (including hidden)
+            // This ensures if user toggles module ON, they get view access + all access.
             const newPerms = [...selectedPermissions];
             allValues.forEach(val => {
                 if (!newPerms.includes(val)) newPerms.push(val);
@@ -238,9 +239,25 @@ const CreatePermission = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
+
+            // Auto-inject hidden "View" permissions if any other permission in the module is selected
+            let finalPermissions = [...selectedPermissions];
+
+            MODULES_CONFIG.forEach(module => {
+                const modulePermissionValues = module.permissions.map(p => p.value);
+                const hasSelectedInModule = modulePermissionValues.some(val => finalPermissions.includes(val));
+
+                if (hasSelectedInModule) {
+                    const viewPerm = module.permissions.find(p => p.isView);
+                    if (viewPerm && !finalPermissions.includes(viewPerm.value)) {
+                        finalPermissions.push(viewPerm.value);
+                    }
+                }
+            });
+
             const payload = {
                 name: roleName,
-                permissions: selectedPermissions,
+                permissions: finalPermissions,
                 users: selectedAdmins
             };
 
@@ -310,7 +327,7 @@ const CreatePermission = () => {
 
                                 {/* Right: Grid of Sub-Permissions */}
                                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-8">
-                                    {module.permissions.map((perm) => (
+                                    {module.permissions.filter(p => !p.isView).map((perm) => (
                                         <label key={perm.value} className="flex items-center gap-2 cursor-pointer group">
                                             <div className="relative flex items-center">
                                                 <input

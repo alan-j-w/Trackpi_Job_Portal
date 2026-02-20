@@ -7,7 +7,11 @@ import PERMISSIONS from "../config/permissions.js";
 const DEFAULT_REPAIR_PERMISSIONS = [
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.JOBS_VIEW,
-    PERMISSIONS.APPLICANTS_VIEW
+    PERMISSIONS.APPLICANTS_VIEW,
+    PERMISSIONS.ADMIN_VIEW,
+    PERMISSIONS.ROLES_VIEW,
+    PERMISSIONS.USERS_VIEW,
+    PERMISSIONS.USERS_EDIT
 ];
 
 // ============================
@@ -79,6 +83,18 @@ export const googleAuth = async (req, res) => {
             console.error("Google API Response:", error.response.data);
         }
         res.status(500).json({ message: "Google authentication failed", error: error.message });
+    }
+};
+
+// ============================
+// GET CURRENT USER (ME)
+export const getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select("-password");
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Get Me Error:", error);
+        res.status(500).json({ message: "Server Error" });
     }
 };
 
