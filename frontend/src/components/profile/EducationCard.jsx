@@ -12,27 +12,47 @@ const DeleteIcon = ({ className, onClick }) => (
     </svg>
 );
 
+const UniPlaceholder = () => (
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-7 h-7">
+        <path d="M20 6L34 13V15H6V13L20 6Z" fill="#D1D5DB" />
+        <rect x="9" y="16" width="4" height="12" rx="1" fill="#D1D5DB" />
+        <rect x="18" y="16" width="4" height="12" rx="1" fill="#D1D5DB" />
+        <rect x="27" y="16" width="4" height="12" rx="1" fill="#D1D5DB" />
+        <rect x="6" y="28" width="28" height="3" rx="1.5" fill="#D1D5DB" />
+    </svg>
+);
+
+const EducationLogo = ({ education }) => {
+    const [src, setSrc] = React.useState(
+        education.domain ? `https://logo.clearbit.com/${education.domain}` : null
+    );
+    const [step, setStep] = React.useState(0);
+
+    if (!src) return <UniPlaceholder />;
+
+    return (
+        <img
+            src={src}
+            alt="University logo"
+            className="w-full h-full object-contain"
+            onError={() => {
+                if (step === 0 && education.domain) {
+                    setSrc(`https://www.google.com/s2/favicons?domain=${education.domain}&sz=128`);
+                    setStep(1);
+                } else {
+                    setSrc(null);
+                }
+            }}
+        />
+    );
+};
+
 const EducationCard = ({ education, showEdit, onEdit, onDelete }) => {
     return (
         <div className="flex gap-4 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition rounded-lg px-2 -mx-2">
             {/* Logo */}
             <div className="w-12 h-12 bg-white border border-gray-200 rounded-full overflow-hidden flex-shrink-0 p-1 flex items-center justify-center">
-                <img
-                    src={education.domain ? `https://logo.clearbit.com/${education.domain}` : "https://upload.wikimedia.org/wikipedia/en/thumb/4/41/University_of_Calicut_logo.svg/1200px-University_of_Calicut_logo.svg.png"}
-                    alt="University"
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                        const currentSrc = e.target.src;
-                        if (education.domain && currentSrc.includes('logo.clearbit.com')) {
-                            // Fallback to Google Favicon
-                            e.target.src = `https://www.google.com/s2/favicons?domain=${education.domain}&sz=128`;
-                        } else {
-                            // If Google also fails, show text placeholder
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = '<span class="text-xs font-bold text-gray-400">UNI</span>';
-                        }
-                    }}
-                />
+                <EducationLogo education={education} />
             </div>
 
             {/* Content */}

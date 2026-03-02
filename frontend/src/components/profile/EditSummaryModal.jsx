@@ -25,38 +25,74 @@ const EditSummaryModal = ({ isOpen, onClose, currentSummary, onSave, isEditing }
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px]" onClick={onClose}>
-            <div className="bg-gradient-to-b from-white to-[#FFF9E5] rounded-[32px] w-full max-w-[700px] mx-4 p-12 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
-
-                <h2 className="text-2xl font-bold mb-8 text-black">{isEditing ? "Edit Summary" : "Add Summary"}</h2>
-
-                <div className={`border rounded-xl p-5 mb-2 transition-colors ${isOverLimit ? 'border-red-500 bg-red-50' : 'border-gray-600 bg-white'}`}>
-                    <textarea
-                        className="w-full h-40 outline-none resize-none text-black text-base leading-relaxed placeholder-gray-400 font-normal bg-transparent"
-                        value={summary}
-                        onChange={(e) => setSummary(e.target.value)}
-                        placeholder="Write a brief summary about yourself (max 150 words)..."
-                    ></textarea>
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-3xl w-full max-w-[600px] mx-4 shadow-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="px-8 pt-8 pb-4 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-gray-900">
+                            {isEditing ? "Edit Summary" : "Add Summary"}
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all text-xl font-light"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <p className="text-sm text-gray-400 mt-1">
+                        Describe yourself in a few concise sentences (max 150 words)
+                    </p>
                 </div>
 
-                <div className={`text-right text-sm mb-8 font-medium ${isOverLimit ? 'text-red-500' : 'text-gray-500'}`}>
-                    {wordCount}/150 words
+                {/* Body */}
+                <div className="px-8 py-6">
+                    <div className={`relative rounded-xl border transition-all duration-200 ${isOverLimit
+                            ? "border-red-400 bg-red-50 ring-2 ring-red-200"
+                            : "border-gray-200 bg-gray-50 focus-within:border-[#FFB300] focus-within:ring-2 focus-within:ring-[#FFB300]/20 focus-within:bg-white"
+                        }`}>
+                        <textarea
+                            className="w-full h-44 px-4 pt-4 pb-8 outline-none resize-none text-gray-800 text-sm leading-relaxed placeholder-gray-400 font-normal bg-transparent rounded-xl"
+                            value={summary}
+                            onChange={(e) => setSummary(e.target.value)}
+                            placeholder="Write a brief summary about yourself..."
+                            autoFocus
+                        />
+                        {/* Word count inside textarea bottom-right */}
+                        <div className={`absolute bottom-2 right-3 text-xs font-semibold ${isOverLimit ? "text-red-500" : "text-gray-400"
+                            }`}>
+                            {wordCount} / 150 words
+                        </div>
+                    </div>
+
+                    {isOverLimit && (
+                        <p className="text-red-500 text-xs mt-2 font-medium">
+                            ⚠ Exceeded word limit. Please shorten your summary.
+                        </p>
+                    )}
                 </div>
 
-                <div className="flex justify-center gap-6">
+                {/* Footer */}
+                <div className="px-8 pb-8 flex gap-3">
                     <button
                         onClick={handleSave}
                         disabled={isOverLimit}
-                        className={`w-48 py-3 font-bold rounded-lg border shadow-sm transition-all ${isOverLimit
-                                ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
-                                : 'bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black border-[#FFB300]/50 hover:from-[#FFF0B3] hover:to-[#FFA000]'
+                        className={`flex-1 py-3 font-bold rounded-xl text-sm transition-all duration-200 ${isOverLimit
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                : "bg-[#FFB300] text-black hover:bg-[#FFA000] shadow-md hover:shadow-lg active:scale-95"
                             }`}
                     >
-                        Submit
+                        Save Changes
                     </button>
                     <button
                         onClick={onClose}
-                        className="w-48 py-3 bg-white text-black font-bold rounded-lg border border-gray-600 hover:bg-gray-50 transition-all"
+                        className="flex-1 py-3 bg-white text-gray-700 font-bold rounded-xl text-sm border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 active:scale-95"
                     >
                         Cancel
                     </button>

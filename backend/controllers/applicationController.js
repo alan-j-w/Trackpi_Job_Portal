@@ -1,4 +1,7 @@
 import Application from "../models/Application.js";
+import Profile from "../models/Profile.js";
+import mongoose from "mongoose";
+import fs from "fs";
 
 // @desc    Apply for a job
 // @route   POST /api/jobs/:jobId/apply
@@ -8,21 +11,42 @@ export const applyForJob = async (req, res) => {
         const { jobId } = req.params;
         const { name, email, phone, experience, portfolio, userId } = req.body;
 
-        // Ensure file is uploaded
-        if (!req.file) {
-            return res.status(400).json({ message: "Resume file is required" });
+        let resumePath = req.file ? req.file.path : null;
+
+        // If no file uploaded, check if user is logged in and has a profile resume
+        if (!resumePath) {
+            let searchUserId = userId;
+            if (searchUserId && searchUserId !== "null" && searchUserId !== "undefined") {
+                if (mongoose.Types.ObjectId.isValid(searchUserId)) {
+                    const profile = await Profile.findOne({ user: searchUserId });
+                    if (profile && profile.resumeUrl) {
+                        resumePath = profile.resumeUrl;
+                    }
+                }
+            }
         }
 
-        const resumePath = req.file.path;
+        if (!resumePath) {
+            return res.status(400).json({
+                success: false,
+                message: "Resume is required (none uploaded and none found in profile)",
+                debug: { userId, hasFile: !!req.file }
+            });
+        }
+
+        // Final ID verification
+        if (!mongoose.Types.ObjectId.isValid(jobId)) {
+            return res.status(400).json({ success: false, message: "Invalid Job ID format" });
+        }
 
         const application = await Application.create({
             jobId,
-            userId: userId || null, // Optional if guest
+            userId: (userId && mongoose.Types.ObjectId.isValid(userId)) ? userId : null,
             name,
             email,
             phone,
             experience,
-            resume: resumePath,
+            resumeUrl: resumePath,
             portfolio
         });
 
@@ -32,8 +56,12 @@ export const applyForJob = async (req, res) => {
             application
         });
     } catch (error) {
-        console.error("Error submitting application:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        console.error("Error submitting application:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Server error during application submission",
+            error: error.message
+        });
     }
 };
 

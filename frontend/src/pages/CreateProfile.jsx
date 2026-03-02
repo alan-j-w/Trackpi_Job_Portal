@@ -166,7 +166,6 @@ const CreateProfile = () => {
             delete payload.resumeFile; // Don't send file object in JSON JSON
             delete payload.resumeName;
 
-            console.log("Submitting Profile:", payload);
 
             // Simulate loading delay for visual effect (as requested)
             await new Promise(resolve => setTimeout(resolve, 3000));
@@ -298,7 +297,7 @@ const CreateProfile = () => {
 
             {/* Top Right Illustration */}
             {step === 1 && (
-                <div className="absolute top-10 right-0 z-0 hidden md:block w-[423px] h-auto">
+                <div className="absolute top-0 right-0 z-0 hidden md:block w-[423px] h-auto">
                     <img src={step1Illustration} alt="Illustration" className="w-full h-auto" />
                 </div>
             )}

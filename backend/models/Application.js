@@ -31,8 +31,8 @@ const applicationSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        resume: {
-            type: String, // Path to file
+        resumeUrl: {
+            type: String, // Cloudinary URL
             required: true,
         },
         portfolio: {

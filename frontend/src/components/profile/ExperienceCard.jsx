@@ -13,7 +13,7 @@ const ExperienceCard = ({ experience, showEdit, onEdit }) => {
     return (
         <div className="flex gap-4 p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition rounded-lg items-start">
             {/* Logo Section */}
-            <div className="w-[50px] h-[50px] bg-[#FFC107] rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="w-[50px] h-[50px] bg-[#FFB300] rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {/* Try to fetch logo, fallback to Placeholder */}
                 <img
                     src={`https://logo.clearbit.com/${experience.company?.replace(/\s/g, '').toLowerCase()}.com`}

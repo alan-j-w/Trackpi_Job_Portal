@@ -159,7 +159,7 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
                         <div className="flex gap-4">
                             <button
                                 onClick={handleSubmit}
-                                className="bg-gradient-to-r from-yellow-100 to-yellow-400 text-black font-bold py-2.5 px-10 rounded-lg shadow-sm hover:from-yellow-200 hover:to-yellow-500 transition border border-yellow-400"
+                                className="bg-[#FFB300] text-black font-bold py-2.5 px-10 rounded-lg shadow-sm hover:bg-[#e6a000] transition border border-[#e6a000]"
                             >
                                 Submit
                             </button>

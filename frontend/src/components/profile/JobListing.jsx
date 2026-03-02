@@ -1,12 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 import config from "../../config";
+
+import JobDetailsModal from '../home/JobDetailsModal';
+import ApplyJobForm from '../home/ApplyJobForm';
 
 const JobListing = ({ limit }) => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [showApplyForm, setShowApplyForm] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
     const navigate = useNavigate();
+
+    const handleApplyClick = (job) => {
+        setSelectedJob(job);
+        setShowApplyForm(true);
+    };
+
+    const handleDetailsClick = (job) => {
+        setSelectedJob(job);
+        setShowDetails(true);
+    };
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -38,13 +55,13 @@ const JobListing = ({ limit }) => {
     const displayedJobs = limit ? jobs.slice(0, limit) : jobs;
 
     return (
-        <div className="relative pb-24 pt-8 px-4 mt-16">
+        <div className="relative pb-8 pt-8 px-4 mt-16 font-['Satoshi']">
             {/* Header Section */}
             <div className="flex justify-center mb-16 relative">
                 <div className="relative inline-block">
                     {/* CSS Border Eclipse */}
                     <div className="border-[2px] border-[#FFB300] px-12 py-3 rounded-[50%] transform -rotate-2 relative z-10 bg-white shadow-sm">
-                        <h2 className="text-3xl font-bold text-black m-0 leading-tight transform rotate-2">
+                        <h2 className="text-3xl font-bold text-black m-0 leading-tight transform rotate-2 font-cabinet">
                             Latest Job Listing
                         </h2>
                     </div>
@@ -59,7 +76,7 @@ const JobListing = ({ limit }) => {
             </div>
 
             {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
                 {displayedJobs.map((job, idx) => {
                     const badgeProps = getBadgeProps(job.status);
 
@@ -70,8 +87,12 @@ const JobListing = ({ limit }) => {
                             <div className="flex justify-between items-start w-full mb-5">
                                 <div className="flex gap-4">
                                     <div className="w-14 h-14 bg-white border border-gray-200 rounded-xl flex items-center justify-center p-1 shadow-sm shrink-0">
-                                        <div className="relative w-full h-full flex items-center justify-center">
-                                            <span className="font-bold text-[#FFB300] text-[10px] leading-tight text-center transform -rotate-12">TrackPi</span>
+                                        <div className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-lg">
+                                            {job.logo ? (
+                                                <img src={job.logo} alt={job.company} className="w-full h-full object-contain" />
+                                            ) : (
+                                                <img src={logo} alt="TrackPi" className="w-full h-full object-contain opacity-80" />
+                                            )}
                                         </div>
                                     </div>
                                     <div className="pt-1">
@@ -136,7 +157,10 @@ const JobListing = ({ limit }) => {
                                     </div>
                                 ) : <div></div>}
 
-                                <button className="bg-[#FFB300] text-black text-[12px] font-bold px-8 py-2.5 rounded-xl hover:bg-[#ffaa00] shadow-md transition-transform active:scale-95">
+                                <button
+                                    onClick={() => handleApplyClick(job)}
+                                    className="bg-[#FFB300] text-black text-[12px] font-bold px-8 py-2.5 rounded-xl hover:bg-[#ffaa00] shadow-md transition-transform active:scale-95"
+                                >
                                     Apply Now
                                 </button>
                             </div>
@@ -151,9 +175,12 @@ const JobListing = ({ limit }) => {
                                     </div>
                                 </div>
 
-                                <button className="text-[11px] text-black font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                                    More details <i className="ri-arrow-right-line"></i>
-                                </button>
+                                <button
+                                    onClick={() => handleDetailsClick(job)}
+                                    className="text-[11px] text-black font-bold flex items-center gap-1 hover:gap-2 transition-all"
+                                >
+                                    More details < i className="ri-arrow-right-line" ></i>
+                                </button >
                             </div>
 
                         </div>
@@ -172,6 +199,30 @@ const JobListing = ({ limit }) => {
                         <i className="ri-arrow-right-line text-lg group-hover:translate-x-1 transition-transform"></i>
                     </button>
                 </div>
+            )}
+            {/* Apply Form Modal */}
+            {showApplyForm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-[32px] w-full max-w-xl max-h-[90vh] overflow-hidden shadow-2xl">
+                        <ApplyJobForm
+                            jobId={selectedJob._id}
+                            job={selectedJob}
+                            onCancel={() => setShowApplyForm(false)}
+                            onSuccess={() => {
+                                setShowApplyForm(false);
+                                toast.success("Applied successfully!");
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Job Details Modal */}
+            {showDetails && (
+                <JobDetailsModal
+                    jobId={selectedJob._id}
+                    onClose={() => setShowDetails(false)}
+                />
             )}
         </div>
     );

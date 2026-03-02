@@ -15,7 +15,7 @@ const Home = () => {
       <HowToGetHired />
       <Stats />
       <Partners />
-      <JobSection />
+      <JobSection isHome={true} />
       <Footer />
 
 

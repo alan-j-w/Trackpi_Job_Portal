@@ -197,7 +197,6 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
             year: `${formData.startYear} - ${formData.endYear}` // Derived for backward compatibility
         };
 
-        console.log("Saving Education Payload:", payload);
         onSave(payload);
     };
 
@@ -233,7 +232,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                     <div className="relative group">
                         <label className="block text-sm font-bold text-gray-700 mb-2">Education <span className="text-red-500">*</span></label>
                         <div
-                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-yellow-400"
+                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-[#FFB300]"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setOpenDropdown(openDropdown === 'level' ? null : 'level');
@@ -280,12 +279,12 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 value={formData.institution}
                                 onChange={handleChange}
                                 placeholder="Enter University/Institute"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#FFB300]"
                             />
                         ) : (
                             <>
                                 <div
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-yellow-400"
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-[#FFB300]"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenDropdown(openDropdown === 'university' ? null : 'university');
@@ -356,7 +355,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                             <div className="mt-3 animate-fadeIn">
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Specify University/Institute Name <span className="text-red-500">*</span></label>
                                 <input
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 outline-none text-gray-700 font-medium placeholder-gray-400 focus:ring-1 focus:ring-yellow-400"
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 outline-none text-gray-700 font-medium placeholder-gray-400 focus:ring-1 focus:ring-[#FFB300]"
                                     placeholder="Enter specific university name"
                                     value={customUniversity}
                                     onChange={(e) => setCustomUniversity(e.target.value)}
@@ -371,7 +370,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                         <label className="block text-sm font-bold text-gray-700 mb-2">Course <span className="text-red-500">*</span></label>
                         {["10th", "12th"].includes(formData.degree) ? (
                             <input
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#FFB300]"
                                 placeholder="Enter course name"
                                 value={formData.course}
                                 onChange={(e) => setFormData({ ...formData, course: e.target.value })}
@@ -379,7 +378,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                         ) : (
                             <>
                                 <div
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-yellow-400"
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-[#FFB300]"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenDropdown(openDropdown === 'course' ? null : 'course');
@@ -438,7 +437,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                             <div className="mt-3 animate-fadeIn">
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Specify Course Name <span className="text-red-500">*</span></label>
                                 <input
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 outline-none text-gray-700 font-medium placeholder-gray-400 focus:ring-1 focus:ring-yellow-400"
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 outline-none text-gray-700 font-medium placeholder-gray-400 focus:ring-1 focus:ring-[#FFB300]"
                                     placeholder="Enter your specific course name"
                                     onChange={(e) => setCustomCourse(e.target.value)}
                                     value={customCourse}
@@ -456,8 +455,8 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                         <div className="flex flex-wrap gap-6">
                             {["Full time", "Part time", "Online/ E- Learning", "Correspondence/Distance learning"].map((type) => (
                                 <label key={type} className="flex items-center cursor-pointer gap-2">
-                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.courseType === type ? "border-yellow-500" : "border-gray-400"}`}>
-                                        {formData.courseType === type && <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>}
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.courseType === type ? "border-[#FFB300]" : "border-gray-400"}`}>
+                                        {formData.courseType === type && <div className="w-2.5 h-2.5 rounded-full bg-[#FFB300]"></div>}
                                     </div>
                                     <input
                                         type="radio"
@@ -563,7 +562,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                         </button>
                         <button
                             onClick={handleSubmit}
-                            className="px-8 py-2.5 rounded-lg bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300 text-black text-sm font-bold hover:from-yellow-200 hover:to-yellow-300 transition shadow-sm"
+                            className="px-8 py-2.5 rounded-lg bg-[#FFB300] border border-[#e6a000] text-black text-sm font-bold hover:bg-[#e6a000] transition shadow-sm"
                         >
                             Submit
                         </button>
