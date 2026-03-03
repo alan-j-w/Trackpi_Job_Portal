@@ -17,7 +17,7 @@ const Navbar = ({ mode = "auto" }) => {
   const storedToken = localStorage.getItem("token");
   const token = mode === "public" ? null : storedToken;
 
-  // Handle Logout Confirmation
+  // Handle of Logout Confirmation
   // Handle Logout Confirmation
   // Handle Logout Confirmation
   const confirmLogout = () => {

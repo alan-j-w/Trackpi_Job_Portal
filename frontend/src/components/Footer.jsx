@@ -10,7 +10,7 @@ import {
   FaBloggerB,
   FaMediumM,
 } from "react-icons/fa";
-import logoDark from "../assets/logo_footer_v9.png"; // For Black Footer
+import logoDark from "../assets/logo_footer_v9.png"; // Especially For Black Footer 
 import logoLight from "../assets/logo.png";          // For White Footer
 
 const Footer = () => {
