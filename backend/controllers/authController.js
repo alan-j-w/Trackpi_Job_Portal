@@ -285,7 +285,8 @@ export const sendOtp = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "OTP sent successfully"
+            message: "OTP sent successfully",
+            otp: otp // Added for development purposes since SMS is missing
         });
     } catch (error) {
         console.error("Send OTP Error:", error);

@@ -22,20 +22,17 @@ const CreateProfile = () => {
             if (!token) return;
 
             try {
-                // If profile exists AND is completed, redirect to /profile
-                const res = await axios.get(`${config.API_URL}/api/profile/me`, {
+                // Check if profile exists and is completed without triggering a 404
+                const res = await axios.get(`${config.API_URL}/api/profile/status`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                if (res.data.profile?.profileCompleted) {
+                if (res.data.profileCompleted) {
                     navigate("/profile");
                 }
                 // If profile exists but not completed (e.g. just resume uploaded), stay here to finish it.
             } catch (err) {
-                // 404 means no profile, so we stay here
-                if (err.response?.status !== 404) {
-                    console.error("Profile check error:", err);
-                }
+                console.error("Profile status check error:", err);
             }
         };
 
