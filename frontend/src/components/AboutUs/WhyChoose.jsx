@@ -10,26 +10,14 @@ const WhyChoose = () => {
         className="
           font-cabinet
           font-bold
-          text-[50px]
-          leading-[63px]
+          text-[40px] md:text-[64px]
+          leading-tight md:leading-[80px]
           text-center
-          mb-16  
+          mb-8 md:mb-16  
+          text-black
         "
-        style={{
-          textShadow: "0px 4px 4px rgba(0,0,0,0.25)",
-        }}
       >
-
-        Why Choose{" "}
-        <span
-          className="text-yellow-400"
-          style={{
-            textShadow: "0px 4px 4px rgba(0,0,0,0.25)",
-          }}
-        >
-          Trackpi
-        </span>{" "}
-        ?
+        Why Choose <span className="text-[#FFB300]">Trackpi ?</span>
       </h2>
 
 

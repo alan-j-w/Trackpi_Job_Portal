@@ -97,69 +97,144 @@ const EditTestimonial = () => {
 
   /* ================= UI ================= */
   return (
-    <div className="p-8 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Testimonials</h1>
+    <div
+      className="bg-white rounded-lg shadow-sm"
+      style={{
+        width: "971.2646484375px",
+        height: "715.9392700195312px",
+        position: "absolute",
+        top: "53px",
+        left: "347px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        padding: "32px 40px",
+        gap: "20px",
+        opacity: "1",
+        transform: "rotate(0deg)",
+        overflow: "hidden"
+      }}
+    >
+      <h1 className="text-3xl font-bold text-gray-900 leading-none">Testimonials</h1>
 
-      {/* NAME */}
-      <div className="mb-6">
-        <label className="block text-sm mb-1">Name</label>
-        <input
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="border-b py-2 w-full outline-none"
-        />
+      {/* NAME & JOB TITLE WRAPPER */}
+      <div
+        style={{
+          width: "971.2646484375px",
+          height: "145px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "33px",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        {/* NAME */}
+        <div>
+          <label className="block text-sm mb-1">Name</label>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="border-b py-2 w-full outline-none"
+          />
+        </div>
+
+        {/* JOB TITLE */}
+        <div>
+          <label className="block text-sm mb-1">Job title</label>
+          <input
+            name="jobTitle"
+            value={formData.jobTitle}
+            onChange={handleChange}
+            className="border-b py-2 w-full outline-none"
+          />
+        </div>
       </div>
 
-      {/* JOB TITLE */}
-      <div className="mb-6">
-        <label className="block text-sm mb-1">Job title</label>
-        <input
-          name="jobTitle"
-          value={formData.jobTitle}
-          onChange={handleChange}
-          className="border-b py-2 w-full outline-none"
-        />
-      </div>
-
-      {/* ABOUT */}
-      <div className="mb-8">
-        <label className="block text-sm mb-2">About your experience</label>
+      {/* ABOUT WRAPPER */}
+      <div
+        style={{
+          width: "971.2646484375px",
+          height: "167px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "21px",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        <label className="text-sm">About your experience</label>
         <textarea
           name="about"
           value={formData.about}
           onChange={handleChange}
-          className="border rounded-lg p-4 w-full h-32"
+          className="border rounded-lg p-4 w-full h-full"
         />
       </div>
 
-      {/* MEDIA (SAME AS DETAILS) */}
-      <div className="grid grid-cols-3 gap-6">
-        <MediaBox
-          preview={previews.coverImage}
-          label="Upload cover image"
-          name="coverImage"
-          onChange={handleFileChange}
-        />
+      {/* MEDIA WRAPPER */}
+      <div
+        style={{
+          width: "971.2646484375px",
+          height: "189px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "30px",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        <div className="flex gap-[15px] h-full">
+          <MediaBox
+            preview={previews.coverImage}
+            label="Upload cover image"
+            name="coverImage"
+            onChange={handleFileChange}
+            style={{ width: "208px", height: "189px" }}
+          />
 
-        <MediaBox
-          preview={previews.thumbnailImage}
-          label="Thumbnail cover image"
-          name="thumbnailImage"
-          onChange={handleFileChange}
-        />
+          <MediaBox
+            preview={previews.thumbnailImage}
+            label="Thumbnail cover image"
+            name="thumbnailImage"
+            onChange={handleFileChange}
+            style={{ width: "207px", height: "189px" }}
+          />
 
-        <MediaBox
-          preview={previews.video}
-          label="Change video"
-          name="video"
-          onChange={handleFileChange}
-          isVideo
-        />
+          <MediaBox
+            preview={previews.video}
+            label="Change video"
+            name="video"
+            onChange={handleFileChange}
+            isVideo
+            style={{ width: "496px", height: "189px" }}
+          />
+        </div>
       </div>
 
+
       {/* FOOTER */}
-      {/* FOOTER */}
+      <div
+        style={{
+          width: "971.2646484375px",
+          height: "35px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        {/* LEFT — View Profile */}
+        <button
+          type="button"
+          onClick={() => navigate(`/admin/testimonials/${id}`)}
+          className="text-[#FFBD3D] font-medium flex items-center gap-2 hover:underline"
+        >
+          View Profile
+          <span className="text-lg">→</span>
+        </button>
 
       <div className="flex items-center justify-between pt-10">
         {/* LEFT — View Profile */}
@@ -197,8 +272,8 @@ const EditTestimonial = () => {
 };
 
 /* ================= MEDIA BOX ================= */
-const MediaBox = ({ preview, label, name, onChange, isVideo }) => (
-  <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-800">
+const MediaBox = ({ preview, label, name, onChange, isVideo, style }) => (
+  <div className="relative rounded-2xl overflow-hidden bg-gray-800" style={style}>
     {preview &&
       (isVideo ? (
         <video src={preview} controls className="w-full h-full object-cover" />
