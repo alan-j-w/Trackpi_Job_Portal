@@ -11,11 +11,11 @@ const OurPeople = () => {
       />
 
       <div className="flex flex-col">
-        <h2 className="text-[62px] font-cabinet font-bold mb-6 leading-tight">
+        <h2 className="text-[32px] md:text-[62px] font-cabinet font-bold mb-6 leading-tight">
           Our <span className="text-yellow-400">People</span>
         </h2>
 
-        <p className="font-lato text-[19.11px] leading-[28.67px] text-[#555555] mb-8">
+        <p className="font-lato text-[16px] md:text-[19.11px] leading-[1.6] md:leading-[28.67px] text-[#555555] mb-8">
           The people who make up Trackpi are specialists in the ways of organizational
           culture and transformation. Yet within that world we are generalists drawing
           freely from the principles and practices of dozens of theories and hundreds
@@ -24,14 +24,14 @@ const OurPeople = () => {
           quest to make work better. Our backgrounds are varied but our ambition is united.
         </p>
 
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-center lg:justify-end">
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block"
           >
-            <button className="bg-yellow-400 hover:bg-yellow-500 transition-all px-10 py-4 rounded-full font-bold text-black flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95">
+            <button className="bg-[#FFB300] hover:bg-[#e6a100] transition-all px-10 py-4 rounded-full font-bold text-black flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95">
               JOIN OUR TEAM
               <span className="text-xl">→</span>
             </button>

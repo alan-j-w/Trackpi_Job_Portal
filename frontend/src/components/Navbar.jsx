@@ -85,11 +85,11 @@ const Navbar = ({ mode = "auto" }) => {
             ) : (
               // 🔵 Guest / Landing Page Menu
               <>
-                <Link to="/" className="hover:text-[#FFB300]">Home</Link>
-                <Link to="/about" className="hover:text-[#FFB300]">About us</Link>
-                <Link to="/testimonials" className="hover:text-[#FFB300]">Testimonial</Link>
-                <Link to="/talent-league" className="hover:text-[#FFB300]">Talent League</Link>
-                <Link to="/contact" className="hover:text-[#FFB300]">Contact us</Link>
+                <Link to="/" className={`hover:text-[#FFB300] ${location.pathname === "/" ? "text-[#FFB300]" : ""}`}>Home</Link>
+                <Link to="/about" className={`hover:text-[#FFB300] ${location.pathname === "/about" ? "text-[#FFB300]" : ""}`}>About us</Link>
+                <Link to="/testimonials" className={`hover:text-[#FFB300] ${location.pathname === "/testimonials" ? "text-[#FFB300]" : ""}`}>Testimonial</Link>
+                <Link to="/talent-league" className={`hover:text-[#FFB300] ${location.pathname === "/talent-league" ? "text-[#FFB300]" : ""}`}>Talent League</Link>
+                <Link to="/contact" className={`hover:text-[#FFB300] ${location.pathname === "/contact" ? "text-[#FFB300]" : ""}`}>Contact us</Link>
               </>
             )}
           </ul>

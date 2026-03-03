@@ -15,21 +15,21 @@ const Team = () => {
   return (
     <section className="bg-gray-50 py-20">
       <h2
-        className="text-center text-[50px] font-bold mb-16"
+        className="text-center text-[32px] md:text-[50px] font-bold mb-12 md:mb-16"
         style={{ textShadow: "0px 4px 4px rgba(0,0,0,0.25)" }}
       >
         Meet <span className="text-yellow-400">Our Team</span>
       </h2>
 
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 place-items-center">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 place-items-center">
         {team.map((member, i) => (
           <div
             key={i}
             className="
-              w-[280px] h-[360px]
+              w-full max-w-[280px] min-h-[360px]
               bg-white rounded-2xl shadow-lg
               flex flex-col items-center justify-between
-              py-8
+              py-8 px-4
             "
           >
             {/* Image */}

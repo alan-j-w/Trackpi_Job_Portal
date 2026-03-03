@@ -9,20 +9,20 @@ const Footer = () => {
       <div className="max-w-[1440px] mx-auto px-6 md:px-20 grid grid-cols-1 md:grid-cols-4 gap-12 text-white">
 
         {/* 🟡 Logo & About */}
-        <div className="flex flex-col gap-2 w-[384px]">
+        <div className="flex flex-col items-center md:items-start gap-2 max-w-sm">
           <img
             src={logo}
             alt="TrackPi Logo"
-            className="w-[100px] h-auto object-contain ml-28 mt-3"
+            className="w-[100px] h-auto object-contain mb-2"
           />
-          <p className="text-gray-300 text-sm leading-relaxed font-urbanist w-[384px] h-[84px] text-justify">
-            Empowering businesses to succeed through expert<br />
-            guidance and personalized solutions. Unlocking<br />
+          <p className="text-gray-300 text-sm leading-relaxed font-urbanist text-center md:text-justify px-4 md:px-0">
+            Empowering businesses to succeed through expert<br className="hidden md:block" />
+            guidance and personalized solutions. Unlocking<br className="hidden md:block" />
             potential and achieving success.
           </p>
 
           {/* ⭐ Social Media */}
-          <div className="flex gap-4 text-2xl text-[#FFB300]">
+          <div className="flex gap-4 text-2xl text-[#FFB300] mt-4">
             <a href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/" className="hover:text-white transition"><i className="ri-facebook-circle-line"></i></a>
             <a href="https://www.youtube.com/@trackpi" className="hover:text-white transition"><i className="ri-youtube-line"></i></a>
             <a href="https://www.instagram.com/trackpi_official" className="hover:text-white transition"><i className="ri-instagram-line"></i></a>
@@ -35,51 +35,51 @@ const Footer = () => {
 
 
         {/* 🔗 Links */}
-        <div className="mt-4 md:pl-24">
-          <h3 className="font-extrabold text-lg mb-6 text-white text-left font-urbanist">Links</h3>
-          <ul className="space-y-4 text-gray-300 text-sm text-left font-urbanist font-bold">
-            <li className="w-[155px] h-[22px] flex items-center">
+        <div className="mt-4 md:pl-24 flex flex-col items-center md:items-start">
+          <h3 className="font-extrabold text-lg mb-6 text-white font-urbanist">Links</h3>
+          <ul className="space-y-4 text-gray-300 text-sm font-urbanist font-bold text-center md:text-left">
+            <li className="flex items-center">
               <Link to="" className="cursor-pointer hover:text-[#FFB300] w-full">
                 Home
               </Link>
             </li>
-            <li className="w-[155px] h-[22px] flex items-center">
+            <li className="flex items-center">
               <Link to="/about" className="cursor-pointer hover:text-[#FFB300] w-full">
                 About
               </Link></li>
-            <li className="w-[155px] h-[22px] flex items-center">
+            <li className="flex items-center">
               <Link to="/connect" className="cursor-pointer hover:text-[#FFB300] w-full">Connect Us</Link></li>
-            <li className="w-[155px] h-[22px] flex items-center">
+            <li className="flex items-center">
               <Link to="/creators" className="hover:text-[#FFB300] w-full">
                 Creators
               </Link>
             </li>
-            <li className="cursor-pointer hover:text-[#FFB300] w-[155px] h-[22px] flex items-center">Terms & Conditions</li>
+            <li className="cursor-pointer hover:text-[#FFB300] flex items-center">Terms & Conditions</li>
           </ul>
         </div>
         {/* 🛠 Services */}
-        <div className="mt-4">
-          <h3 className="font-extrabold text-lg mb-6 text-white text-left font-urbanist w-[185px] h-[29px]">Services</h3>
-          <ul className="space-y-4 text-gray-300 text-sm text-left font-urbanist w-[185px] h-[180px] font-bold">
+        <div className="mt-4 flex flex-col items-center md:items-start">
+          <h3 className="font-extrabold text-lg mb-6 text-white font-urbanist">Services</h3>
+          <ul className="space-y-4 text-gray-300 text-sm font-urbanist font-bold text-center md:text-left">
             <li className="cursor-pointer hover:text-[#FFB300]">Software development</li>
             <li className="cursor-pointer hover:text-[#FFB300]">Sales training</li>
             <li className="cursor-pointer hover:text-[#FFB300]">Operations training</li>
-            <li className="cursor-pointer hover:text-[#FFB300]">Software development</li>
-            <li className="cursor-pointer hover:text-[#FFB300]">Sales training</li>
-            <li className="cursor-pointer hover:text-[#FFB300]">Operations training</li>
+            <li className="cursor-pointer hover:text-[#FFB300]">Digital Marketing</li>
+            <li className="cursor-pointer hover:text-[#FFB300]">Design & Branding</li>
+            <li className="cursor-pointer hover:text-[#FFB300]">Business Strategy</li>
           </ul>
         </div>
 
         {/* 📞 Contact */}
-        <div className="mt-4">
-          <h3 className="font-extrabold text-lg mb-6 text-white text-left font-urbanist w-[86px] h-[29px]">Contact</h3>
+        <div className="mt-4 flex flex-col items-center md:items-start text-center md:text-left">
+          <h3 className="font-extrabold text-lg mb-6 text-white font-urbanist">Contact</h3>
 
-          <div className="font-urbanist w-[218px] h-[244px] font-bold">
-            <div className="flex items-start gap-4 text-sm text-gray-300 mb-6">
+          <div className="font-urbanist font-bold space-y-6">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 text-sm text-gray-300">
               <div className="w-8 h-8 rounded-full bg-[#FFB300] flex items-center justify-center flex-shrink-0">
                 <i className="ri-map-pin-line text-black text-lg"></i>
               </div>
-              <p className="text-left">
+              <p>
                 Trackpi Private<br />
                 Limited, 10E BCG<br />
                 Tower, Opp. CSEZ,<br />
@@ -90,14 +90,14 @@ const Footer = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-4 font-medium text-gray-300 mb-6">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 font-medium text-gray-300">
               <div className="w-8 h-8 rounded-full bg-[#FFB300] flex items-center justify-center flex-shrink-0">
                 <i className="ri-phone-line text-black text-lg"></i>
               </div>
               <span>+91 9538610745</span>
             </div>
 
-            <div className="flex items-center gap-4 font-medium text-gray-300">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 font-medium text-gray-300">
               <div className="w-8 h-8 rounded-full bg-[#FFB300] flex items-center justify-center flex-shrink-0">
                 <i className="ri-mail-line text-black text-lg"></i>
               </div>
