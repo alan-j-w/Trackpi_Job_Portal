@@ -215,17 +215,7 @@ const EditTestimonial = () => {
 
 
       {/* FOOTER */}
-      <div
-        style={{
-          width: "971.2646484375px",
-          height: "35px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          opacity: "1",
-          transform: "rotate(0deg)"
-        }}
-      >
+      <div className="flex items-center justify-between pt-4">
         {/* LEFT — View Profile */}
         <button
           type="button"
@@ -236,32 +226,20 @@ const EditTestimonial = () => {
           <span className="text-lg">→</span>
         </button>
 
-      <div className="flex items-center justify-between pt-10">
-        {/* LEFT — View Profile */}
-        <button
-          type="button"
-          onClick={() => navigate(`/admin/testimonials/${id}`)}
-          className="text-yellow-500 font-medium flex items-center gap-2 hover:underline"
-        >
-          View Profile
-          <span className="text-lg">→</span>
-        </button>
         <div className="flex items-center gap-4">
           <button
-            type="submit"
-            className="bg-gradient-to-r from-yellow-300 to-yellow-500
-                 text-black px-10 py-3 rounded-lg font-medium shadow"
+            type="button"
+            onClick={() => navigate("/admin/testimonials")}
+            className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-black px-10 py-3 rounded-lg font-medium shadow"
           >
             Cancel
           </button>
-
 
           {/* Save */}
           <button
             type="button"
             onClick={handleSubmit}
-            className="bg-gradient-to-r from-yellow-300 to-yellow-500
-                 text-black px-10 py-3 rounded-lg font-medium shadow"
+            className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-black px-10 py-3 rounded-lg font-medium shadow"
           >
             Save
           </button>
