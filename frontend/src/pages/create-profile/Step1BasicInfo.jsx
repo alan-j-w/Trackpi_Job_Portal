@@ -203,7 +203,7 @@ const Step1BasicInfo = ({
 
     return (
         <>
-            <div className="text-center mb-24 max-w-[580px] mx-auto">
+            <div className="text-center mb-32 mt-10 max-w-[580px] mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold mb-2">
                     Launch <span className="text-[#FFB300]">Career</span>
                 </h1>
@@ -212,7 +212,7 @@ const Step1BasicInfo = ({
                 </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 relative z-10">
 
                 {/* Name */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">

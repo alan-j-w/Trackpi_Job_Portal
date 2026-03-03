@@ -147,7 +147,6 @@ export const linkedinAuth = async (req, res) => {
                 linkedinId: sub,
                 password: await bcrypt.hash(Math.random().toString(36), 10),
                 role: "jobseeker",
-                role: "jobseeker",
                 permissions: [],
                 lastLogin: new Date()
             });
@@ -281,8 +280,6 @@ export const sendOtp = async (req, res) => {
             otp,
             expires: Date.now() + 5 * 60 * 1000 // 5 minutes
         };
-
-        console.log(`📲 [OTP SENT] Phone: ${phone}, OTP: ${otp}`);
 
         // TODO: Integrate SMS gateway here
 

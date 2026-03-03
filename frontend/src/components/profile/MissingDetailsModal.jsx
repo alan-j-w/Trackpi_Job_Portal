@@ -14,7 +14,7 @@ const MissingDetailItem = ({ icon, label, score, onClick }) => (
             </span>
             <button
                 onClick={onClick}
-                className="bg-[#FFF9E5] text-[#F59E0B] text-[10px] font-bold px-3 py-1 rounded-full border border-[#FCD34D] hover:bg-[#FCD34D] hover:text-white transition-colors min-w-[50px] flex justify-center"
+                className="bg-[#FFF9E5] text-[#FFB300] text-[10px] font-bold px-3 py-1 rounded-full border border-[#FFB300] hover:bg-[#FFB300] hover:text-white transition-colors min-w-[50px] flex justify-center"
             >
                 Add
             </button>

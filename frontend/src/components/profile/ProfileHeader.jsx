@@ -225,10 +225,17 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                 <div className="hidden md:flex relative group items-center z-40">
                                     <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-h-[34px] py-4">
                                         <i className="ri-tools-fill text-[#52514F] text-[18px]"></i>
-                                        <div className="text-[16px] font-medium text-black flex items-center gap-1">
-                                            <span>More</span>
-                                            <span className="text-[#FFB300]">tools</span>
-                                        </div>
+                                        <span
+                                            className="text-[16px] font-medium"
+                                            style={{
+                                                background: 'linear-gradient(90deg, #222121 24%, #FFB300 100%)',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                                backgroundClip: 'text',
+                                            }}
+                                        >
+                                            More tools
+                                        </span>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB300" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform transition-transform duration-200 group-hover:rotate-90">
                                             <path d="M9 5l7 7-7 7" />
                                         </svg>

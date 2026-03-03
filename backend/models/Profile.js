@@ -136,7 +136,7 @@ const profileSchema = new mongoose.Schema(
         skills: { type: [String], default: [] },
 
         // ================= ASSETS =================
-        resume: {
+        resumeUrl: {
             type: String,
             default: "",
         },

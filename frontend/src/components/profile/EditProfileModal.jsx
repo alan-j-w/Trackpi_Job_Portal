@@ -126,7 +126,6 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                             value={formData.fullName}
                             onChange={handleChange}
                             className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
-                            placeholder="John Doe"
                         />
                     </div>
 

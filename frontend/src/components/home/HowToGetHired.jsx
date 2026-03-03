@@ -173,7 +173,7 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
 
   return (
     <motion.section
-      className="py-8 md:py-12 bg-white flex flex-col items-center overflow-hidden min-h-[600px] font-cabinet"
+      className="py-8 md:py-12 bg-white flex flex-col items-center overflow-hidden min-h-[420px] md:min-h-[600px] font-cabinet"
       initial={{ opacity: 0, scale: 0.8 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: false, amount: 0.3 }}

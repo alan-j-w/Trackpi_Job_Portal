@@ -81,6 +81,11 @@ const Profile = () => {
     // Delete Modal State
     const [showDeleteResumeModal, setShowDeleteResumeModal] = useState(false);
 
+    // Generic Delete Confirmation Modal
+    const [deleteModal, setDeleteModal] = useState({ open: false, title: "", onConfirm: null });
+    const openDeleteModal = (title, onConfirm) => setDeleteModal({ open: true, title, onConfirm });
+    const closeDeleteModal = () => setDeleteModal({ open: false, title: "", onConfirm: null });
+
     // Resume Modal State
     const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
     const [isResumeEditing, setIsResumeEditing] = useState(false);
@@ -214,22 +219,26 @@ const Profile = () => {
     };
 
     const handleDeleteDirectSkill = async (skillToDelete) => {
-        if (!window.confirm(`Are you sure you want to delete "${skillToDelete}"?`)) return;
-        const oldSkills = profile.skills || [];
-        const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
-        setProfile(prev => ({ ...prev, skills: updatedSkills }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Skill deleted");
-        } catch (err) {
-            console.error("Delete skill failed", err);
-            setProfile(prev => ({ ...prev, skills: oldSkills }));
-            toast.error("Failed to delete skill");
-        }
+        openDeleteModal(
+            `Are you sure you want to delete "${skillToDelete}"?`,
+            async () => {
+                closeDeleteModal();
+                const oldSkills = profile.skills || [];
+                const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
+                setProfile(prev => ({ ...prev, skills: updatedSkills }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Skill deleted");
+                } catch (err) {
+                    console.error("Delete skill failed", err);
+                    setProfile(prev => ({ ...prev, skills: oldSkills }));
+                    toast.error("Failed to delete skill");
+                }
+            }
+        );
     };
 
     const handleUpdateProfile = async (updatedData) => {
@@ -354,22 +363,26 @@ const Profile = () => {
 
     const handleDeleteEducation = async (indexToDelete) => {
         const eduToDelete = profile.education[indexToDelete];
-        if (!window.confirm(`Are you sure you want to delete ${eduToDelete.degree} from ${eduToDelete.institution}?`)) return;
-        const oldEducation = [...(profile.education || [])];
-        const updatedEducationList = oldEducation.filter((_, i) => i !== indexToDelete);
-        setProfile(prev => ({ ...prev, education: updatedEducationList }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post(`${config.API_URL}/api/profile`, { education: updatedEducationList }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Education deleted");
-        } catch (err) {
-            console.error("Delete education failed", err);
-            setProfile(prev => ({ ...prev, education: oldEducation }));
-            toast.error("Failed to delete education");
-        }
+        openDeleteModal(
+            `Are you sure you want to delete ${eduToDelete.degree} from ${eduToDelete.institution}?`,
+            async () => {
+                closeDeleteModal();
+                const oldEducation = [...(profile.education || [])];
+                const updatedEducationList = oldEducation.filter((_, i) => i !== indexToDelete);
+                setProfile(prev => ({ ...prev, education: updatedEducationList }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.post(`${config.API_URL}/api/profile`, { education: updatedEducationList }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Education deleted");
+                } catch (err) {
+                    console.error("Delete education failed", err);
+                    setProfile(prev => ({ ...prev, education: oldEducation }));
+                    toast.error("Failed to delete education");
+                }
+            }
+        );
     };
 
     const handleSaveLanguage = async (newLanguage) => {
@@ -503,42 +516,50 @@ const Profile = () => {
 
     const handleDeleteCoverImage = async () => {
         if (!profile.coverImage) return;
-        if (!window.confirm("Are you sure you want to delete your cover photo?")) return;
-        const oldCover = profile.coverImage;
-        const loadingToast = toast.loading("Deleting cover image...");
-        setProfile(prev => ({ ...prev, coverImage: null }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`${config.API_URL}/api/profile/cover-image`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Cover image deleted", { id: loadingToast });
-        } catch (err) {
-            console.error("Delete cover failed", err);
-            setProfile(prev => ({ ...prev, coverImage: oldCover }));
-            toast.error("Failed to delete cover image", { id: loadingToast });
-        }
+        openDeleteModal(
+            "Are you sure you want to delete your cover photo?",
+            async () => {
+                closeDeleteModal();
+                const oldCover = profile.coverImage;
+                const loadingToast = toast.loading("Deleting cover image...");
+                setProfile(prev => ({ ...prev, coverImage: null }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.delete(`${config.API_URL}/api/profile/cover-image`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Cover image deleted", { id: loadingToast });
+                } catch (err) {
+                    console.error("Delete cover failed", err);
+                    setProfile(prev => ({ ...prev, coverImage: oldCover }));
+                    toast.error("Failed to delete cover image", { id: loadingToast });
+                }
+            }
+        );
     };
 
     const handleDeleteProfileImage = async () => {
         if (!profile.profileImage) return;
-        if (!window.confirm("Are you sure you want to delete your profile picture?")) return;
-        const oldImage = profile.profileImage;
-        const loadingToast = toast.loading("Deleting profile picture...");
-        setProfile(prev => ({ ...prev, profileImage: null }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`${config.API_URL}/api/profile/profile-image`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Profile picture deleted", { id: loadingToast });
-        } catch (err) {
-            console.error("Delete profile picture failed", err);
-            setProfile(prev => ({ ...prev, profileImage: oldImage }));
-            toast.error("Failed to delete profile picture", { id: loadingToast });
-        }
+        openDeleteModal(
+            "Are you sure you want to delete your profile picture?",
+            async () => {
+                closeDeleteModal();
+                const oldImage = profile.profileImage;
+                const loadingToast = toast.loading("Deleting profile picture...");
+                setProfile(prev => ({ ...prev, profileImage: null }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.delete(`${config.API_URL}/api/profile/profile-image`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Profile picture deleted", { id: loadingToast });
+                } catch (err) {
+                    console.error("Delete profile picture failed", err);
+                    setProfile(prev => ({ ...prev, profileImage: oldImage }));
+                    toast.error("Failed to delete profile picture", { id: loadingToast });
+                }
+            }
+        );
     };
 
     if (loading) return (
@@ -554,7 +575,7 @@ const Profile = () => {
         : "Add Location";
 
     return (
-        <div className="bg-white min-h-screen font-sans pb-20 overflow-x-hidden">
+        <div className="bg-white min-h-screen font-sans pb-8 overflow-x-hidden">
             <Toaster position="top-center" />
             <Navbar />
 
@@ -672,7 +693,7 @@ const Profile = () => {
                             />
                         </div>
                         <ResumeSection
-                            resumeUrl={profile.resume}
+                            resumeUrl={profile.resumeUrl}
                             onAdd={() => {
                                 setIsResumeEditing(false);
                                 setIsResumeModalOpen(true);
@@ -692,13 +713,6 @@ const Profile = () => {
 
                 {/* --- Latest Job Listing --- */}
                 <JobListing limit={3} />
-
-                <div
-                    onClick={handleShareProfile}
-                    className="text-right text-xs text-[#FFB300] max-w-7xl mx-auto px-4 hover:underline cursor-pointer"
-                >
-                    {`www.trackpi.in/u/${profile._id}`} ↗
-                </div>
             </div>
 
             <EditProfileModal
@@ -873,6 +887,13 @@ const Profile = () => {
                 onClose={() => setShowDeleteResumeModal(false)}
                 onConfirm={confirmDeleteResume}
                 title="Are you sure you want to delete the resume?"
+            />
+
+            <DeleteConfirmationModal
+                isOpen={deleteModal.open}
+                onClose={closeDeleteModal}
+                onConfirm={deleteModal.onConfirm}
+                title={deleteModal.title}
             />
         </div>
     );
