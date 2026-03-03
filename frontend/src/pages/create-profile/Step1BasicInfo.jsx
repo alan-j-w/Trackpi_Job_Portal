@@ -7,6 +7,7 @@ import SearchableDropdown from "./components/SearchableDropdown";
 import { fetchLocationDetails } from "../../utils/locationUtils";
 import config from "../../config";
 import OtpVerificationModal from "../../components/OtpVerificationModal";
+import toast from 'react-hot-toast';
 
 const Step1BasicInfo = ({
     formData,
@@ -145,9 +146,16 @@ const Step1BasicInfo = ({
     // OTP Functions
     const sendOtp = async () => {
         try {
-            await axios.post(`${config.API_URL}/api/auth/send-otp`, {
+            const res = await axios.post(`${config.API_URL}/api/auth/send-otp`, {
                 phone: `${primaryPhoneCode}${formData.phone}`
             });
+
+            // Log the OTP for development purposes
+            if (res.data.otp) {
+                console.log(`\n%c=== DEMO OTP RECEIVED: ${res.data.otp} ===\n`, "color: #FFB300; font-size: 16px; font-weight: bold;");
+                toast?.success(`Demo OTP is: ${res.data.otp}`, { duration: 5000 }); // Optional UI toast if toast is available
+            }
+
             setOtpSent(true);
             setShowOtpModal(true); // Open Modal
             // alert("OTP sent to your phone (Check server console for demo)"); // Optional feedback
