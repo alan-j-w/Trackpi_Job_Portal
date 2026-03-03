@@ -4,8 +4,8 @@ const WhoWeAre = () => {
   return (
     <section className="bg-white py-20">
       {/* Small gray background container */}
-      <div className="max-w-7xl mx-auto bg-gray-50 rounded-[24px] px-10 py-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="max-w-7xl mx-auto md:bg-gray-50 md:rounded-[24px] px-6 md:px-10 py-10">
+        <div className="grid lg:grid-cols-2 gap-10 md:gap-16 items-center">
 
           {/* LEFT CONTENT */}
           <div>
@@ -13,8 +13,8 @@ const WhoWeAre = () => {
               className="
                 font-cabinet
                 font-bold
-                text-[48px]
-                leading-[60px]
+                text-[32px] md:text-[48px]
+                leading-tight md:leading-[60px]
                 mb-6
                 text-black
               "

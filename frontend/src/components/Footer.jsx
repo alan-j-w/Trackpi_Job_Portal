@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+// src/components/Footer.
+import { Link } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import {
     FaInstagram,

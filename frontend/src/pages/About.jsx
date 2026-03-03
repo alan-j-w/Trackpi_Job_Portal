@@ -9,10 +9,12 @@ import Team from "../components/AboutUs/Team";
 import JoinOurTeam from "../components/AboutUs/JoinOurTeam";
 import WhoWeAreTitle from "../components/AboutUs/WhoWeAreTitle";
 
+
 const About = () => {
   return (
-    <div className="">
+    <div className="relative overflow-x-hidden">
       <Navbar mode="public" />
+
       <AboutHero />
       <WhyChoose />
       <WhoWeAreTitle />
