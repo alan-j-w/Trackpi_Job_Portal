@@ -6,6 +6,8 @@ const Education = () => {
     const { resumeData, setResumeData } = useResume();
     const { education } = resumeData;
 
+    const [isAdding, setIsAdding] = useState(false);
+
     // Local state for the new entry being added form
     const [newEdu, setNewEdu] = useState({
         school: '',
@@ -60,64 +62,91 @@ const Education = () => {
             </div>
 
             {/* Add New Education Form */}
-            <div className="bg-white p-4 border rounded-xl space-y-4">
-                <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Add Education</h4>
-                <div>
-                    <input
-                        type="text"
-                        name="school"
-                        value={newEdu.school}
-                        onChange={handleChange}
-                        placeholder="School / University"
-                        className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
-                    />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                        type="text"
-                        name="degree"
-                        value={newEdu.degree}
-                        onChange={handleChange}
-                        placeholder="Degree (e.g. BSc Computer Science)"
-                        className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
-                    />
-                    <div className="flex gap-4">
+            {isAdding ? (
+                <div className="bg-white p-6 border border-gray-300 rounded-2xl space-y-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-lg font-bold text-gray-800">Add Education Details</h4>
+                        <button onClick={() => setIsAdding(false)} className="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1">School / University</label>
                         <input
                             type="text"
-                            name="year"
-                            value={newEdu.year}
+                            name="school"
+                            value={newEdu.school}
                             onChange={handleChange}
-                            placeholder="Year"
-                            className="w-1/2 border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
-                        />
-                        <input
-                            type="text"
-                            name="gpa"
-                            value={newEdu.gpa}
-                            onChange={handleChange}
-                            placeholder="GPA"
-                            className="w-1/2 border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                            placeholder="e.g. Oxford University"
+                            className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
                         />
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-900 mb-1">Degree</label>
+                            <input
+                                type="text"
+                                name="degree"
+                                value={newEdu.degree}
+                                onChange={handleChange}
+                                placeholder="e.g. BSc Computer Science"
+                                className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                            />
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="w-1/2">
+                                <label className="block text-sm font-semibold text-gray-900 mb-1">Year</label>
+                                <input
+                                    type="text"
+                                    name="year"
+                                    value={newEdu.year}
+                                    onChange={handleChange}
+                                    placeholder="2020-2024"
+                                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                                />
+                            </div>
+                            <div className="w-1/2">
+                                <label className="block text-sm font-semibold text-gray-900 mb-1">GPA</label>
+                                <input
+                                    type="text"
+                                    name="gpa"
+                                    value={newEdu.gpa}
+                                    onChange={handleChange}
+                                    placeholder="GPA"
+                                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1">Description</label>
+                        <textarea
+                            name="description"
+                            value={newEdu.description}
+                            onChange={handleChange}
+                            placeholder="Relevant Coursework, Honors, etc."
+                            rows="3"
+                            className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition resize-none"
+                        />
+                    </div>
+
+                    <button
+                        onClick={() => { handleAdd(); setIsAdding(false); }}
+                        disabled={!newEdu.school || !newEdu.degree}
+                        className="w-full py-3 mt-4 bg-[#FFB300] hover:bg-[#faa300] text-gray-900 font-bold rounded-xl transition disabled:opacity-50"
+                    >
+                        Save Education
+                    </button>
                 </div>
-
-                <textarea
-                    name="description"
-                    value={newEdu.description}
-                    onChange={handleChange}
-                    placeholder="Relevant Coursework, Honors, etc."
-                    rows="2"
-                    className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition resize-none"
-                />
-
-                <button
-                    onClick={handleAdd}
-                    disabled={!newEdu.school || !newEdu.degree}
-                    className="w-full flex items-center justify-center gap-2 py-3 mt-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <Plus size={18} /> Add Education
-                </button>
-            </div>
+            ) : (
+                <div className="border hover:border-gray-500 transition border-gray-400 rounded-2xl h-48 flex flex-col items-center justify-center bg-white shadow-sm">
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition border border-gray-300 shadow-sm"
+                    >
+                        Add more Education +
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

@@ -20,9 +20,9 @@ const ContactConnect = () => {
                 >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Card 1: Visit Us */}
-                        <div className="bg-[#FFFDF5] rounded-2xl p-6 flex items-center gap-5 shadow-sm">
+                        <div className="bg-[#FFFDF5] rounded-l-full rounded-tr-2xl rounded-br-2xl p-6 flex items-center gap-5 shadow-sm">
                             <div className="bg-white p-3 rounded-full text-[#FFB300] shadow-sm flex-shrink-0">
-                                <MapPin size={28} fill="currentColor" className="text-[#FFB300]" />
+                                <MapPin size={28} className="text-[#FFB300]" />
                             </div>
                             <div className="text-left">
                                 <h3 className="font-bold text-lg text-black">Visit Us</h3>
@@ -33,7 +33,7 @@ const ContactConnect = () => {
                         {/* Card 2: Email Us */}
                         <div className="bg-[#FFFDF5] rounded-2xl p-6 flex items-center gap-5 shadow-sm">
                             <div className="bg-white p-3 rounded-full text-[#FFB300] shadow-sm flex-shrink-0">
-                                <Mail size={28} fill="currentColor" className="text-[#FFB300]" />
+                                <Mail size={28} className="text-[#FFB300]" />
                             </div>
                             <div className="text-left">
                                 <h3 className="font-bold text-lg text-black">Email Us</h3>
@@ -42,9 +42,9 @@ const ContactConnect = () => {
                         </div>
 
                         {/* Card 3: Call Us */}
-                        <div className="bg-[#FFFDF5] rounded-2xl p-6 flex items-center gap-5 shadow-sm">
+                        <div className="bg-[#FFFDF5] rounded-r-full rounded-tl-2xl rounded-bl-2xl p-6 flex items-center gap-5 shadow-sm">
                             <div className="bg-white p-3 rounded-full text-[#FFB300] shadow-sm flex-shrink-0">
-                                <Phone size={28} fill="currentColor" className="text-[#FFB300]" />
+                                <Phone size={28} className="text-[#FFB300]" />
                             </div>
                             <div className="text-left">
                                 <h3 className="font-bold text-lg text-black">Call Us</h3>

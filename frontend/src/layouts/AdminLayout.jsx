@@ -18,6 +18,7 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
 } from "lucide-react";
 import logo from "../assets/logo.png";
 import { PERMISSIONS } from "../constants/permissions";
@@ -25,8 +26,14 @@ import { getUserRole, getDecodedToken } from "../utils/auth";
 
 const AdminLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [openDropdowns, setOpenDropdowns] = useState({});
     const location = useLocation();
     const navigate = useNavigate();
+
+    const toggleDropdown = (name) => {
+        setOpenDropdowns(prev => ({ ...prev, [name]: !prev[name] }));
+        if (!isSidebarOpen) setIsSidebarOpen(true);
+    };
 
     // Auth State
     const role = getUserRole();
@@ -69,15 +76,27 @@ const AdminLayout = () => {
         { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_VIEW },
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
-        { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW },
-        { name: "User permission", path: "/admin/permissions", icon: Lock, permission: PERMISSIONS.ROLES_VIEW },
-        { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_VIEW },
+        {
+            name: "Permission Management",
+            icon: ShieldCheck,
+            children: [
+                { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW },
+                { name: "User permission", path: "/admin/permissions", icon: Lock, permission: PERMISSIONS.ROLES_VIEW },
+                { name: "User management", path: "/admin/users", icon: Users, permission: PERMISSIONS.USERS_VIEW },
+            ]
+        },
         { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
-        { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_VIEW },
-        { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW },
-        { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES_VIEW },
-        { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.VIDEO_VIEW },
-        { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.WINNERS_VIEW },
+        {
+            name: "Talent League",
+            icon: Trophy,
+            children: [
+                { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_VIEW },
+                { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW },
+                { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES_VIEW },
+                { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.VIDEO_VIEW },
+                { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.WINNERS_VIEW },
+            ]
+        },
     ];
 
     return (
@@ -109,34 +128,90 @@ const AdminLayout = () => {
                     <ul className="space-y-1 px-2">
                         {menuItems.map((item, index) => {
                             // Filter Logic
-                            // Super Admin & Admin see everything (except superAdminOnly items for Admin)
                             if (role !== "superadmin" && role !== "admin") {
                                 if (item.superAdminOnly) return null;
-                                // If item has specific perm requirment and user doesn't have it
-                                if (item.permission && !userPermissions.includes(item.permission)) {
-                                    // Skip rendering
+                                if (item.children) {
+                                    const visibleChildren = item.children.filter(child => userPermissions.includes(child.permission));
+                                    if (visibleChildren.length === 0) return null;
+                                } else if (item.permission && !userPermissions.includes(item.permission)) {
                                     return null;
                                 }
                             }
 
                             // Additional check for Safe Admin Mode for Admin role
-                            // If we want to hide "superAdminOnly" items from Admin explicitly
                             if (role === "admin" && item.superAdminOnly) {
                                 return null;
                             }
 
+                            // Dropdown Menu Item
+                            if (item.children) {
+                                const isActive = item.children.some((child) => location.pathname === child.path);
+                                const isOpen = openDropdowns[item.name];
+
+                                return (
+                                    <li key={index} className="space-y-1">
+                                        <button
+                                            onClick={() => toggleDropdown(item.name)}
+                                            className={`
+                                                w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200
+                                                ${isActive || isOpen
+                                                    ? "bg-yellow-50 text-yellow-600"
+                                                    : "text-gray-600 hover:bg-yellow-50 hover:text-yellow-600"
+                                                }
+                                            `}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <item.icon size={20} />
+                                                {isSidebarOpen && (
+                                                    <span className="font-medium text-sm whitespace-nowrap">
+                                                        {item.name}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {isSidebarOpen && (
+                                                <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                                            )}
+                                        </button>
+
+                                        {isSidebarOpen && isOpen && (
+                                            <ul className="mt-1 space-y-1">
+                                                {item.children.map((child, childIdx) => {
+                                                    if (role !== "superadmin" && role !== "admin" && !userPermissions.includes(child.permission)) return null;
+
+                                                    const isChildActive = location.pathname === child.path;
+                                                    return (
+                                                        <li key={childIdx}>
+                                                            <Link
+                                                                to={child.path}
+                                                                className={`
+                                                                    flex items-center gap-3 px-4 pl-11 py-2 rounded-lg transition-all duration-200
+                                                                    ${isChildActive
+                                                                        ? "bg-yellow-400 text-white shadow-md transform scale-105"
+                                                                        : "text-gray-500 hover:bg-yellow-50 hover:text-yellow-600"
+                                                                    }
+                                                                `}
+                                                            >
+                                                                <child.icon size={16} />
+                                                                <span className="font-medium text-sm whitespace-nowrap">
+                                                                    {child.name}
+                                                                </span>
+                                                            </Link>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        )}
+                                    </li>
+                                );
+                            }
+
+                            // Standard Nav Item
                             const isActive = location.pathname === item.path;
                             return (
                                 <li key={index}>
                                     <Link
                                         to={item.path}
-                                        className={`
-                      flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-                      ${isActive
-                                                ? "bg-yellow-400 text-white shadow-md transform scale-105"
-                                                : "text-gray-600 hover:bg-yellow-50 hover:text-yellow-600"
-                                            }
-                    `}
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive ? "bg-yellow-400 text-white shadow-md transform scale-105" : "text-gray-600 hover:bg-yellow-50 hover:text-yellow-600"}`}
                                     >
                                         <item.icon size={20} />
                                         {isSidebarOpen && (

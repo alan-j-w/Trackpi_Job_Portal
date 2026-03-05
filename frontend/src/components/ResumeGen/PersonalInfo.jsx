@@ -15,75 +15,83 @@ const PersonalInfo = () => {
             <h3 className="text-xl font-bold text-gray-800">Personal Info</h3>
 
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Full Name</label>
                 <input
                     type="text"
                     name="fullName"
-                    value={personalInfo.fullName}
+                    value={personalInfo.fullName || ''}
                     onChange={handleChange}
                     placeholder="Enter your name"
-                    className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={personalInfo.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+            <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">
+                    Phone <span className="text-[#FFB300] font-normal text-xs">( Whats App connecting number )</span>
+                </label>
+                <div className="flex border-b border-gray-300 focus-within:border-[#FFB300] transition items-center">
+                    <select className="bg-transparent text-gray-600 outline-none py-2 text-sm cursor-pointer appearance-none pr-4 relative">
+                        <option value="+91">+91 ▾</option>
+                        <option value="+1">+1 ▾</option>
+                        <option value="+44">+44 ▾</option>
+                    </select>
                     <input
                         type="text"
                         name="phone"
-                        value={personalInfo.phone}
+                        value={personalInfo.phone || ''}
                         onChange={handleChange}
-                        placeholder="+123-456-7890"
-                        className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                        placeholder="Enter your phone number"
+                        className="w-full outline-none py-2 bg-transparent ml-2"
                     />
                 </div>
             </div>
 
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Address</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Email</label>
+                <input
+                    type="email"
+                    name="email"
+                    value={personalInfo.email || ''}
+                    onChange={handleChange}
+                    placeholder="Enter your email"
+                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Home town</label>
                 <input
                     type="text"
                     name="address"
-                    value={personalInfo.address}
+                    value={personalInfo.address || ''}
                     onChange={handleChange}
-                    placeholder="New York, NY"
-                    className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                    placeholder="Enter your location"
+                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
                 />
             </div>
 
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Professional Role</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Professional role</label>
                 <input
                     type="text"
                     name="role"
-                    value={personalInfo.role}
+                    value={personalInfo.role || ''}
                     onChange={handleChange}
-                    placeholder="e.g. Software Engineer"
-                    className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
+                    placeholder="Type here..."
+                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition"
                 />
             </div>
 
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Profile Summary</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Profile Summary</label>
                 <textarea
                     name="summary"
-                    value={personalInfo.summary}
+                    value={personalInfo.summary || ''}
                     onChange={handleChange}
-                    placeholder="Brief summary of your professional background..."
-                    rows="4"
-                    className="w-full border-b-2 border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition resize-none"
+                    placeholder="Type here..."
+                    rows="3"
+                    className="w-full border-b border-gray-300 focus:border-[#FFB300] outline-none py-2 bg-transparent transition resize-none"
                 />
             </div>
         </div>

@@ -4,76 +4,73 @@ import { useResume } from './ResumeContext';
 const ResumePreview = () => {
     const { resumeData } = useResume();
     const { personalInfo, education, experience, skills, additional } = resumeData;
-    const { hard = [], soft = [] } = skills;
+    const { hard = [], soft = [], other = [] } = skills;
     const { projects = [], languages = [], awards = [], interests = [] } = additional;
 
+    const themeColor = "#1D7B64"; // Teal/Green from Figma
+
     return (
-        <div className="w-[210mm] h-[297mm] bg-white shadow-2xl mx-auto p-[15mm] text-gray-800 font-serif leading-relaxed overflow-hidden relative box-border" id="resume-preview">
+        <div className="w-[210mm] h-[297mm] bg-white shadow-2xl mx-auto p-[15mm] text-gray-800 font-sans leading-relaxed overflow-hidden relative box-border" id="resume-preview">
 
             {/* Header */}
-            <div className="text-center mb-6">
-                <h1 className="text-4xl font-bold text-gray-900 mb-2 uppercase tracking-wider">
-                    {personalInfo.fullName || "Your Name"}
+            <div className="text-center mb-4 mt-4">
+                <h1 className="text-[2.2rem] font-serif text-gray-900 mb-1 leading-none tracking-tight">
+                    {personalInfo.fullName || "Emma Ahearn"}
                 </h1>
-                <p className="text-sm font-bold tracking-[0.2em] text-gray-600 uppercase">
-                    {personalInfo.role || "Professional Role"}
+                <p className="text-[11px] font-bold tracking-[0.2em] text-gray-800 uppercase mt-2">
+                    {personalInfo.role || "CHEMIST"}
                 </p>
-                <div className="w-16 h-0.5 bg-gray-900 mx-auto mt-4"></div>
+                <div className="w-full h-[1.5px] bg-gray-900 mt-5 mb-5 opacity-80"></div>
             </div>
 
             {/* Professional Summary */}
-            {personalInfo.summary && (
-                <div className="mb-6 text-center">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2 text-gray-900">Professional Summary</h3>
-                    <p className="text-xs text-center text-gray-700 max-w-xl mx-auto leading-relaxed">
-                        {personalInfo.summary}
-                    </p>
-                </div>
-            )}
+            <div className="mb-5 text-center px-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2 text-gray-900 mt-1">Professional Summary</h3>
+                <p className="text-[9.5px] text-center text-gray-800 italic leading-relaxed">
+                    {personalInfo.summary || "I am a chemistry graduate seeking to apply my extensive academic background and laboratory experience in an organization with an innovative vision. I am looking forward to contributing to a dynamic team and supporting research and development efforts."}
+                </p>
+            </div>
 
             {/* Contact Info */}
-            <div className="flex justify-center flex-wrap gap-x-6 gap-y-2 border-t border-b border-gray-200 py-3 mb-8 text-[9px] uppercase tracking-wider text-gray-500 font-bold">
-                {personalInfo.phone && (
-                    <div>
-                        <span className="text-green-700 mr-1">Phone:</span>
-                        {personalInfo.phone}
-                    </div>
-                )}
-                {personalInfo.email && (
-                    <div>
-                        <span className="text-green-700 mr-1">Email:</span>
-                        {personalInfo.email}
-                    </div>
-                )}
-                {personalInfo.address && (
-                    <div>
-                        <span className="text-green-700 mr-1">Location:</span>
-                        {personalInfo.address}
-                    </div>
-                )}
+            <div className="flex justify-between items-start border-t border-b border-gray-200 py-[12px] mb-6 text-[8.5px] text-gray-700 px-6">
+                <div className="flex flex-col">
+                    <span style={{ color: themeColor }} className="font-bold mb-[2px]">Phone:</span>
+                    <span>{personalInfo.phone || "+123-456-7890"}</span>
+                </div>
+                <div className="flex flex-col">
+                    <span style={{ color: themeColor }} className="font-bold mb-[2px]">Email:</span>
+                    <span>{personalInfo.email || "hello@reallygreatsite.com"}</span>
+                </div>
+                <div className="flex flex-col">
+                    <span style={{ color: themeColor }} className="font-bold mb-[2px]">Location:</span>
+                    <span className="max-w-[120px] leading-tight">{personalInfo.address || "123 Anywhere St., Any City, ST 12345"}</span>
+                </div>
             </div>
 
             {/* Main Content Info */}
-            <div className="space-y-6 text-sm">
+            <div className="space-y-[18px] text-sm px-1">
 
                 {/* Education */}
-                {education.length > 0 && (
+                {(education.length > 0 || !personalInfo.fullName) && (
                     <section>
-                        <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Education</h3>
-                        <div className="space-y-4">
-                            {education.map(edu => (
+                        <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Education</h3>
+                        <div className="space-y-3">
+                            {(education.length > 0 ? education : [{
+                                id: 1, degree: 'Bachelor of Science in Chemistry', year: '2026-2030', school: 'East State University, Valley City',
+                                description: 'Relevant Coursework: Organic Chemistry, Inorganic Chemistry, Physical Chemistry, Analytical Chemistry, Chemical Engineering Principles, Thermodynamics, Material Science\nGPA: 3.8'
+                            }]).map(edu => (
                                 <div key={edu.id}>
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <h4 className="font-bold text-gray-900 text-sm">
-                                            {edu.degree}
-                                        </h4>
-                                        <span className="text-xs font-semibold text-gray-600">{edu.year}</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <p className="text-xs italic text-gray-700">{edu.school}</p>
-                                        {edu.gpa && <p className="text-[10px] text-gray-500 font-medium">GPA: {edu.gpa}</p>}
-                                    </div>
-                                    {edu.description && <p className="text-xs text-gray-600 mt-1">{edu.description}</p>}
+                                    <h4 className="font-bold text-gray-900 text-[9.5px]">
+                                        {edu.degree} {edu.year && <span className="text-gray-900 font-bold">| {edu.year}</span>}
+                                    </h4>
+                                    <p style={{ color: themeColor }} className="text-[8.5px] italic mb-[3px] leading-tight">{edu.school}</p>
+                                    {edu.description && (
+                                        <ul className="list-disc pl-[14px] space-y-[1px]">
+                                            {edu.description.split('\n').map((line, i) => (
+                                                <li key={i} className="text-[9px] text-gray-800 leading-snug">{line}</li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -81,20 +78,26 @@ const ResumePreview = () => {
                 )}
 
                 {/* Experience / Internship */}
-                {experience.length > 0 && (
+                {(experience.length > 0 || !personalInfo.fullName) && (
                     <section>
-                        <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-1 mt-6">Work Experience</h3>
-                        <div className="space-y-4">
-                            {experience.map(exp => (
+                        <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Research Internship</h3>
+                        <div className="space-y-3">
+                            {(experience.length > 0 ? experience : [{
+                                id: 1, role: 'Undergraduate Research Assistant', duration: '2029-2030', company: 'Chemistry Department of East State University',
+                                description: 'Collaborated with a research team to study the synthesis of novel organic compounds\nConducted experiments using chromatography, spectroscopy, and other analytical techniques\nAnalyzed and interpreted data, contributing to a research paper submitted for publication'
+                            }]).map(exp => (
                                 <div key={exp.id}>
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <h4 className="font-bold text-gray-900 text-sm">
-                                            {exp.role}
-                                        </h4>
-                                        <span className="text-xs font-semibold text-gray-600">{exp.duration}</span>
-                                    </div>
-                                    <p className="text-xs italic text-green-700 font-medium mb-1">{exp.company}</p>
-                                    <p className="text-xs text-gray-600 leading-relaxed max-w-[95%] text-justify">{exp.description}</p>
+                                    <h4 className="font-bold text-gray-900 text-[9.5px]">
+                                        {exp.role} {exp.duration && <span className="text-gray-900 font-bold">| {exp.duration}</span>}
+                                    </h4>
+                                    <p style={{ color: themeColor }} className="text-[8.5px] italic mb-[3px] leading-tight">{exp.company}</p>
+                                    {exp.description && (
+                                        <ul className="list-disc pl-[14px] space-y-[1px]">
+                                            {exp.description.split('\n').map((line, i) => (
+                                                <li key={i} className="text-[9px] text-gray-800 leading-snug">{line}</li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -102,81 +105,82 @@ const ResumePreview = () => {
                 )}
 
                 {/* Projects */}
-                {projects.length > 0 && (
+                {(projects.length > 0 || !personalInfo.fullName) && (
                     <section>
-                        <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-1 mt-6">Projects</h3>
-                        <div className="space-y-4">
-                            {projects.map(proj => (
-                                <div key={proj.id}>
-                                    <div className="flex items-baseline gap-2 mb-1">
-                                        <h4 className="font-bold text-gray-900 text-sm">{proj.title}</h4>
-                                        {proj.link && <a href={proj.link} className="text-[9px] text-blue-500 hover:text-blue-700 underline" target="_blank" rel="noreferrer">Link</a>}
-                                    </div>
-                                    <p className="text-xs text-gray-600 leading-relaxed text-justify">{proj.description}</p>
+                        <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Projects</h3>
+                        <div className="space-y-[10px]">
+                            {(projects.length > 0 ? projects : [
+                                { id: 1, title: 'Fabrication of a Miniature Chemical Reactor', link: 'Chemical Engineering Course, Second Semester of 2028', description: 'Engineered a small-scale chemical reactor using principles of chemical engineering\nConducted performance tests and optimization checks to ensure efficiency and safety\nPresented findings to faculty and peers and received excellent marks for innovation' },
+                                { id: 2, title: 'The Green Thumb Chemist', link: 'Chemistry Club, First Semester of 2029', description: 'Developed a project aimed at implementing environmentally-friendly lab practices\nResearched and implemented sustainable alternatives to hazardous chemicals\nEducated peers on the importance of green chemistry through workshops and forums' }
+                            ]).map((proj, idx) => (
+                                <div key={proj.id || idx}>
+                                    <h4 className="font-bold text-gray-900 text-[9.5px] leading-snug">{proj.title}</h4>
+                                    {(proj.link) && <p style={{ color: themeColor }} className="text-[8.5px] italic mb-[3px] leading-tight">{proj.link}</p>}
+                                    {proj.description && (
+                                        <ul className="list-disc pl-[14px] space-y-[1px]">
+                                            {proj.description.split('\n').map((line, i) => (
+                                                <li key={i} className="text-[9px] text-gray-800 leading-snug">{line}</li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             ))}
                         </div>
                     </section>
                 )}
 
-                {/* Skills */}
-                {(hard.length > 0 || soft.length > 0) && (
-                    <section className="mt-6 page-break-inside-avoid">
-                        <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Skills</h3>
-                        <div className="grid grid-cols-2 gap-8">
-                            {hard.length > 0 && (
-                                <div>
-                                    <h4 className="text-[10px] font-bold text-gray-900 uppercase mb-2">Hard Skills</h4>
-                                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                        {hard.map((skill, idx) => (
-                                            <span key={idx} className="text-xs text-gray-700 relative pl-3 before:content-['•'] before:absolute before:left-0 before:text-gray-400">{skill}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            {soft.length > 0 && (
-                                <div>
-                                    <h4 className="text-[10px] font-bold text-gray-900 uppercase mb-2">Soft Skills</h4>
-                                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                        {soft.map((skill, idx) => (
-                                            <span key={idx} className="text-xs text-gray-700 relative pl-3 before:content-['•'] before:absolute before:left-0 before:text-gray-400">{skill}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                {/* Awards */}
+                {(awards.length > 0 || !personalInfo.fullName) && (
+                    <section>
+                        <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Notable Awards</h3>
+                        <ul className="list-disc pl-[14px] space-y-[2px]">
+                            {(awards.length > 0 ? awards : [
+                                'Dean\'s List, East State University, 2026-2030', 'Gold Award, Chemistry Olympiad, 2027'
+                            ]).map((award, idx) => (
+                                <li key={idx} className="text-[9px] text-gray-800 leading-snug">{award}</li>
+                            ))}
+                        </ul>
                     </section>
                 )}
 
-                {/* Awards & Languages */}
-                {(awards.length > 0 || languages.length > 0) && (
-                    <section className="mt-6 page-break-inside-avoid">
-                        <div className="grid grid-cols-2 gap-8">
-                            {awards.length > 0 && (
-                                <div>
-                                    <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Awards</h3>
-                                    <ul className="list-none space-y-1">
-                                        {awards.map((award, idx) => (
-                                            <li key={idx} className="text-xs text-gray-700 relative pl-3 before:content-['•'] before:absolute before:left-0 before:text-gray-400">
-                                                {award}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                            {languages.length > 0 && (
-                                <div>
-                                    <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-1">Languages</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {languages.map((lang, idx) => (
-                                            <span key={idx} className="text-xs text-gray-800 bg-gray-100 px-2 py-1 rounded-sm border border-gray-200">{lang}</span>
-                                        ))}
+                {/* Skills & Others */}
+                {(hard.length > 0 || soft.length > 0 || other.length > 0 || languages.length > 0 || interests.length > 0) && (
+                    <div className="grid grid-cols-2 gap-6 mt-[14px] page-break-inside-avoid pt-2 border-t border-gray-100">
+                        {(hard.length > 0 || soft.length > 0 || other.length > 0) && (
+                            <section>
+                                <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Skills</h3>
+                                <ul className="list-none space-y-[2px]">
+                                    {[...hard, ...soft, ...other].map((skill, idx) => (
+                                        <li key={`skill-${idx}`} className="text-[9px] text-gray-800 pl-2 border-l-2 border-gray-300 leading-snug">{skill}</li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
+                        {(languages.length > 0 || interests.length > 0) && (
+                            <section>
+                                {languages.length > 0 && (
+                                    <div className="mb-3">
+                                        <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Languages</h3>
+                                        <div className="flex flex-wrap gap-1 text-[9px] text-gray-800 font-medium">
+                                            {languages.join(', ')}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    </section>
+                                )}
+                                {interests.length > 0 && (
+                                    <div>
+                                        <h3 style={{ color: themeColor }} className="text-[11px] font-bold uppercase tracking-widest mb-[6px]">Interests</h3>
+                                        <div className="flex flex-wrap gap-1 text-[9px] text-gray-800 font-medium">
+                                            {interests.join(', ')}
+                                        </div>
+                                    </div>
+                                )}
+                            </section>
+                        )}
+                    </div>
                 )}
+
+                {/* Bottom Line Border */}
+                <div className="w-full h-[1.5px] bg-[#1D7B64] mt-8 opacity-60"></div>
 
             </div>
         </div>

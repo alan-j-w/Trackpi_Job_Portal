@@ -17,6 +17,7 @@ import AddHiringPartner from "./pages/admin/AddHiringPartner";
 import HiringPartnerDetails from "./pages/admin/HiringPartnerDetails";
 import EditHiringPartner from "./pages/admin/EditHiringPartner";
 import AdminCandidateDetails from "./pages/admin/AdminCandidateDetails";
+import AdminResumeCandidates from "./pages/admin/AdminResumeCandidates";
 // Import new Admin pages as placeholders or actual if exist, for now just reuse or placeholders for routing
 import UserDashboard from "./pages/user/UserDashboard";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
@@ -128,6 +129,9 @@ function App() {
           {/* Signup Candidates */}
           <Route path="candidates/signup" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW}><AdminApplicants /></ProtectedAdminRoute>} />
           <Route path="candidates/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SIGNUP_VIEW_DETAILS}><AdminCandidateDetails /></ProtectedAdminRoute>} />
+
+          {/* Resume Build Candidates */}
+          <Route path="candidates/resume" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.RESUME_VIEW}><AdminResumeCandidates /></ProtectedAdminRoute>} />
 
           {/* Super Admin Routes */}
           <Route path="management" element={<ProtectedAdminRoute><AdminManagement /></ProtectedAdminRoute>} />

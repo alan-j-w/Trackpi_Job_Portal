@@ -2,6 +2,15 @@ import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { API_URL } from "../../config";
+import { Send } from "lucide-react";
+
+const countryCodes = [
+    { code: "+91", country: "🇮🇳", label: "India" },
+    { code: "+1", country: "🇺🇸", label: "USA" },
+    { code: "+44", country: "🇬🇧", label: "UK" },
+    { code: "+61", country: "🇦🇺", label: "Australia" },
+    { code: "+971", country: "🇦🇪", label: "UAE" }
+];
 
 const ContactForm = () => {
     const [formData, setFormData] = useState({
@@ -10,7 +19,9 @@ const ContactForm = () => {
         phone: "",
         location: "Where are you located?",
         hearAboutUs: "How did you hear about us?",
-        message: ""
+        message: "",
+        countryCode: "+91",
+        countryFlag: "🇮🇳"
     });
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
@@ -18,6 +29,16 @@ const ContactForm = () => {
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleCountryChange = (e) => {
+        const selectedCode = e.target.value;
+        const selectedCountry = countryCodes.find(c => c.code === selectedCode);
+        setFormData({
+            ...formData,
+            countryCode: selectedCode,
+            countryFlag: selectedCountry ? selectedCountry.country : "🌐"
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -32,7 +53,13 @@ const ContactForm = () => {
         }
 
         try {
-            await axios.post(`${API_URL}/api/contact/submit`, formData);
+            // Include country code with phone number for backend
+            const payload = {
+                ...formData,
+                phone: formData.phone ? `${formData.countryCode} ${formData.phone}` : ""
+            };
+
+            await axios.post(`${API_URL}/api/contact/submit`, payload);
             toast.success("Message sent successfully! We'll be in touch soon.");
             setFormData({
                 name: "",
@@ -40,11 +67,13 @@ const ContactForm = () => {
                 phone: "",
                 location: "Where are you located?",
                 hearAboutUs: "How did you hear about us?",
-                message: ""
+                message: "",
+                countryCode: "+91",
+                countryFlag: "🇮🇳"
             });
         } catch (error) {
             console.error("Error submitting form:", error);
-            const msg = error.response?.data?.message || "Failed to send message. Please try again.";
+            const msg = error.response?.data?.message || error.message || "Failed to send message. Please try again.";
             toast.error(msg);
         } finally {
             setLoading(false);
@@ -82,15 +111,26 @@ const ContactForm = () => {
                 </div>
                 <div>
                     <label className="block text-sm font-semibold mb-2">Phone number (Optional)</label>
-                    <div className="flex gap-2">
-                        <span className="p-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">🇮🇳 +91</span>
+                    <div className="flex bg-gray-50 rounded-lg border border-gray-200 focus-within:border-[#FFB300] transition">
+                        <select
+                            className="bg-gray-100 border-r border-gray-200 text-gray-700 outline-none p-3 rounded-l-lg appearance-none cursor-pointer pr-8 relative z-10 font-medium"
+                            value={formData.countryCode}
+                            onChange={handleCountryChange}
+                            style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg fill="none" viewBox="0 0 24 24" stroke="gray" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.2em' }}
+                        >
+                            {countryCodes.map((c) => (
+                                <option key={c.code} value={c.code}>
+                                    {c.country} {c.code}
+                                </option>
+                            ))}
+                        </select>
                         <input
                             type="tel"
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
                             placeholder="Mobile number"
-                            className="flex-1 p-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#FFB300] bg-gray-50"
+                            className="flex-1 p-3 bg-transparent border-none outline-none focus:ring-0"
                         />
                     </div>
                 </div>
@@ -150,8 +190,9 @@ const ContactForm = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-[#FFB300] hover:bg-[#ffca2c] text-black font-bold py-4 rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex justify-center items-center gap-2 bg-[#FFB300] hover:bg-[#e6a200] text-white font-bold py-4 rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                    <Send size={20} />
                     {loading ? "Sending..." : "Send Message"}
                 </button>
             </form>

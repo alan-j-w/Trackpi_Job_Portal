@@ -158,7 +158,7 @@ const AdminHiringPartners = () => {
                                 <th className="p-4">Organization name</th>
                                 <th className="p-4 text-center">Logo</th>
                                 <th className="p-4 text-center">Email</th>
-                                <th className="p-4 w-1/3">About company</th>on 
+                                <th className="p-4 w-1/3">About company</th>
                                 <th className="p-4 text-center">Actions</th>
                             </tr>
                         </thead>
