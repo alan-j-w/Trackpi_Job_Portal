@@ -6,7 +6,7 @@ const EditIcon = ({ className, onClick }) => (
     </svg>
 );
 
-const ProfileSummary = ({ summary, onEdit, onAdd, readOnly }) => {
+const ProfileSummary = ({ summary, onEdit, onAdd }) => {
     return (
         <div className="py-6 border-b border-black">
             <div className="flex justify-between items-start mb-4">

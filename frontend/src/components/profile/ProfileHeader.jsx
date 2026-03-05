@@ -25,7 +25,7 @@ const Tag = ({ label, deletable }) => (
     </span>
 );
 
-const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, onDeleteCover, onDeleteProfileImage, onShare, readOnly }) => {
+const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, onDeleteCover, onDeleteProfileImage, onShare }) => {
     const coverInputRef = React.useRef(null);
     const profileInputRef = React.useRef(null);
     const [showCoverMenu, setShowCoverMenu] = useState(false);
@@ -88,18 +88,16 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                     </>
                 ) : (
                     <div className="w-full h-full flex items-end justify-center">
-                        <img src="/cover-placeholder.png" alt="Add cover" className={`h-[200px] object-contain ${readOnly ? '' : 'cursor-pointer hover:opacity-100'} opacity-90 transition`} onClick={() => !readOnly && coverInputRef.current?.click()} />
+                        <img src="/cover-placeholder.png" alt="Add cover" className="h-[200px] object-contain cursor-pointer opacity-90 hover:opacity-100 transition" onClick={() => coverInputRef.current?.click()} />
                     </div>
                 )}
 
                 <div className="absolute inset-0 max-w-[1440px] mx-auto px-4 md:px-12 pointer-events-none">
                     <div className="absolute top-6 right-4 md:right-12 pointer-events-auto z-30" ref={menuRef}>
-                        {!readOnly && (
-                            <EditIcon
-                                onClick={() => setShowCoverMenu(!showCoverMenu)}
-                                className="bg-white border border-gray-300 shadow-md hover:bg-gray-50 w-[41px] h-[41px] rounded-full p-2.5 text-black relative"
-                            />
-                        )}
+                        <EditIcon
+                            onClick={() => setShowCoverMenu(!showCoverMenu)}
+                            className="bg-white border border-gray-300 shadow-md hover:bg-gray-50 w-[41px] h-[41px] rounded-full p-2.5 text-black relative"
+                        />
 
                         {/* Dropdown Menu */}
                         {showCoverMenu && (
@@ -151,15 +149,13 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                 )}
 
                                 {/* Overlay for upload hint */}
-                                {!readOnly && (
-                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                                        <div className="bg-white/90 p-2 rounded-full shadow-lg">
-                                            <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                        </div>
+                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                                    <div className="bg-white/90 p-2 rounded-full shadow-lg">
+                                        <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
 
