@@ -17,31 +17,41 @@ const resumeStorage = new CloudinaryStorage({
     cloudinary,
     params: async (req, file) => {
         const user = req.user;
-        let filename = `resume_${user.id}_${Date.now()}`; // Fallback
+        let filename = `resume_${Date.now()}`;
 
         if (user && user.name) {
-            // Sanitize: Replace spaces with underscores, remove special chars
             const sanitized = user.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
-            filename = `${sanitized}_resume`;
+            filename = `${sanitized}_resume_${Date.now()}`;
+        } else if (req.body.name) {
+            // Fallback for guest application
+            const sanitized = req.body.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+            filename = `${sanitized}_resume_${Date.now()}`;
         }
 
         return {
             folder: "trackpi/profile/resumes",
-            resource_type: "raw", // IMPORTANT for PDF/DOC
-            public_id: filename,
-            format: "pdf" // Explicitly ensure PDF extension
+            resource_type: "raw",
+            type: "upload",
+            public_id: filename
         };
     },
 });
 
 export const uploadImage = multer({
     storage: imageStorage,
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 export const uploadResume = multer({
     storage: resumeStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "application/pdf") {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed!"), false);
+        }
+    }
 });
 
 /* TESTIMONIAL STORAGE (Images + Video) */

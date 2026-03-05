@@ -26,7 +26,7 @@ const LanguageSection = ({ languages, onAdd, onManage, readOnly }) => {
     };
 
     return (
-        <div className="py-5 border-b border-gray-200">
+        <div className="py-5 border-b border-black">
             <div className="flex justify-between items-center mb-5">
                 <h2 className="font-bold text-lg text-black">Language</h2>
                 {!readOnly && (

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { applyForJob } from "../../jobService";
 import trackpiLogo from "../../assets/badges/trackpi-striped.png";
+import config from "../../config";
 
 const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -10,6 +12,56 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         experience: "",
         portfolio: "",
     });
+
+    const [profile, setProfile] = useState(null);
+    const [useProfileResume, setUseProfileResume] = useState(false);
+
+    // Load user data and profile on mount
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const storedUser = localStorage.getItem("user");
+            const token = localStorage.getItem("token");
+
+            if (storedUser) {
+                try {
+                    const user = JSON.parse(storedUser);
+                    setFormData(prev => ({
+                        ...prev,
+                        name: user.name || "",
+                        email: user.email || ""
+                    }));
+                } catch (e) {
+                    console.error("Error parsing user data", e);
+                }
+            }
+
+            if (token) {
+                try {
+                    const res = await axios.get(`${config.API_URL}/api/profile/me`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.data.success && res.data.profile) {
+                        const p = res.data.profile;
+                        setProfile(p);
+                        setFormData(prev => ({
+                            ...prev,
+                            name: p.fullName || prev.name,
+                            email: p.email || prev.email,
+                            phone: p.phone || prev.phone,
+                        }));
+                        if (p.resumeUrl) {
+                            setUseProfileResume(true);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching profile", err);
+                }
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
     const [resume, setResume] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
@@ -29,9 +81,9 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                 e.target.value = null; // Reset input
                 return;
             }
-            const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const validTypes = ['application/pdf'];
             if (!validTypes.includes(file.type)) {
-                setFileError("Invalid format. Please upload PDF, DOC, or DOCX.");
+                setFileError("Invalid format. Please upload PDF only.");
                 setResume(null);
                 e.target.value = null;
                 return;
@@ -47,7 +99,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         setError(null);
         setMessage(null);
 
-        if (!resume) {
+        if (!resume && !useProfileResume) {
             setError("Please upload your resume.");
             setLoading(false);
             return;
@@ -59,6 +111,20 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         data.append("phone", formData.phone);
         data.append("experience", formData.experience);
         data.append("portfolio", formData.portfolio);
+
+        // Append User ID if available
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                if (user._id || user.id) {
+                    data.append("userId", user._id || user.id);
+                }
+            } catch (e) {
+                // Ignore if parse fails
+            }
+        }
+
         if (resume) {
             data.append("resume", resume);
         }
@@ -76,7 +142,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                     onSuccess();
                 }, 2000);
             } else {
-                setError(res.message || "Failed to submit application.");
+                setError(res.message || res.error || "Failed to submit application.");
             }
         } catch (err) {
             console.error(err);
@@ -128,6 +194,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                         {error}
                     </div>
                 )}
+
 
                 {/* 1. Personal Information */}
                 <div>
@@ -209,23 +276,44 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                         {/* Resume Upload */}
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold text-black">Resume / CV Upload</label>
-                            <div className="flex items-center gap-2">
-                                <div className="relative px-2 py-1 bg-[#E9E9E9] border border-gray-400 rounded overflow-hidden flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
-                                    <span className="text-[9px] font-bold text-black">Choose file</span>
-                                    <input
-                                        type="file"
-                                        accept=".pdf,.doc,.docx"
-                                        onChange={handleFileChange}
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                    />
+
+                            {profile?.resumeUrl && (
+                                <div className="flex items-center gap-2 mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                    <div className="flex-grow">
+                                        <p className="text-[10px] font-bold text-green-700">Profile Resume Found</p>
+                                        <p className="text-[9px] text-green-600 truncate">Using your uploaded resume from profile</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUseProfileResume(!useProfileResume)}
+                                        className={`text-[9px] font-bold px-2 py-1 rounded border transition-colors ${useProfileResume ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300'}`}
+                                    >
+                                        {useProfileResume ? "Using Profile" : "Upload New"}
+                                    </button>
                                 </div>
-                                <span className="text-[9px] text-gray-500 truncate max-w-[150px]">{resume ? resume.name : ""}</span>
-                            </div>
-                            <p className="text-[#8A8A8A] text-[9px] mt-0.5 tracking-wide leading-tight">PDF/DOC, file size limit</p>
-                            {fileError && (
-                                <p className="text-red-500 text-[9px] mt-0.5 flex items-center gap-1 animate-pulse">
-                                    <i className="ri-error-warning-line"></i> {fileError}
-                                </p>
+                            )}
+
+                            {!useProfileResume && (
+                                <div className="animate-fadeIn">
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative px-2 py-1 bg-[#E9E9E9] border border-gray-400 rounded overflow-hidden flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
+                                            <span className="text-[9px] font-bold text-black">Choose file</span>
+                                            <input
+                                                type="file"
+                                                accept=".pdf"
+                                                onChange={handleFileChange}
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                            />
+                                        </div>
+                                        <span className="text-[9px] text-gray-500 truncate max-w-[150px]">{resume ? resume.name : ""}</span>
+                                    </div>
+                                    <p className="text-[#8A8A8A] text-[9px] mt-0.5 tracking-wide leading-tight">PDF only, 2MB limit</p>
+                                    {fileError && (
+                                        <p className="text-red-500 text-[9px] mt-0.5 flex items-center gap-1 animate-pulse">
+                                            <i className="ri-error-warning-line"></i> {fileError}
+                                        </p>
+                                    )}
+                                </div>
                             )}
                         </div>
 

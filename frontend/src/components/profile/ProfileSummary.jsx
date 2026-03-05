@@ -8,17 +8,26 @@ const EditIcon = ({ className, onClick }) => (
 
 const ProfileSummary = ({ summary, onEdit, onAdd, readOnly }) => {
     return (
-        <div className="pb-8 border-b border-gray-200">
-            <div className="flex justify-between items-start mb-3">
-                <h2 className="font-bold text-lg text-black">Profile Summary</h2>
-                {!readOnly && <EditIcon className="w-[18px] h-[18px] text-black" onClick={summary ? onEdit : onAdd} />}
+        <div className="py-6 border-b border-black">
+            <div className="flex justify-between items-start mb-4">
+                <h2 className="font-bold text-xl text-black">Profile Summary</h2>
+                <EditIcon className="w-5 h-5 text-black hover:text-gray-600" onClick={summary ? onEdit : onAdd} />
             </div>
-            <p
-                className={`text-gray-700 text-sm leading-relaxed whitespace-pre-wrap ${!readOnly ? 'cursor-pointer hover:bg-gray-50' : ''} rounded p-1 -m-1 transition`}
-                onClick={() => !readOnly && (summary ? onEdit() : onAdd())}
-            >
-                {summary || "Add a summary about yourself..."}
-            </p>
+            {summary ? (
+                <p
+                    className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition"
+                    onClick={onEdit}
+                >
+                    {summary}
+                </p>
+            ) : (
+                <p
+                    className="text-gray-400 text-sm italic cursor-pointer hover:text-[#FFB300] transition-colors"
+                    onClick={onAdd}
+                >
+                    Add a summary about yourself...
+                </p>
+            )}
         </div>
     );
 };

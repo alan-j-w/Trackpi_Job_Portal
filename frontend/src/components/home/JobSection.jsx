@@ -1,17 +1,25 @@
 import { useEffect, useState, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import JobCard from "./JobCard";
 import JobDetailsModal from "./JobDetailsModal";
 import Pagination from "./Pagination";
 import "remixicon/fonts/remixicon.css";
 import { API_URL } from "../../config";
 
-const JobSection = () => {
+const JobSection = ({ className = "", isHome = false }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialKeyword = searchParams.get("keyword") || "";
+  const initialLocation = searchParams.get("location") || "";
+  const initialExperience = searchParams.get("experience") || "";
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedJobId, setSelectedJobId] = useState(null);
 
   // Filter & Search State
-  const [searchTerm, setSearchTerm] = useState("");
+  const initialSearch = initialKeyword || initialLocation ? `${initialKeyword} ${initialLocation}`.trim() : "";
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [openSort, setOpenSort] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
   const [sortType, setSortType] = useState("Sort");
@@ -21,16 +29,11 @@ const JobSection = () => {
     education: [],
     jobType: [], // Contract type
     industry: [],
-    experience: [],
-    posted: []
+    experience: initialExperience ? [initialExperience] : [],
   });
 
   const [expandedSections, setExpandedSections] = useState({
     education: true,
-    jobType: true,
-    industry: true,
-    experience: true,
-    posted: true
   });
 
   // Pagination State
@@ -62,13 +65,12 @@ const JobSection = () => {
       try {
         const res = await fetch(`${API_URL}/api/jobs`);
         const data = await res.json();
-        // Mocking 'views' and 'createdAt' for demonstration if missing
         const enrichedData = Array.isArray(data) ? data
           .filter(job => job.status !== 'closed')
           .map((job, index) => ({
             ...job,
-            views: job.views || Math.floor(Math.random() * 1000) + 50, // Mock views key
-            createdAt: job.createdAt || new Date(Date.now() - index * 86400000).toISOString() // Mock date
+            views: job.views || Math.floor(Math.random() * 1000) + 50,
+            createdAt: job.createdAt || new Date(Date.now() - index * 86400000).toISOString()
           })) : [];
         setJobs(enrichedData);
       } catch (error) {
@@ -96,14 +98,18 @@ const JobSection = () => {
     {
       id: "industry",
       label: "Industry",
-      options: ["Accounting", "Banking", "Designing", "IT", "Marketing", "Finance"]
+      options: ["Accounting", "Banking", "UI/UX Designing", "IT", "Marketing", "Finance"]
     },
     {
       id: "experience",
       label: "Experience level",
       options: ["Freshers", "Entry Level (1-2 yr)", "Mid Level (4-5 yr)", "Senior Level (5+ yr)"]
     },
-
+    {
+      id: "posted",
+      label: "Job posted",
+      options: ["Most viewed", "Newest", "Urgent"]
+    }
   ];
 
   /* -------------------- Logic -------------------- */
@@ -112,7 +118,15 @@ const JobSection = () => {
     // 1. Education
     if (filters.education && filters.education.length > 0) {
       const jobEdu = job.education?.toLowerCase() || "";
-      const matches = filters.education.some(f => jobEdu.includes(f.toLowerCase()));
+      const matches = filters.education.some(f => {
+        if (jobEdu.includes("any")) return true;
+
+        const filterStr = f.toLowerCase().trim();
+        if (filterStr === "post graduate" && (jobEdu.includes("post graduate") || jobEdu.includes("post graduation") || jobEdu.includes("pg") || jobEdu.includes("master") || jobEdu.includes("post-graduation"))) return true;
+        if (filterStr === "graduate" && (jobEdu.includes("graduate") || jobEdu.includes("graduation") || jobEdu.includes("degree") || jobEdu.includes("bachelor")) && !jobEdu.includes("post")) return true;
+        if (filterStr === "plus two" && (jobEdu.includes("plus two") || jobEdu.includes("plus 2") || jobEdu.includes("+2") || jobEdu.includes("12th") || jobEdu.includes("twelfth") || jobEdu.includes("12 th"))) return true;
+        return jobEdu.includes(filterStr);
+      });
       if (!matches) return false;
     }
 
@@ -120,8 +134,8 @@ const JobSection = () => {
     if (filters.jobType && filters.jobType.length > 0) {
       const jobType = job.jobType?.toLowerCase() || "";
       const matches = filters.jobType.some(f => {
-        if (f === "job") return jobType.includes("full time");
-        if (f === "Part Time") return jobType.includes("part time");
+        if (f === "Full Time") return jobType.includes("full time") || jobType.includes("full-time");
+        if (f === "Part Time") return jobType.includes("part time") || jobType.includes("part-time");
         return jobType.includes(f.toLowerCase());
       });
       if (!matches) return false;
@@ -129,8 +143,18 @@ const JobSection = () => {
 
     // 3. Industry
     if (filters.industry && filters.industry.length > 0) {
-      const text = (job.title + " " + job.company).toLowerCase();
-      const matches = filters.industry.some(f => text.includes(f.toLowerCase()));
+      const text = (job.title + " " + job.company + " " + (job.skills || "") + " " + (job.description || "")).toLowerCase();
+      const matches = filters.industry.some(f => {
+        const filterStr = f.toLowerCase();
+        if (filterStr === "ui/ux designing") return /\b(design|designer|ui|ux|ui\/ux|figma|graphics)\b/i.test(text);
+        if (filterStr === "it") return /\b(it|software|developer|tech|programmer|engineer)\b/i.test(text);
+        if (filterStr === "banking") return /\b(bank|banking|finance|loan)\b/i.test(text);
+        if (filterStr === "accounting") return /\b(account|accounting|tax|audit|bookkeeping|bookkeep)\b/i.test(text);
+        if (filterStr === "marketing") return /\b(market|marketing|sales|bpo|seo|executive)\b/i.test(text);
+        if (filterStr === "finance") return /\b(finance|financial|bank|banking|account|investment)\b/i.test(text);
+
+        return text.includes(filterStr);
+      });
       if (!matches) return false;
     }
 
@@ -138,17 +162,16 @@ const JobSection = () => {
     if (filters.experience && filters.experience.length > 0) {
       const jobExp = job.experience?.toLowerCase() || "";
       const matches = filters.experience.some(f => {
-        if (f === "Freshers") return jobExp.includes("fresher") || jobExp.includes("0");
-        if (f.startsWith("Entry")) return jobExp.includes("1") || jobExp.includes("2");
-        if (f.startsWith("Mid")) return jobExp.includes("3") || jobExp.includes("4") || jobExp.includes("5");
-        if (f.startsWith("Senior")) return jobExp.includes("5") || jobExp.includes("6");
+        if (jobExp.includes("any")) return true;
+
+        if (f === "Freshers") return jobExp.includes("fresher") || /\b0\b/.test(jobExp);
+        if (f.startsWith("Entry")) return /\b[1-2]\b/.test(jobExp) || jobExp.includes("entry");
+        if (f.startsWith("Mid")) return /\b[3-4]\b/.test(jobExp) || jobExp.includes("mid");
+        if (f.startsWith("Senior")) return /\b([5-9]|[1-9][0-9]+)\b/.test(jobExp) || jobExp.includes("senior");
         return jobExp.includes(f.toLowerCase());
       });
       if (!matches) return false;
     }
-
-    // 5. Job Posted (Logic moved to Sort, but if used as distinct filter, we can keep logic here.
-    // Currently treating it as visual sort toggle.)
 
     return true;
   };
@@ -166,23 +189,21 @@ const JobSection = () => {
 
   // Sort Logic
   const sortedJobs = [...currentFilteredJobs].sort((a, b) => {
-    const posted = filters.posted || [];
-
     // 1. Urgent Priority
-    if (posted.includes("Urgent")) {
+    if (sortType === "Urgent") {
       if (a.status === "urgent" && b.status !== "urgent") return -1;
       if (a.status !== "urgent" && b.status === "urgent") return 1;
     }
 
     // 2. Most Viewed Priority (Simulated)
-    if (posted.includes("Most viewed")) {
+    if (sortType === "Most viewed") {
       if ((b.views || 0) !== (a.views || 0)) {
         return (b.views || 0) - (a.views || 0);
       }
     }
 
     // 3. Newest Priority
-    if (posted.includes("Newest")) {
+    if (sortType === "Newest" || sortType === "Sort") {
       const dateA = new Date(a.createdAt || 0);
       const dateB = new Date(b.createdAt || 0);
       return dateB - dateA;
@@ -194,20 +215,28 @@ const JobSection = () => {
 
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = sortedJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const currentJobs = isHome ? sortedJobs.slice(0, 4) : sortedJobs.slice(indexOfFirstJob, indexOfLastJob);
   const totalPages = Math.ceil(sortedJobs.length / jobsPerPage);
 
-  console.log("DEBUG: jobs.length:", jobs.length);
-  console.log("DEBUG: sortedJobs.length:", sortedJobs.length);
-  console.log("DEBUG: totalPages:", totalPages);
-  console.log("DEBUG: currentPage:", currentPage);
 
   // Handlers
   const toggleSection = (section) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    setExpandedSections(prev => {
+      // If it's already open, close it (toggle behavior). 
+      // If closing it, we return an empty object to have none open.
+      if (prev[section]) return {};
+      // Otherwise open only the selected section
+      return { [section]: true };
+    });
   };
 
   const toggleFilter = (category, value) => {
+    if (category === "posted") {
+      setSortType(value);
+      setCurrentPage(1);
+      return;
+    }
+
     setFilters(prev => {
       const current = prev[category] || [];
       const updated = current.includes(value)
@@ -223,24 +252,18 @@ const JobSection = () => {
     setCurrentPage(1);
   };
 
-  const handleSort = (type) => {
-    setSortType(type);
-    setOpenSort(false);
 
-    // Legacy handler, now logic is mainly in the toggle of the dropdown
-    setCurrentPage(1);
-  };
 
-  const activeFilterCount = Object.values(filters).flat().length - (filters.posted ? filters.posted.length : 0);
+  const activeFilterCount = Object.values(filters).flat().length;
 
   return (
-    <section className="py-16 bg-white font-['Poppins']">
+    <section className={`py-16 bg-white font-['Satoshi'] ${className}`}>
       <div className="max-w-[1200px] mx-auto px-4">
 
         {/* 1. Header Title */}
         <div className="flex flex-col items-center text-center mb-10">
           <div className="max-w-[421px]">
-            <h2 className="text-[40px] md:text-[48px] font-bold text-black tracking-tight uppercase leading-none">
+            <h2 className="text-[32px] md:text-[48px] font-bold text-black tracking-tight uppercase leading-none font-cabinet">
               JOB LISTING
             </h2>
             <p className="text-[16px] text-gray-600 mt-2 font-medium">
@@ -269,8 +292,8 @@ const JobSection = () => {
           </button>
         </div>
 
-        {/* 3. Filters Toolbar */}
-        <div className="flex justify-between items-center mb-10 max-w-4xl mx-auto w-full z-20 relative">
+        {/* Filters Toolbar - SORT BUTTON HIDDEN on Desktop, keeping logic here if needed */}
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-10 max-w-4xl mx-auto w-full z-20 relative">
 
           {/* SORT BUTTON & DROPDOWN */}
           <div className="relative" ref={sortRef}>
@@ -281,38 +304,23 @@ const JobSection = () => {
               }}
               className="flex items-center gap-2 px-6 py-3 bg-white border border-black rounded-[12px] text-base font-bold text-black hover:bg-gray-50 transition-colors"
             >
-              Sort <i className="ri-arrow-up-down-line text-xl font-light"></i>
+              Sort <i className="ri-arrow-up-down-line ml-2"></i>
             </button>
 
             {openSort && (
               <div className="absolute top-full left-0 mt-3 bg-white shadow-xl border border-gray-100 rounded-[16px] w-[260px] z-50 overflow-hidden animate-fadeIn">
                 <div className="flex flex-col">
-                  {["Most viewed", "Newest", "Urgent"].map((option, index) => {
-                    const isSelected = filters.posted.includes(option);
+                  {["Most viewed", "Newest", "Urgent"].map((option) => {
+                    const isSelected = sortType === option;
                     return (
                       <div
                         key={option}
                         onClick={() => {
-                          // Toggle logic
-                          setFilters(prev => {
-                            const current = prev.posted || [];
-                            // Single Select Logic if preferred, or Multi? Image shows radio-like behavior?
-                            // User requirement implies these might be toggles. Let's keep multi for flexibility unless instructed.
-                            // Actually, sort usually implies single selection, but user checkboxes imply multi.
-                            // Let's allow multi but visually handle it.
-                            const updated = current.includes(option)
-                              ? current.filter(item => item !== option)
-                              : [...current, option];
-                            return { ...prev, posted: updated };
-                          });
+                          setSortType(option);
+                          setOpenSort(false);
                           setCurrentPage(1);
                         }}
-                        className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${
-                          // Gradient background for the whole row? Or just hovered?
-                          // User image has a gray gradient background for the item.
-                          // Let's apply a subtle gradient to the row.
-                          "bg-gradient-to-r from-[#F2F2F2] to-white border-b border-gray-100 last:border-0 hover:from-gray-200"
-                          }`}
+                        className={`flex items-center px-4 py-3 cursor-pointer transition-colors bg-gradient-to-r from-[#F2F2F2] to-white border-b border-gray-100 last:border-0 hover:from-gray-200`}
                       >
                         {/* Checkbox Styled as Rounded Square */}
                         <div className={`w-5 h-5 rounded-[6px] border-[1.5px] flex items-center justify-center mr-3 transition-colors ${isSelected
@@ -346,18 +354,14 @@ const JobSection = () => {
             </button>
 
             {openFilter && (
-              <div className="absolute top-full right-0 mt-3 bg-white shadow-2xl border border-gray-100 rounded-[16px] w-[280px] md:w-[320px] max-h-[600px] overflow-y-auto z-50 p-4 animate-fadeIn">
+              <div className="absolute top-full right-0 mt-3 bg-white shadow-2xl border border-gray-200 rounded-[4px] w-[280px] md:w-[320px] max-h-[600px] overflow-y-auto z-50 p-4 animate-fadeIn">
 
-                <div className="flex justify-between items-center px-1 py-1 border-b mb-3 pb-2">
-                  <span className="font-bold text-sm">Filter By</span>
+                <div className="flex justify-end items-center mb-2">
                   <button
-                    onClick={() => {
-                      setFilters({ education: [], jobType: [], industry: [], experience: [], posted: [] });
-                      setSortType("Sort");
-                    }}
-                    className="text-xs text-red-500 hover:underline"
+                    onClick={() => setOpenFilter(false)}
+                    className="text-gray-500 hover:text-black text-xl leading-none"
                   >
-                    Clear all
+                    &times;
                   </button>
                 </div>
 
@@ -382,22 +386,24 @@ const JobSection = () => {
                     {expandedSections[category.id] && (
                       <div className="space-y-2">
                         {category.options.map((option) => {
-                          const isSelected = filters[category.id]?.includes(option);
+                          const isSelected = category.id === "posted" ? sortType === option : filters[category.id]?.includes(option);
                           return (
                             <div
                               key={option}
                               onClick={() => toggleFilter(category.id, option)}
-                              className="flex items-center group cursor-pointer"
+                              className="flex items-center group cursor-pointer mb-1.5"
                             >
-                              {/* Custom Checkbox Look */}
-                              <div className={`w-5 h-5 rounded-[4px] border flex items-center justify-center mr-3 transition-colors ${isSelected ? "bg-[#1C1C1C] border-[#1C1C1C]" : "bg-transparent border-gray-400 group-hover:border-black"
-                                }`}>
-                                {isSelected && <i className="ri-check-line text-white text-xs"></i>}
-                              </div>
+                              <div className="flex-grow flex items-center py-2 px-3 bg-gradient-to-r from-gray-200 via-gray-100 to-transparent rounded-sm">
+                                {/* Custom Checkbox Look */}
+                                <div className={`w-[14px] h-[14px] rounded-[3px] border flex items-center justify-center mr-3 transition-colors ${isSelected ? "border-black bg-transparent text-black" : "bg-transparent border-gray-500 group-hover:border-black"
+                                  }`}>
+                                  {isSelected && <i className="ri-check-line text-[10px] font-bold"></i>}
+                                </div>
 
-                              {/* Label with striped background style */}
-                              <div className="flex-grow py-2 px-3 bg-gradient-to-r from-gray-100 to-transparent rounded-md text-[14px] text-gray-800 font-medium">
-                                {option}
+                                {/* Label */}
+                                <div className="text-[12px] text-gray-900 font-medium">
+                                  {option}
+                                </div>
                               </div>
                             </div>
                           );
@@ -413,7 +419,7 @@ const JobSection = () => {
         </div>
 
         {/* 4. Job Listings */}
-        <div className="flex flex-col gap-6 max-w-[1200px] mx-auto mb-16">
+        <div className="flex flex-col gap-4 max-w-[1200px] mx-auto mb-16">
           {loading && <p className="text-center">Loading jobs...</p>}
 
           {!loading && currentJobs.length === 0 && (
@@ -421,7 +427,7 @@ const JobSection = () => {
               <p className="text-gray-500 text-lg">No jobs found matching your criteria.</p>
               <button
                 onClick={() => {
-                  setFilters({ education: [], jobType: [], industry: [], experience: [], posted: [] });
+                  setFilters({ education: [], jobType: [], industry: [], experience: [] });
                   setSortType("Sort");
                   setOpenFilter(false);
                 }}
@@ -465,13 +471,15 @@ const JobSection = () => {
 
 
         {/* 5. Pagination */}
-        {!loading && totalPages > 1 && (
+        {!isHome && !loading && totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
         )}
+
+
 
       </div>
     </section>

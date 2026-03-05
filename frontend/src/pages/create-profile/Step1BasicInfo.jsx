@@ -7,6 +7,7 @@ import SearchableDropdown from "./components/SearchableDropdown";
 import { fetchLocationDetails } from "../../utils/locationUtils";
 import config from "../../config";
 import OtpVerificationModal from "../../components/OtpVerificationModal";
+import toast from 'react-hot-toast';
 
 const Step1BasicInfo = ({
     formData,
@@ -145,9 +146,16 @@ const Step1BasicInfo = ({
     // OTP Functions
     const sendOtp = async () => {
         try {
-            await axios.post(`${config.API_URL}/api/auth/send-otp`, {
+            const res = await axios.post(`${config.API_URL}/api/auth/send-otp`, {
                 phone: `${primaryPhoneCode}${formData.phone}`
             });
+
+            // Log the OTP for development purposes
+            if (res.data.otp) {
+                console.log(`\n%c=== DEMO OTP RECEIVED: ${res.data.otp} ===\n`, "color: #FFB300; font-size: 16px; font-weight: bold;");
+                toast?.success(`Demo OTP is: ${res.data.otp}`, { duration: 5000 }); // Optional UI toast if toast is available
+            }
+
             setOtpSent(true);
             setShowOtpModal(true); // Open Modal
             // alert("OTP sent to your phone (Check server console for demo)"); // Optional feedback
@@ -203,7 +211,7 @@ const Step1BasicInfo = ({
 
     return (
         <>
-            <div className="text-center mb-24 max-w-[580px] mx-auto">
+            <div className="text-center mb-32 mt-10 max-w-[580px] mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold mb-2">
                     Launch <span className="text-[#FFB300]">Career</span>
                 </h1>
@@ -212,7 +220,7 @@ const Step1BasicInfo = ({
                 </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 relative z-10">
 
                 {/* Name */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
@@ -677,10 +685,14 @@ const Step1BasicInfo = ({
                                 type="file"
                                 id="resume-upload"
                                 className="hidden"
-                                accept=".pdf,.doc,.docx"
+                                accept=".pdf"
                                 onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
+                                        if (file.type !== "application/pdf") {
+                                            alert("Only PDF files are allowed.");
+                                            return;
+                                        }
                                         if (file.size > 5 * 1024 * 1024) {
                                             alert("File size too large (max 5MB)");
                                             return;

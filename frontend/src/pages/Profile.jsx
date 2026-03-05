@@ -81,6 +81,11 @@ const Profile = () => {
     // Delete Modal State
     const [showDeleteResumeModal, setShowDeleteResumeModal] = useState(false);
 
+    // Generic Delete Confirmation Modal
+    const [deleteModal, setDeleteModal] = useState({ open: false, title: "", onConfirm: null });
+    const openDeleteModal = (title, onConfirm) => setDeleteModal({ open: true, title, onConfirm });
+    const closeDeleteModal = () => setDeleteModal({ open: false, title: "", onConfirm: null });
+
     // Resume Modal State
     const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
     const [isResumeEditing, setIsResumeEditing] = useState(false);
@@ -214,22 +219,26 @@ const Profile = () => {
     };
 
     const handleDeleteDirectSkill = async (skillToDelete) => {
-        if (!window.confirm(`Are you sure you want to delete "${skillToDelete}"?`)) return;
-        const oldSkills = profile.skills || [];
-        const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
-        setProfile(prev => ({ ...prev, skills: updatedSkills }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Skill deleted");
-        } catch (err) {
-            console.error("Delete skill failed", err);
-            setProfile(prev => ({ ...prev, skills: oldSkills }));
-            toast.error("Failed to delete skill");
-        }
+        openDeleteModal(
+            `Are you sure you want to delete "${skillToDelete}"?`,
+            async () => {
+                closeDeleteModal();
+                const oldSkills = profile.skills || [];
+                const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
+                setProfile(prev => ({ ...prev, skills: updatedSkills }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Skill deleted");
+                } catch (err) {
+                    console.error("Delete skill failed", err);
+                    setProfile(prev => ({ ...prev, skills: oldSkills }));
+                    toast.error("Failed to delete skill");
+                }
+            }
+        );
     };
 
     const handleUpdateProfile = async (updatedData) => {
@@ -354,22 +363,26 @@ const Profile = () => {
 
     const handleDeleteEducation = async (indexToDelete) => {
         const eduToDelete = profile.education[indexToDelete];
-        if (!window.confirm(`Are you sure you want to delete ${eduToDelete.degree} from ${eduToDelete.institution}?`)) return;
-        const oldEducation = [...(profile.education || [])];
-        const updatedEducationList = oldEducation.filter((_, i) => i !== indexToDelete);
-        setProfile(prev => ({ ...prev, education: updatedEducationList }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post(`${config.API_URL}/api/profile`, { education: updatedEducationList }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Education deleted");
-        } catch (err) {
-            console.error("Delete education failed", err);
-            setProfile(prev => ({ ...prev, education: oldEducation }));
-            toast.error("Failed to delete education");
-        }
+        openDeleteModal(
+            `Are you sure you want to delete ${eduToDelete.degree} from ${eduToDelete.institution}?`,
+            async () => {
+                closeDeleteModal();
+                const oldEducation = [...(profile.education || [])];
+                const updatedEducationList = oldEducation.filter((_, i) => i !== indexToDelete);
+                setProfile(prev => ({ ...prev, education: updatedEducationList }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.post(`${config.API_URL}/api/profile`, { education: updatedEducationList }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Education deleted");
+                } catch (err) {
+                    console.error("Delete education failed", err);
+                    setProfile(prev => ({ ...prev, education: oldEducation }));
+                    toast.error("Failed to delete education");
+                }
+            }
+        );
     };
 
     const handleSaveLanguage = async (newLanguage) => {
@@ -469,15 +482,15 @@ const Profile = () => {
         if (!file) return;
 
         const validTypes = type === "resume"
-            ? ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+            ? ["application/pdf"]
             : ["image/jpeg", "image/png", "image/webp"];
 
         if (!validTypes.includes(file.type)) {
-            toast.error(type === "resume" ? "Invalid file type. Upload PDF or DOC." : "Invalid image format.");
+            toast.error(type === "resume" ? "Invalid file type. Upload PDF only." : "Invalid image format.");
             return;
         }
 
-        const maxSize = type === "resume" ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+        const maxSize = 5 * 1024 * 1024; // 5MB for both images and resume
         if (file.size > maxSize) {
             toast.error("File size too large.");
             return;
@@ -503,42 +516,50 @@ const Profile = () => {
 
     const handleDeleteCoverImage = async () => {
         if (!profile.coverImage) return;
-        if (!window.confirm("Are you sure you want to delete your cover photo?")) return;
-        const oldCover = profile.coverImage;
-        const loadingToast = toast.loading("Deleting cover image...");
-        setProfile(prev => ({ ...prev, coverImage: null }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`${config.API_URL}/api/profile/cover-image`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Cover image deleted", { id: loadingToast });
-        } catch (err) {
-            console.error("Delete cover failed", err);
-            setProfile(prev => ({ ...prev, coverImage: oldCover }));
-            toast.error("Failed to delete cover image", { id: loadingToast });
-        }
+        openDeleteModal(
+            "Are you sure you want to delete your cover photo?",
+            async () => {
+                closeDeleteModal();
+                const oldCover = profile.coverImage;
+                const loadingToast = toast.loading("Deleting cover image...");
+                setProfile(prev => ({ ...prev, coverImage: null }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.delete(`${config.API_URL}/api/profile/cover-image`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Cover image deleted", { id: loadingToast });
+                } catch (err) {
+                    console.error("Delete cover failed", err);
+                    setProfile(prev => ({ ...prev, coverImage: oldCover }));
+                    toast.error("Failed to delete cover image", { id: loadingToast });
+                }
+            }
+        );
     };
 
     const handleDeleteProfileImage = async () => {
         if (!profile.profileImage) return;
-        if (!window.confirm("Are you sure you want to delete your profile picture?")) return;
-        const oldImage = profile.profileImage;
-        const loadingToast = toast.loading("Deleting profile picture...");
-        setProfile(prev => ({ ...prev, profileImage: null }));
-
-        try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`${config.API_URL}/api/profile/profile-image`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Profile picture deleted", { id: loadingToast });
-        } catch (err) {
-            console.error("Delete profile picture failed", err);
-            setProfile(prev => ({ ...prev, profileImage: oldImage }));
-            toast.error("Failed to delete profile picture", { id: loadingToast });
-        }
+        openDeleteModal(
+            "Are you sure you want to delete your profile picture?",
+            async () => {
+                closeDeleteModal();
+                const oldImage = profile.profileImage;
+                const loadingToast = toast.loading("Deleting profile picture...");
+                setProfile(prev => ({ ...prev, profileImage: null }));
+                try {
+                    const token = localStorage.getItem("token");
+                    await axios.delete(`${config.API_URL}/api/profile/profile-image`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success("Profile picture deleted", { id: loadingToast });
+                } catch (err) {
+                    console.error("Delete profile picture failed", err);
+                    setProfile(prev => ({ ...prev, profileImage: oldImage }));
+                    toast.error("Failed to delete profile picture", { id: loadingToast });
+                }
+            }
+        );
     };
 
     if (loading) return (
@@ -554,7 +575,7 @@ const Profile = () => {
         : "Add Location";
 
     return (
-        <div className="bg-white min-h-screen font-sans pb-20 overflow-x-hidden">
+        <div className="bg-white min-h-screen font-sans pb-8 overflow-x-hidden">
             <Toaster position="top-center" />
             <Navbar />
 
@@ -577,47 +598,51 @@ const Profile = () => {
                     <div className="flex-1 lg:max-w-[822px]">
 
                         {/* User Details Grid (Inline) */}
-                        <div className="rounded-lg border border-[#0091FF] px-6 py-5 mb-8 bg-white max-w-[822px]">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
+                        {/* User Details Grid (Inline) */}
+                        <div className="mb-8 max-w-[822px]">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-12">
                                 {/* Col 1 */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <DetailItem
-                                        icon={<i className="ri-briefcase-line"></i>}
+                                        icon={<i className="ri-briefcase-line text-lg"></i>}
                                         text={profile.workStatus ? (profile.workStatus.charAt(0).toUpperCase() + profile.workStatus.slice(1)) : "Add work status"}
                                     />
                                     <DetailItem
-                                        icon={profile.gender === 'female' ? <i className="ri-women-line"></i> : <i className="ri-men-line"></i>}
+                                        icon={profile.gender === 'female' ? <i className="ri-women-line text-lg"></i> : <i className="ri-men-line text-lg"></i>}
                                         text={profile.gender === 'male' ? 'He/Him' : profile.gender === 'female' ? 'She/Her' : profile.gender || 'Add gender'}
                                     />
                                 </div>
 
                                 {/* Col 2 */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <DetailItem
-                                        icon={<i className="ri-phone-line"></i>}
-                                        text={profile.phone || "Add phone"}
+                                        icon={<i className="ri-phone-line text-lg"></i>}
+                                        text={<span className="font-medium text-black">{profile.phone || "Add phone"}</span>}
                                     />
                                     <DetailItem
-                                        icon={<i className="ri-mail-line"></i>}
-                                        text={profile.email}
+                                        icon={<i className="ri-mail-line text-lg"></i>}
+                                        text={<span className="font-medium text-black">{profile.email}</span>}
                                         isLink={true}
                                         href={`mailto:${profile.email}`}
                                     />
                                 </div>
 
                                 {/* Col 3 */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <DetailItem
-                                        icon={<i className="ri-graduation-cap-line"></i>}
+                                        icon={<i className="ri-graduation-cap-line text-lg"></i>}
                                         text={profile.education?.length > 0 ? profile.education[0].degree : "Add education"}
                                     />
                                     <DetailItem
-                                        icon={<i className="ri-map-pin-line"></i>}
+                                        icon={<i className="ri-map-pin-line text-lg"></i>}
                                         text={locationString}
                                     />
                                 </div>
                             </div>
                         </div>
+
+                        {/* Divider */}
+                        <div className="border-t border-black mb-8 max-w-[822px]"></div>
 
                         <div id="summary-section">
                             <ProfileSummary
@@ -668,7 +693,7 @@ const Profile = () => {
                             />
                         </div>
                         <ResumeSection
-                            resumeUrl={profile.resume}
+                            resumeUrl={profile.resumeUrl}
                             onAdd={() => {
                                 setIsResumeEditing(false);
                                 setIsResumeModalOpen(true);
@@ -688,13 +713,6 @@ const Profile = () => {
 
                 {/* --- Latest Job Listing --- */}
                 <JobListing limit={3} />
-
-                <div
-                    onClick={handleShareProfile}
-                    className="text-right text-xs text-[#FFB300] max-w-7xl mx-auto px-4 hover:underline cursor-pointer"
-                >
-                    {`www.trackpi.in/u/${profile._id}`} ↗
-                </div>
             </div>
 
             <EditProfileModal
@@ -869,6 +887,13 @@ const Profile = () => {
                 onClose={() => setShowDeleteResumeModal(false)}
                 onConfirm={confirmDeleteResume}
                 title="Are you sure you want to delete the resume?"
+            />
+
+            <DeleteConfirmationModal
+                isOpen={deleteModal.open}
+                onClose={closeDeleteModal}
+                onConfirm={deleteModal.onConfirm}
+                title={deleteModal.title}
             />
         </div>
     );

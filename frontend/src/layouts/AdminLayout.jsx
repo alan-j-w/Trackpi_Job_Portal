@@ -55,11 +55,6 @@ const AdminLayout = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = await res.json();
-                console.log("=== DEBUG PERMISSIONS ===");
-                console.log("Token Role:", role);
-                console.log("Token Permissions:", userPermissions);
-                console.log("DB Role:", data.role);
-                console.log("DB Permissions:", data.permissions);
                 setDebugPermissions(data.permissions);
             } catch (error) {
                 console.error("Debug fetch failed:", error);

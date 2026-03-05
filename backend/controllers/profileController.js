@@ -181,7 +181,7 @@ export const uploadResume = async (req, res) => {
         if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
         const profile = await Profile.findOneAndUpdate(
             { user: req.user._id },
-            { resume: req.file.path },
+            { resumeUrl: req.file.path },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
         res.json(profile);
@@ -232,7 +232,7 @@ export const deleteResume = async (req, res) => {
     try {
         const profile = await Profile.findOneAndUpdate(
             { user: req.user._id },
-            { $set: { resume: "" } },
+            { $set: { resumeUrl: "" } },
             { new: true }
         );
 

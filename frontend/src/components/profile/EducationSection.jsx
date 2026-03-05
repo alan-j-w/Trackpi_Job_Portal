@@ -15,7 +15,7 @@ const PlusIcon = ({ className, onClick }) => (
 
 const EducationSection = ({ education, onAdd, onManage, readOnly }) => {
     return (
-        <div className="py-5 border-b border-gray-200">
+        <div className="py-5 border-b border-black">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="font-bold text-lg text-black">Education</h2>
                 {!readOnly && (

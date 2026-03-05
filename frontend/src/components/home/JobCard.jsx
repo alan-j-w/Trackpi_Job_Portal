@@ -46,28 +46,28 @@ const JobCard = ({
   return (
     <>
       {/* ================= CARD ================= */}
-      <div className="relative mt-10">
+      <div className="relative">
         <div className="bg-white border border-gray-300 rounded-[25px] shadow-sm relative">
 
           {/* STATUS RIBBON */}
           <div
-            className="w-[65%] h-[39px] flex items-center px-8 text-white font-semibold text-lg rounded-tl-[25px]"
+            className="w-[65%] h-[39px] flex items-center px-6 text-white font-semibold text-base rounded-tl-[25px]"
             style={{ background: ribbonGradient }}
           >
             {status}
           </div>
 
           {/* WORK MODE */}
-          <div className="absolute top-0 right-0 bg-[#FFB300] px-6 py-2 rounded-bl-2xl rounded-tr-[25px] font-bold text-[13px] flex items-center gap-2 z-10">
+          <div className="absolute top-0 right-0 bg-[#FFB300] px-4 py-2 rounded-bl-2xl rounded-tr-[25px] font-bold text-[12px] sm:text-[13px] flex items-center gap-1 sm:gap-2 z-10">
             <i className="ri-briefcase-4-line"></i>
             {workMode}
           </div>
 
           {/* CONTENT */}
-          <div className="p-6 flex flex-col md:flex-row items-center relative">
+          <div className="p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center gap-4">
 
-            {/* COMPANY LOGO */}
-            <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-[#FFB300] rounded-2xl flex items-center justify-center shadow-md border border-white z-20 overflow-hidden">
+            {/* COMPANY LOGO — inline on mobile, absolute on larger screens */}
+            <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 md:absolute md:-left-6 md:top-1/2 md:-translate-y-1/2 bg-[#FFB300] rounded-2xl flex items-center justify-center shadow-md border border-white z-20 overflow-hidden">
               <img
                 src={trackpiLogo}
                 alt="Company Logo"
@@ -76,14 +76,14 @@ const JobCard = ({
             </div>
 
             {/* MAIN INFO */}
-            <div className="flex-grow pl-20 pr-4">
-              <div className="flex justify-between items-start mb-2">
+            <div className="flex-grow md:pl-16 pr-0 md:pr-4 w-full">
+              <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
                 <div>
-                  <h3 className="text-[22px] font-bold text-black uppercase tracking-tight">
+                  <h3 className="text-[18px] sm:text-[22px] font-bold text-black uppercase tracking-tight">
                     {title}
                   </h3>
 
-                  <p className="text-[15px] text-gray-800 flex items-center gap-1 mt-1 font-medium">
+                  <p className="text-[14px] sm:text-[15px] text-gray-800 flex items-center gap-1 mt-1 font-medium">
                     <i className="ri-map-pin-line text-[#FFB300]"></i>
                     {company}, {location}
                   </p>
@@ -92,13 +92,12 @@ const JobCard = ({
                 <img
                   src={verifiedJob}
                   alt="Verified Job"
-                  className="w-[120px] h-[100px] object-contain hidden lg:block -mt-2"
+                  className="w-[80px] h-[70px] sm:w-[100px] sm:h-[80px] object-contain hidden sm:block -mt-2"
                 />
               </div>
 
               {/* JOB DETAILS */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-y-3 gap-x-4 text-[13px] font-semibold mt-4">
-                {/* Row 1 */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4 text-[12px] sm:text-[13px] font-semibold mt-4">
                 <div className="flex items-center gap-2">
                   <i className="ri-briefcase-line text-[#FFB300] text-lg"></i>
                   {jobType}
@@ -114,7 +113,6 @@ const JobCard = ({
                   {workMode}
                 </div>
 
-                {/* Row 2 */}
                 <div className="flex items-center gap-2">
                   <i className="ri-user-line text-[#FFB300] text-lg"></i>
                   {gender}
@@ -133,17 +131,17 @@ const JobCard = ({
             </div>
 
             {/* ACTION PANEL */}
-            <div className="flex flex-col items-center justify-center gap-4 min-w-[180px] border-l border-gray-200 pl-6 my-4">
+            <div className="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 md:gap-4 w-full md:w-auto md:min-w-[180px] md:border-l md:border-gray-200 md:pl-6 pt-2 md:my-4">
               <button
                 onClick={handleApplyClick}
-                className="w-full bg-[#FFB300] text-black px-6 py-3 rounded-[12px] font-bold text-[15px] hover:bg-[#FFB813] transition-all shadow-sm mt-8"
+                className="flex-1 md:flex-none md:w-full bg-[#FFB300] text-black px-6 py-3 rounded-[12px] font-bold text-[14px] sm:text-[15px] hover:bg-[#FFB813] transition-all shadow-sm"
               >
                 Apply Now
               </button>
 
               <button
                 onClick={onDetailsClick}
-                className="text-[13px] font-bold text-black hover:underline flex items-center gap-1"
+                className="flex-1 md:flex-none text-[13px] font-bold text-black hover:underline flex items-center justify-center gap-1 py-3"
               >
                 More details <i className="ri-arrow-right-line"></i>
               </button>

@@ -132,8 +132,6 @@ const UserManagement = () => {
         // use findUserRole to consistently get the role
         const matchedRole = findUserRole(user._id);
 
-        console.log("Editing User:", user.name, user._id);
-        console.log("Matched Role:", matchedRole);
 
         setFormData({
             name: user.name,
