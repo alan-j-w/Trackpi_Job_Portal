@@ -3,8 +3,11 @@ import Navbar from '../components/Navbar';
 import { ResumeProvider } from '../components/ResumeGen/ResumeContext';
 import ResumeForm from '../components/ResumeGen/ResumeForm';
 import ResumePreview from '../components/ResumeGen/ResumePreview';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const ResumeGen = () => {
+    const navigate = useNavigate();
     return (
         <ResumeProvider>
             <div className="min-h-screen bg-[#FFFBF2] flex flex-col font-sans">
@@ -14,7 +17,13 @@ const ResumeGen = () => {
                 <div className="pt-24 pb-10 flex-1 flex flex-col max-w-7xl mx-auto w-full px-6">
 
                     {/* Page Header */}
-                    <div className="text-center mb-10">
+                    <div className="relative text-center mb-10 flex items-center justify-center">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="absolute left-0 p-2 text-gray-800 hover:text-black transition"
+                        >
+                            <ArrowLeft size={28} />
+                        </button>
                         <h1 className="text-4xl font-bold text-gray-900">Candidate Details</h1>
                     </div>
 

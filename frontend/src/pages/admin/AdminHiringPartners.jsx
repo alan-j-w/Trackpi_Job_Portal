@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, ExternalLink, Search } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
+import DeleteUserModal from "../../components/admin/DeleteUserModal";
 
 const AdminHiringPartners = () => {
     const navigate = useNavigate();
@@ -13,6 +14,9 @@ const AdminHiringPartners = () => {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState([]);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
+    const [isBulkDelete, setIsBulkDelete] = useState(false);
 
     /* FETCH */
     const fetchHiringPartners = async () => {
@@ -42,18 +46,49 @@ const AdminHiringPartners = () => {
             t.email.toLowerCase().includes(search.toLowerCase())
     );
 
-    /* DELETE */
-    const handleDelete = async (id) => {
-        if (!window.confirm("Delete hiring partner?")) return;
+    /* DELETE HANDLERS */
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setIsBulkDelete(false);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleBulkDeleteClick = () => {
+        if (!selectedIds.length) return;
+        setIsBulkDelete(true);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Deleted");
+            if (isBulkDelete) {
+                // Bulk Delete Logic
+                await Promise.all(
+                    selectedIds.map((id) =>
+                        fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`, {
+                            method: "DELETE",
+                            headers: { Authorization: `Bearer ${token}` }
+                        })
+                    )
+                );
+                toast.success("Deleted successfully");
+                setSelectedIds([]);
+            } else {
+                // Single Delete Logic
+                if (!deleteId) return;
+                await fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${deleteId}`, {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                toast.success("Deleted");
+            }
             fetchHiringPartners();
         } catch (error) {
             toast.error("Failed to delete");
+        } finally {
+            setIsDeleteModalOpen(false);
+            setDeleteId(null);
+            setIsBulkDelete(false);
         }
     };
 
@@ -72,27 +107,7 @@ const AdminHiringPartners = () => {
         }
     };
 
-    const handleBulkDelete = async () => {
-        if (!selectedIds.length) return;
-        if (!window.confirm(`Delete ${selectedIds.length} hiring partners?`)) return;
-
-        try {
-            await Promise.all(
-                selectedIds.map((id) =>
-                    fetch(`${import.meta.env.VITE_API_URL}/api/admin/hiringpartners/${id}`, {
-                        method: "DELETE",
-                        headers: { Authorization: `Bearer ${token}` }
-                    })
-                )
-            );
-
-            toast.success("Deleted successfully");
-            setSelectedIds([]);
-            fetchHiringPartners();
-        } catch (error) {
-            toast.error("Failed to delete selected");
-        }
-    };
+    /* RENDER */
 
     return (
         <div className="p-6 bg-white min-h-screen">
@@ -141,10 +156,10 @@ const AdminHiringPartners = () => {
                             <tr className="border-b border-[#FFB300] text-gray-800 font-semibold text-sm">
                                 <th className="p-4 pl-6 w-[50px]"></th>
                                 <th className="p-4">Organization name</th>
-                                <th className="p-4">Logo</th>
-                                <th className="p-4">Email</th>
+                                <th className="p-4 text-center">Logo</th>
+                                <th className="p-4 text-center">Email</th>
                                 <th className="p-4 w-1/3">About company</th>
-                                <th className="p-4 text-center">Action</th>
+                                <th className="p-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -167,7 +182,7 @@ const AdminHiringPartners = () => {
                                         </td>
                                         <td className="p-4 font-semibold text-gray-800">{t.organizationname}</td>
                                         <td className="p-4">
-                                            <div className="w-[100px] h-[40px] bg-gray-50 flex items-center justify-center rounded border border-gray-200 overflow-hidden">
+                                            <div className="w-[100px] h-[40px] bg-gray-50 flex items-center justify-center rounded border border-gray-200 overflow-hidden mx-auto">
                                                 {t.logo?.url ? (
                                                     <img src={t.logo.url} alt={t.organizationname} className="w-full h-full object-contain" />
                                                 ) : (
@@ -175,7 +190,7 @@ const AdminHiringPartners = () => {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="p-4 text-sm text-gray-700">{t.email}</td>
+                                        <td className="p-4 text-sm text-gray-700 text-center">{t.email}</td>
                                         <td className="p-4 text-sm text-gray-600">
                                             {t.aboutcompany}
                                         </td>
@@ -192,7 +207,7 @@ const AdminHiringPartners = () => {
                                                     )}
                                                     {hasPermission(PERMISSIONS.PARTNERS_DELETE) && (
                                                         <button
-                                                            onClick={() => handleDelete(t._id)}
+                                                            onClick={() => handleDeleteClick(t._id)}
                                                             className="p-2 bg-red-100 rounded text-red-500 hover:bg-red-200 transition"
                                                         >
                                                             <Trash2 size={16} />
@@ -232,7 +247,7 @@ const AdminHiringPartners = () => {
                     </span>
                     {hasPermission(PERMISSIONS.PARTNERS_DELETE) && (
                         <button
-                            onClick={handleBulkDelete}
+                            onClick={handleBulkDeleteClick}
                             className="text-[#FFB300] font-medium hover:underline flex items-center gap-1"
                         >
                             Delete →
@@ -240,6 +255,15 @@ const AdminHiringPartners = () => {
                     )}
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteUserModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title={isBulkDelete ? "Delete hiring partners" : "Delete hiring partner"}
+                message={isBulkDelete ? `Sure you want to delete ${selectedIds.length} hiring partners?` : "Sure you want to delete?"}
+            />
         </div>
     );
 };

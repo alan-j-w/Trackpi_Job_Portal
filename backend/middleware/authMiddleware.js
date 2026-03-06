@@ -42,6 +42,30 @@ export const protect = async (req, res, next) => {
     }
 };
 
+// Optional Auth for Guest / Logged in detection
+export const optionalAuth = async (req, res, next) => {
+    let token;
+
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith("Bearer")
+    ) {
+        try {
+            token = req.headers.authorization.split(" ")[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.id).select("-password");
+
+            if (req.user && req.user.status === 'inactive') {
+                req.user = null; // Ignore inactive
+            }
+        } catch (error) {
+            console.error("Optional auth error:", error.message);
+            // Don't fail, just continue as guest
+        }
+    }
+    next();
+};
+
 // Authorize Roles
 export const authorize = (...roles) => {
     return (req, res, next) => {
