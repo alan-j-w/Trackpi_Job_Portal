@@ -36,6 +36,7 @@ import LinkedInCallback from "./pages/LinkedInCallback";
 import CreateProfile from "./pages/CreateProfile";
 import Profile from "./pages/Profile";
 import AppliedJobs from "./pages/AppliedJobs";
+import BrowseJobs from "./pages/BrowseJobs";
 import AddTestimonial from "./pages/admin/AddTestimonial";
 import TestimonialDetails from "./pages/admin/TestimonialDetails";
 import EditTestimonial from "./pages/admin/EditTestimonial";
@@ -94,6 +95,7 @@ function App() {
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/user/dashboard" element={<UserDashboard />} />
           <Route path="/applied-jobs" element={<AppliedJobs />} />
+          <Route path="/browse-jobs" element={<BrowseJobs />} />
 
         </Route>
 

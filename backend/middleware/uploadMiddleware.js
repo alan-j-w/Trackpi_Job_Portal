@@ -1,7 +1,7 @@
 import multer from "multer";
 import cloudinary from "../config/cloudinary.js";
 import { Readable } from "stream";
-import cloudinaryStorage from "multer-storage-cloudinary";
+import pkg from "multer-storage-cloudinary";
 
 // ─── Helper: Stream buffer to Cloudinary ─────────────────────────────────────
 const streamToCloudinary = (buffer, options) => {
@@ -107,7 +107,7 @@ export const resumeUploadMiddleware = buildUploadMiddleware({
 
 // ─── Testimonial Upload ───────────────────────────────────────────────────────
 // Kept as-is since it needs auto resource_type for video support
-const testimonialStorage = cloudinaryStorage({
+const testimonialStorage = pkg({
     cloudinary,
     params: {
         folder: "trackpi/testimonials",

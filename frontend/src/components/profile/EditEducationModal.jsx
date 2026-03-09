@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import config from "../../config";
 
 const EDUCATION_LEVELS = [
     "10th",
@@ -8,7 +10,18 @@ const EDUCATION_LEVELS = [
     "PhD / Doctorate"
 ];
 
-const YEARS = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
+const getStartYears = () => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 31 }, (_, i) => (currentYear - i).toString());
+};
+
+const getEndYears = (startYearValue) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = startYearValue ? parseInt(startYearValue) : currentYear - 30;
+    const endYear = currentYear + 10;
+    const length = endYear - startYear + 1;
+    return Array.from({ length: length > 0 ? length : 1 }, (_, i) => (startYear + i).toString()).reverse();
+};
 
 const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing }) => {
     const [formData, setFormData] = useState({
@@ -105,7 +118,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                 const query = courseSearch.trim();
                 const levelParam = formData.degree ? `&level=${encodeURIComponent(formData.degree)}` : "";
 
-                const res = await axios.get(`http://localhost:8000/api/education/courses?query=${query}${levelParam}`);
+                const res = await axios.get(`${config.API_URL}/api/education/courses?query=${query}${levelParam}`);
                 let courses = res.data.map(c => c.name);
 
                 if (!courses.includes("Other")) {
@@ -138,7 +151,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
             try {
                 setIsSearchingUni(true);
                 const res = await axios.get(
-                    `http://localhost:8000/api/education/universities?query=${universitySearch.trim()}`,
+                    `${config.API_URL}/api/education/universities?query=${universitySearch.trim()}`,
                     { signal: abortControllerRef.current.signal }
                 );
 
@@ -207,7 +220,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
         if (!formData.startYear) submitErrors.startYear = "Start year is required.";
         if (!formData.endYear) submitErrors.endYear = "End year is required.";
         if (formData.startYear && formData.endYear && parseInt(formData.endYear) < parseInt(formData.startYear)) {
-            submitErrors.endYear = "End year must be greater than or equal to start year.";
+            submitErrors.endYear = "Ending year must be greater than or equal to the starting year.";
         }
 
         if (Object.keys(submitErrors).length > 0) {
@@ -547,13 +560,17 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 </div>
                                 {openDropdown === 'startYear' && (
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto z-30 p-1 space-y-1 no-scrollbar bg-white rounded-xl border border-gray-100 shadow-xl">
-                                        {YEARS.map((year) => (
+                                        {getStartYears().map((year) => (
                                             <div
                                                 key={year}
                                                 className="px-4 py-2 rounded-lg cursor-pointer text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleChange({ target: { name: 'startYear', value: year } });
+                                                    const newData = { ...formData, startYear: year };
+                                                    if (formData.endYear && parseInt(formData.endYear) < parseInt(year)) {
+                                                        newData.endYear = year;
+                                                    }
+                                                    setFormData(newData);
                                                     setOpenDropdown(null);
                                                 }}
                                             >
@@ -583,7 +600,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 </div>
                                 {openDropdown === 'endYear' && (
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto z-30 p-1 space-y-1 no-scrollbar bg-white rounded-xl border border-gray-100 shadow-xl">
-                                        {YEARS.map((year) => (
+                                        {getEndYears(formData.startYear).map((year) => (
                                             <div
                                                 key={year}
                                                 className="px-4 py-2 rounded-lg cursor-pointer text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"

@@ -116,6 +116,14 @@ const Step1BasicInfo = ({
         c.code.includes(countryCodeSearch)
     );
 
+    // Load states when country is India ("IN")
+    useEffect(() => {
+        if (formData.country === "IN") {
+            const stateList = State.getStatesOfCountry("IN");
+            setStates(stateList);
+        }
+    }, [formData.country]);
+
     // Location Handlers
     const handleCountryChange = (countryCode) => {
         setFormData(prev => ({ ...prev, country: countryCode, state: "", city: "" }));
@@ -126,7 +134,8 @@ const Step1BasicInfo = ({
 
     const handleStateChange = (stateCode) => {
         setFormData(prev => ({ ...prev, state: stateCode, city: "" }));
-        const cityList = City.getCitiesOfState(formData.country, stateCode);
+        // Using "IN" directly as requested for pincode context
+        const cityList = City.getCitiesOfState("IN", stateCode);
         setCities(cityList);
     };
 
@@ -136,52 +145,85 @@ const Step1BasicInfo = ({
 
     // Auto-fill location by Pincode
     const handlePincodeChange = async (e) => {
-        const value = e.target.value;
+        // Strip non-numeric characters automatically
+        const value = e.target.value.replace(/\D/g, "");
         const newFormData = { ...formData, pincode: value };
 
         // Update form data first to show typing
         setFormData(newFormData);
-
-        if (value && !/^\d+$/.test(value)) {
-            setPincodeError("Pincode must contain only numeric values.");
-        } else {
-            setPincodeError("");
-        }
+        setPincodeError("");
 
         // If 6 digits, fetch location
-        if (value.length === 6 && /^\d+$/.test(value)) {
+        if (value.length === 6) {
             try {
                 const details = await fetchLocationDetails(value);
                 if (details) {
                     const countryCode = "IN"; // API is India only
 
-                    // Logic from handleCountryChange but without conflicting state updates
+                    // 1. Get all states for India
                     const stateList = State.getStatesOfCountry(countryCode);
-                    const matchedState = stateList.find(s => s.name.toLowerCase() === details.state.toLowerCase());
+
+                    // 2. Find matching state robustly
+                    let matchedState = stateList.find(s =>
+                        s.name.toLowerCase() === details.state.toLowerCase() ||
+                        s.name.toLowerCase().includes(details.state.toLowerCase()) ||
+                        details.state.toLowerCase().includes(s.name.toLowerCase())
+                    );
+
+                    // fallback for common variations
+                    if (!matchedState && details.state.toLowerCase() === "kerala") {
+                        matchedState = stateList.find(s => s.isoCode === "KL");
+                    }
 
                     if (matchedState) {
                         setStates(stateList);
-                        const cityList = City.getCitiesOfState(countryCode, matchedState.isoCode);
-                        setCities(cityList);
+                        // 3. Get cities for that state
+                        let cityList = City.getCitiesOfState(countryCode, matchedState.isoCode);
 
-                        const matchedCity = cityList.find(c => c.name.toLowerCase() === details.city.toLowerCase());
+                        // 4. Find matching city robustly
+                        let matchedCity = cityList.find(c =>
+                            c.name.toLowerCase() === details.city.toLowerCase() ||
+                            c.name.toLowerCase().includes(details.city.toLowerCase()) ||
+                            details.city.toLowerCase().includes(c.name.toLowerCase())
+                        );
+
+                        // 5. If city not in list, add it dynamically so dropdown can show it
+                        if (!matchedCity && details.city) {
+                            const newCity = { name: details.city, stateCode: matchedState.isoCode, countryCode: countryCode };
+                            cityList = [newCity, ...cityList];
+                            matchedCity = newCity;
+                        }
+
+                        setCities(cityList);
 
                         setFormData(prev => ({
                             ...prev,
                             country: countryCode,
                             state: matchedState.isoCode,
                             city: matchedCity ? matchedCity.name : details.city,
-                            pincode: value // ensure pincode stays
+                            pincode: value
                         }));
+                        setPincodeError("");
                     } else {
-                        // Fallback if state match fails
-                        setFormData(prev => ({ ...prev, country: countryCode }));
-                        setStates(stateList);
+                        // Reset fields if state match fails
+                        setFormData(prev => ({ ...prev, country: "", state: "", city: "" }));
+                        setStates([]);
+                        setCities([]);
+                        setPincodeError("Invalid pincode.");
                     }
+                } else {
+                    // Reset fields if API returns no results
+                    setFormData(prev => ({ ...prev, country: "", state: "", city: "" }));
+                    setStates([]);
+                    setCities([]);
+                    setPincodeError("Invalid pincode.");
                 }
             } catch (err) {
                 console.error("Pincode fetch failed", err);
+                setPincodeError("Failed to fetch location details.");
             }
+        } else if (value.length > 0 && value.length < 6) {
+            // Optional: You could reset here too, but maybe wait for 6 digits
         }
     };
 

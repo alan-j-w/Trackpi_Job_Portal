@@ -20,7 +20,7 @@ const UserDashboard = () => {
                     </div>
 
                     {/* Jobs Card */}
-                    <div onClick={() => navigate('/')} className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition">
+                    <div onClick={() => navigate('/browse-jobs')} className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition">
                         <h3 className="text-xl font-semibold mb-2 text-green-600">Find Jobs</h3>
                         <p className="text-sm text-gray-500">Browse and apply for the latest opportunities.</p>
                     </div>
