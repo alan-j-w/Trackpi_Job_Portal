@@ -2,10 +2,13 @@ export const calculateProfileStrength = (profile) => {
     let strength = 0;
     if (!profile) return { strength: 0, isComplete: false };
 
+    // Regex for URL validation
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)*\/?$/i;
+
     // 1. Core Info (15%)
-    if (profile.fullName) strength += 5;
-    if (profile.email) strength += 5;
-    if (profile.phone) strength += 5;
+    if (profile.fullName && profile.fullName.trim()) strength += 5;
+    if (profile.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) strength += 5;
+    if (profile.phone && profile.phone.length >= 10) strength += 5;
 
     // 2. Personal Details (10%)
     if (profile.dateOfBirth) strength += 5;
@@ -13,26 +16,27 @@ export const calculateProfileStrength = (profile) => {
 
     // 3. Professional Essentials (35%)
     if (profile.jobTitle) strength += 5;
-    if (profile.summary) strength += 10;
+    if (profile.summary && profile.summary.trim()) strength += 10;
     if (profile.skills && profile.skills.length > 0) strength += 10;
-    if (profile.languages && profile.languages.length > 0) strength += 10; // Increased to 10 to match UI emphasis or keep 5? Let's use 5 to balance.
-    // Wait, previous plan was 5 for languages. 
-    // Let's stick to the plan: Name(5)+Email(5)+Phone(5)+DOB(5)+Marital(5)+Job(5)+Summary(10)+Skills(10)+Langs(5) = 55 so far
+    if (profile.languages && profile.languages.length > 0) strength += 5;
+
+    // Expected Salary (Step 3) - Only add if numeric and exists
+    const rawSalary = profile.expectedSalary ? String(profile.expectedSalary).replace(/[,₹\s]/g, '') : "";
+    if (rawSalary && /^\d+$/.test(rawSalary)) strength += 5;
 
     // 4. History (20%)
     if (profile.education && profile.education.length > 0) strength += 10;
     if (profile.workExperience && profile.workExperience.length > 0) strength += 10;
 
     // 5. Assets & Social (20%)
-    if (profile.profileImage) strength += 10;
+    if (profile.profileImage) strength += 5;
     if (profile.resume || profile.resumeUrl) strength += 10;
 
-    // Social Links (Check if any exist)
-    const hasSocial = profile.socialLinks && Object.values(profile.socialLinks).some(link => link && link.trim() !== "");
-    if (hasSocial) strength += 5;
-
-    // Check sum: 5+5+5 + 5+5 + 5+10+10+5 + 10+10 + 10+10+5 = 100.
-    // Correct.
+    // Social Links (Check if any exist and are valid)
+    const hasValidSocial = profile.socialLinks && Object.values(profile.socialLinks).some(link =>
+        link && link.trim() !== "" && urlPattern.test(link.trim())
+    );
+    if (hasValidSocial) strength += 5;
 
     // Cap at 100
     strength = Math.min(strength, 100);

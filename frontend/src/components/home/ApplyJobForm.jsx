@@ -62,6 +62,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         fetchUserData();
     }, []);
 
+    const [errors, setErrors] = useState({});
     const [resume, setResume] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
@@ -69,7 +70,45 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
     const [fileError, setFileError] = useState(null);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        const newErrors = { ...errors };
+
+        if (name === 'name') {
+            if (!/^[A-Za-z\s]*$/.test(value)) {
+                newErrors.name = "Name should contain only alphabets";
+            } else if (!value.trim()) {
+                newErrors.name = "Name is required";
+            } else {
+                delete newErrors.name;
+            }
+        }
+
+        if (name === 'phone') {
+            if (!/^\d*$/.test(value)) {
+                newErrors.phone = "Phone number must contain only digits";
+            } else if (value.trim() && value.length < 5) {
+                newErrors.phone = "Please enter a valid phone number";
+            } else if (!value.trim()) {
+                newErrors.phone = "Phone number is required";
+            } else {
+                delete newErrors.phone;
+            }
+        }
+
+        if (name === 'email') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (value.trim() && !emailRegex.test(value)) {
+                newErrors.email = "Please enter a valid email address";
+            } else if (!value.trim()) {
+                newErrors.email = "Email is required";
+            } else {
+                delete newErrors.email;
+            }
+        }
+
+        setErrors(newErrors);
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleFileChange = (e) => {
@@ -95,6 +134,21 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (Object.keys(errors).length > 0) return;
+
+        const currentErrors = {};
+        if (!formData.name.trim()) currentErrors.name = "Name is required";
+        if (!formData.email.trim()) currentErrors.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) currentErrors.email = "Please enter a valid email address";
+        if (!formData.phone.trim()) currentErrors.phone = "Phone number is required";
+        else if (formData.phone.length < 5) currentErrors.phone = "Please enter a valid phone number";
+
+        if (Object.keys(currentErrors).length > 0) {
+            setErrors({ ...errors, ...currentErrors });
+            return;
+        }
+
         setLoading(true);
         setError(null);
         setMessage(null);
@@ -210,9 +264,10 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                                 required
                                 value={formData.name}
                                 onChange={handleChange}
-                                className="w-full text-black font-bold text-xs border-b border-gray-300 focus:border-black outline-none py-0.5 bg-transparent transition-colors placeholder:font-normal"
+                                className={`w-full text-black font-bold text-xs border-b outline-none py-0.5 bg-transparent transition-colors placeholder:font-normal ${errors.name ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
                                 placeholder="Paul Walker"
                             />
+                            {errors.name && <p className="text-[#FF0000] text-[10px] mt-0.5">{errors.name}</p>}
                         </div>
 
                         {/* Email */}
@@ -224,16 +279,17 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                                 required
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="w-full text-black font-bold text-xs border-b border-gray-300 focus:border-black outline-none py-0.5 bg-transparent transition-colors placeholder:font-normal"
+                                className={`w-full text-black font-bold text-xs border-b outline-none py-0.5 bg-transparent transition-colors placeholder:font-normal ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
                                 placeholder="paulwalker233@gmail.com"
                             />
+                            {errors.email && <p className="text-[#FF0000] text-[10px] mt-0.5">{errors.email}</p>}
                         </div>
 
                         {/* Phone Number */}
                         <div className="space-y-0.5">
                             <label className="text-[10px] font-normal text-gray-600">Phone Number (With country code)</label>
-                            <div className="flex items-center gap-3 border border-gray-300 rounded-lg p-1 bg-white">
-                                <div className="border-r border-gray-300 pr-2">
+                            <div className={`flex items-center gap-3 border rounded-lg p-1 bg-white ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}>
+                                <div className={`border-r pr-2 ${errors.phone ? 'border-red-300' : 'border-gray-300'}`}>
                                     <select className="bg-transparent font-bold text-xs text-black outline-none cursor-pointer appearance-none pr-3">
                                         <option>+91</option>
                                         <option>+1</option>
@@ -251,6 +307,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                                     placeholder="867392385578"
                                 />
                             </div>
+                            {errors.phone && <p className="text-[#FF0000] text-[10px] mt-0.5">{errors.phone}</p>}
                         </div>
                     </div>
                 </div>

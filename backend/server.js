@@ -1,4 +1,4 @@
-import "dotenv/config"; // Load env vars BEFORE other imports
+﻿import "dotenv/config"; // Load env vars BEFORE other imports
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -73,10 +73,20 @@ app.use("/api/education", educationRoutes);
 app.use("/api", hiringpartnersRoutes);
 
 app.get("/", (req, res) => {
-  res.send("🚀 Backend Running");
+  res.send("≡ƒÜÇ Backend Running");
 });
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`🔥 Server running on port ${PORT}`);
+  console.log(`≡ƒöÑ Server running on port ${PORT}`);
+});
+
+// ✅ Global Error Handler (JSON response for all errors)
+app.use((err, req, res, next) => {
+  console.error("Global Error Handler Catch-all:", err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+    error: process.env.NODE_ENV === "development" ? err : {}
+  });
 });

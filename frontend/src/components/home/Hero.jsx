@@ -40,16 +40,6 @@ const Hero = () => {
       {/* ---------------- SOCIAL SIDEBAR (LEFT) — hidden on mobile ---------------- */}
 
 
-      {/* ---------------- WHATSAPP BUTTON (RIGHT) ---------------- */}
-      <a
-        href="https://wa.me/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-4 right-4 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-300 animate-bounce-slow"
-      >
-        <FaWhatsapp size={26} className="sm:hidden" />
-        <FaWhatsapp size={32} className="hidden sm:block" />
-      </a>
 
       {/* ---------------- TORCH EFFECT ---------------- */}
       <div
@@ -63,7 +53,7 @@ const Hero = () => {
 
         {/* ---------------- LEFT CONTENT ---------------- */}
         <div className="flex-1 space-y-6 w-full text-center lg:text-left">
-          <h1 className="text-4xl sm:text-5xl lg:text-[70px] font-bold leading-[1.1] text-black tracking-tight">
+          <h1 className="text-5xl sm:text-6xl lg:text-[80px] font-bold leading-[1.1] text-black tracking-tight">
             Unlock Your Potential With{" "}
             <span className="text-[#FFB300]">New Opportunities</span>
           </h1>

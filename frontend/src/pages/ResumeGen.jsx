@@ -16,15 +16,21 @@ const ResumeGen = () => {
                 {/* Main Content */}
                 <div className="pt-24 pb-10 flex-1 flex flex-col max-w-7xl mx-auto w-full px-6">
 
-                    {/* Page Header */}
-                    <div className="relative text-center mb-10 flex items-center justify-center">
+                    {/* Page Action Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
                         <button
-                            onClick={() => navigate(-1)}
-                            className="absolute left-0 p-2 text-gray-800 hover:text-black transition"
+                            onClick={() => navigate('/create-profile')}
+                            className="flex items-center gap-2 text-gray-600 hover:text-[#FFB300] transition-colors font-medium self-start md:self-auto"
                         >
-                            <ArrowLeft size={28} />
+                            <ArrowLeft size={20} />
+                            Back to Profile Creation
                         </button>
-                        <h1 className="text-4xl font-bold text-gray-900">Candidate Details</h1>
+
+                        <h1 className="text-4xl font-bold text-gray-900 md:absolute md:left-1/2 md:-translate-x-1/2">
+                            Candidate Details
+                        </h1>
+
+                        <div className="hidden md:block w-32"></div>
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -47,7 +53,7 @@ const ResumeGen = () => {
                     </div>
                 </div>
             </div>
-        </ResumeProvider>
+        </ResumeProvider >
     );
 };
 

@@ -41,7 +41,7 @@ const Navbar = ({ mode = "auto" }) => {
         window.location.href = "/";
     };
 
-    const isTransparentPage = ["/", "/about", "/testimonials", "/contact", "/jobs"].includes(location.pathname);
+    const isTransparentPage = ["/", "/about", "/testimonials", "/contact", "/jobs", "/applied-jobs"].includes(location.pathname);
 
     return (
         <header
@@ -57,6 +57,8 @@ const Navbar = ({ mode = "auto" }) => {
                         <span className="text-2xl font-bold text-gray-900">Testimonials</span>
                     ) : location.pathname === "/jobs" ? (
                         <span className="text-2xl font-bold text-gray-900">Brows jobs</span>
+                    ) : location.pathname === "/applied-jobs" ? (
+                        <span className="text-2xl font-bold text-gray-900">Applied vacancies</span>
                     ) : (
                         <img
                             src={logo}

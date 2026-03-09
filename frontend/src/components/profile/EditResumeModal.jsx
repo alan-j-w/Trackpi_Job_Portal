@@ -1,22 +1,24 @@
 import React, { useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing }) => {
     const fileInputRef = useRef(null);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [fileError, setFileError] = useState(null);
 
     if (!isOpen) return null;
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
+        setFileError(null);
         if (file) {
-            // Basic validation
             if (file.type !== "application/pdf") {
-                toast.error("Only PDF files are allowed.");
+                setFileError("Only PDF files are allowed.");
+                setSelectedFile(null);
                 return;
             }
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                toast.error("File size should be less than 5MB");
+            if (file.size > 5 * 1024 * 1024) {
+                setFileError("File size must be less than 5MB.");
+                setSelectedFile(null);
                 return;
             }
             setSelectedFile(file);
@@ -28,11 +30,11 @@ const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing 
     };
 
     const handleSubmit = () => {
-        if (selectedFile) {
-            onSave(selectedFile);
-        } else {
-            onClose();
+        if (!selectedFile) {
+            setFileError("Please select a PDF file to upload.");
+            return;
         }
+        onSave(selectedFile);
     };
 
     return (
@@ -56,8 +58,8 @@ const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing 
                 </div>
 
                 {/* Preview / Import Area */}
-                <div className="relative border border-gray-300 rounded-lg h-64 bg-gray-50 overflow-hidden flex items-center justify-center mb-8">
-                    {/* Background Preview (Placeholder or actual PDF preview if possible, simpler to use placeholder image style) */}
+                <div className={`relative border rounded-lg h-64 bg-gray-50 overflow-hidden flex items-center justify-center mb-2 ${fileError ? 'border-red-400' : 'border-gray-300'}`}>
+                    {/* Background Preview */}
                     <div className="absolute inset-0 opacity-20 flex flex-col p-8 pointer-events-none select-none">
                         <div className="h-4 w-32 bg-black mb-2"></div>
                         <div className="h-2 w-24 bg-gray-500 mb-8"></div>
@@ -77,11 +79,14 @@ const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing 
                     {/* Overlay Box */}
                     <div
                         onClick={handleImportClick}
-                        className="relative z-10 bg-gray-300/80 hover:bg-gray-300 transition cursor-pointer px-8 py-4 rounded shadow-sm backdrop-blur-sm"
+                        className="relative z-10 bg-gray-300/80 hover:bg-gray-300 transition cursor-pointer px-8 py-4 rounded shadow-sm backdrop-blur-sm text-center"
                     >
-                        <span className="font-medium text-black">
+                        <span className="font-medium text-black block">
                             {selectedFile ? selectedFile.name : "Import your file here"}
                         </span>
+                        {!selectedFile && (
+                            <span className="text-xs text-gray-500 mt-1 block">PDF only · Max 5 MB</span>
+                        )}
                     </div>
                     <input
                         type="file"
@@ -92,11 +97,28 @@ const EditResumeModal = ({ isOpen, onClose, onSave, currentResumeUrl, isEditing 
                     />
                 </div>
 
+                {/* Inline File Error */}
+                {fileError && (
+                    <p className="text-red-500 text-xs mb-6 flex items-center gap-1 font-medium">
+                        <span>⚠</span>{fileError}
+                    </p>
+                )}
+
+                {/* Success indicator */}
+                {selectedFile && !fileError && (
+                    <p className="text-green-600 text-xs mb-6 flex items-center gap-1 font-medium">
+                        <span>✓</span> {selectedFile.name} selected
+                    </p>
+                )}
+
                 {/* Buttons */}
-                <div className="flex justify-center gap-6">
+                <div className="flex justify-center gap-6 mt-4">
                     <button
                         onClick={handleSubmit}
-                        className="bg-gradient-to-b from-[#FFE587] to-[#FFB300] text-black font-bold py-2 px-10 rounded-lg shadow-sm hover:shadow-md transition min-w-[140px] border border-[#FFB300]/50"
+                        className={`font-bold py-2 px-10 rounded-lg shadow-sm transition min-w-[140px] border ${selectedFile && !fileError
+                            ? 'bg-gradient-to-b from-[#FFE587] to-[#FFB300] text-black hover:shadow-md border-[#FFB300]/50'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                            }`}
                     >
                         Submit
                     </button>

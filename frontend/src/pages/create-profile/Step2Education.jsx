@@ -4,7 +4,8 @@ import SearchableDropdown from "./components/SearchableDropdown";
 import deleteEducationImg from "../../assets/illustrations/delete-education.png";
 import { calculateProfileStrength } from "../../utils/profileUtils";
 import ProfileStrengthCircle from "../../components/profile/ProfileStrengthCircle";
-
+import toast from "react-hot-toast";
+import config from "../../config";
 const EDUCATION_LEVELS = [
     "10th",
     "12th",
@@ -22,6 +23,8 @@ const KERALA_DISTRICTS = [
 const YEARS = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
 
 const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack }) => {
+    const containerRef = React.useRef(null);
+    const [stepError, setStepError] = useState("");
 
     const { strength } = calculateProfileStrength({
         ...formData,
@@ -31,6 +34,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
     // ================= SKILLS LOGIC =================
     const [skillInput, setSkillInput] = useState("");
+    const [skillError, setSkillError] = useState("");
     const [suggestions, setSuggestions] = useState([]);
 
     // Debounce Search
@@ -42,7 +46,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             }
 
             try {
-                const res = await axios.get(`http://localhost:8000/api/skills/search?query=${skillInput}`);
+                const res = await axios.get(`${config.API_URL}/api/skills/search?query=${skillInput}`);
                 // Filter out already selected skills from suggestions
                 const availableSkills = res.data.filter(s => !(formData.skills || []).includes(s));
                 setSuggestions(availableSkills);
@@ -56,6 +60,13 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
     }, [skillInput, formData.skills]);
 
     const addSkill = (skill) => {
+        // Validate skill is not purely numeric or purely special characters
+        // It must contain at least one alphabet character
+        if (!/[a-zA-Z]/.test(skill)) {
+            setSkillError("Skill must contain valid text.");
+            return;
+        }
+
         const currentSkills = Array.isArray(formData.skills) ? formData.skills : [];
         if (!currentSkills.some(s => s.toLowerCase() === skill.toLowerCase())) {
             setFormData(prev => ({
@@ -63,7 +74,10 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                 skills: [...currentSkills, skill]
             }));
             setSkillInput("");
+            setSkillError("");
             setSuggestions([]);
+        } else {
+            setSkillError("Skill already added.");
         }
     };
 
@@ -103,9 +117,18 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
         const fetchLanguages = async () => {
             try {
                 // If input is empty, fetch default list (handled by backend now)
-                const url = `http://localhost:8000/api/languages/search${languageInput ? `?query=${languageInput}` : ''}`;
+                const url = `${config.API_URL}/api/languages/search${languageInput ? `?query=${languageInput}` : ''}`;
                 const res = await axios.get(url);
-                setLanguageSuggestions(res.data);
+
+                // Deduplicate and filter out already added languages (except the one being edited)
+                const uniqueLanguages = [...new Set(res.data)];
+                const availableLanguages = uniqueLanguages.filter(lang => {
+                    const isSelected = (formData.languages || []).some(l => l.name.toLowerCase() === lang.toLowerCase());
+                    const isEdited = editingLanguageIndex !== null && formData.languages[editingLanguageIndex]?.name.toLowerCase() === lang.toLowerCase();
+                    return !isSelected || isEdited;
+                });
+
+                setLanguageSuggestions(availableLanguages);
             } catch (err) {
                 console.error("Failed to fetch languages", err);
             }
@@ -123,18 +146,24 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
     const handleLanguageSave = () => {
         if (!languageForm.name || !languageForm.proficiency) {
-            alert("Please select a language and proficiency");
+            toast.error("Please select a language and proficiency");
             return;
         }
 
         setFormData(prev => {
             const currentLanguages = [...(prev.languages || [])];
             if (editingLanguageIndex !== null) {
+                // Prevent duplicate if renaming to an existing language
+                const isDuplicate = currentLanguages.some((l, idx) => l.name.toLowerCase() === languageForm.name.toLowerCase() && idx !== editingLanguageIndex);
+                if (isDuplicate) {
+                    toast.error("Language already added");
+                    return prev;
+                }
                 currentLanguages[editingLanguageIndex] = languageForm;
             } else {
                 // Prevent duplicates if adding new
-                if (currentLanguages.some(l => l.name === languageForm.name)) {
-                    alert("Language already added");
+                if (currentLanguages.some(l => l.name.toLowerCase() === languageForm.name.toLowerCase())) {
+                    toast.error("Language already added");
                     return prev;
                 }
                 currentLanguages.push(languageForm);
@@ -208,6 +237,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
     const [filteredCourses, setFilteredCourses] = useState([]);
     const [filteredUniversities, setFilteredUniversities] = useState([]);
     const [isSearchingUni, setIsSearchingUni] = useState(false);
+    const [eduErrors, setEduErrors] = useState({});
 
     // Ref for race condition handling
     const abortControllerRef = React.useRef(null);
@@ -230,7 +260,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                 const query = courseSearch.trim();
                 const levelParam = educationForm.level ? `&level=${encodeURIComponent(educationForm.level)}` : "";
 
-                const res = await axios.get(`http://localhost:8000/api/education/courses?query=${query}${levelParam}`);
+                const res = await axios.get(`${config.API_URL}/api/education/courses?query=${query}${levelParam}`);
                 let courses = res.data.map(c => c.name);
 
                 // Add "Other" option if logic requires, or just rely on user typing "Other" if my list has it. 
@@ -267,8 +297,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
             try {
                 setIsSearchingUni(true);
-                const res = await axios.get(
-                    `http://localhost:8000/api/education/universities?query=${universitySearch.trim()}`,
+                const res = await axios.get(`${config.API_URL}/api/education/universities?query=${universitySearch.trim()}`,
                     { signal: abortControllerRef.current.signal }
                 );
 
@@ -338,34 +367,36 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             setCustomCourse("");
             setCustomUniversity("");
         }
+        setEduErrors({});
         setShowEducationModal(true);
     };
 
     const handleEducationSave = () => {
-        // Resolve "Other" course
+        const errors = {};
+        if (!educationForm.level) errors.level = "Education level is required";
+
         let finalCourse = educationForm.course;
         if (educationForm.course === "Other") {
             finalCourse = customCourse;
         }
+        if (!finalCourse || !finalCourse.trim()) errors.course = "Course name is required";
 
-        // Resolve "Other" university
         let finalUniversity = educationForm.university;
         if (educationForm.university === "Other") {
             finalUniversity = customUniversity;
         }
+        if (!finalUniversity || !finalUniversity.trim()) errors.university = "University/Institute is required";
 
-        // Basic check (User said "Do not add validation", but we need SOME data to save meaningfully)
-        // I will keep check but remove strict alerts if data is partial, 
-        // OR better: Just ensure we don't save "Other" as the course name.
-        if (educationForm.course === "Other" && !customCourse.trim()) {
-            // If selected Other but didn't type anything, maybe alert is necessary or just don't close.
-            // User Rule: "Do NOT add validation". 
-            // Interpretation: Don't block. But saving "Other" is clearly wrong per "Backend must NOT contain 'Other'".
-            // So I will fall back to empty string or keep it open?
-            // I'll silently fail to save invalid data or just save what we have? 
-            // "Backend must NOT contain 'Other'" -> So if empty custom, maybe save empty string.
-            finalCourse = "";
+        if (!educationForm.courseType) errors.courseType = "Course type is required";
+        if (!educationForm.startYear) errors.startYear = "Starting year is required";
+        if (!educationForm.endYear) errors.endYear = "Ending year is required";
+
+        if (Object.keys(errors).length > 0) {
+            setEduErrors(errors);
+            // Scroll to first error if needed - but modal is usually small enough
+            return;
         }
+        setEduErrors({});
 
         const dataToSave = {
             ...educationForm,
@@ -406,6 +437,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
         setCustomCourse("");
         setCustomUniversity("");
         setOpenDropdown(null);
+        setEduErrors({});
     };
 
     const handleEducationDelete = (index) => {
@@ -413,6 +445,21 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             ...prev,
             educationList: prev.educationList.filter((_, i) => i !== index)
         }));
+    };
+
+    const handleNext = () => {
+        if (
+            !formData.languages || formData.languages.length === 0 ||
+            !formData.educationList || formData.educationList.length === 0
+        ) {
+            setStepError("Please fill all mandatory fields to proceed.");
+            if (containerRef.current) {
+                containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+        setStepError("");
+        onNext();
     };
 
 
@@ -439,7 +486,12 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             </div>
 
             {/* Scrollable Content Section */}
-            <div className="flex-1 overflow-y-auto px-1">
+            <div ref={containerRef} className="flex-1 overflow-y-auto px-1">
+                {stepError && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 mb-6 text-center shadow-sm font-semibold animate-fadeIn">
+                        {stepError}
+                    </div>
+                )}
                 {/* Call to Action Cards */}
                 <div className="space-y-4 mb-10">
                     {/* Language Card */}
@@ -486,7 +538,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                     {/* Skills */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
                         <div className="absolute top-4 right-4">
-                            <div className={`${formData.skills && formData.skills.length > 0 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} rounded-full p-1 transition-colors duration-300`}>
+                            <div className={`${(formData.skills && formData.skills.length > 0 && !skillError) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} rounded-full p-1 transition-colors duration-300`}>
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                             </div>
                         </div>
@@ -514,14 +566,17 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                 <input
                                     id="skills-input"
                                     value={skillInput}
-                                    onChange={(e) => setSkillInput(e.target.value)}
+                                    onChange={(e) => {
+                                        setSkillInput(e.target.value);
+                                        setSkillError("");
+                                    }}
                                     onKeyDown={handleSkillKeyDown}
                                     className="w-full bg-transparent border-b border-dashed border-[#9CA3AF] py-3 text-sm focus:border-[#FFB300] outline-none text-gray-800 placeholder-gray-400 font-medium"
                                     placeholder={formData.skills && formData.skills.length > 0 ? "Add more skills..." : "Add your skills"}
                                 />
 
                                 {/* Suggestions Dropdown */}
-                                {skillInput && suggestions.length > 0 && (
+                                {skillInput && suggestions.length > 0 && !skillError && (
                                     <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 max-h-60 overflow-y-auto animate-fadeIn">
                                         {suggestions.map(skill => (
                                             <div
@@ -536,12 +591,13 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                     </div>
                                 )}
                                 {/* Optional: Show 'Hit Enter to add' hint if no suggestions */}
-                                {skillInput && suggestions.length === 0 && (
+                                {skillInput && suggestions.length === 0 && !skillError && (
                                     <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-4 text-center text-sm text-gray-500">
                                         Press Enter to add "{skillInput}"
                                     </div>
                                 )}
                             </div>
+                            {skillError && <p className="text-[#FF0000] text-xs px-1">{skillError}</p>}
                         </div>
                     </div>
 
@@ -694,7 +750,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                     <button onClick={onBack} className="bg-white border text-black font-semibold py-3 px-10 rounded-xl shadow-sm hover:bg-gray-50 transition min-w-[120px]">
                         Back
                     </button>
-                    <button onClick={onNext} className="bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-10 rounded-xl shadow-lg transition transform hover:scale-105 min-w-[160px]">
+                    <button onClick={handleNext} className="bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-10 rounded-xl shadow-lg transition transform hover:scale-105 min-w-[160px]">
                         Next
                     </button>
                 </div>
@@ -703,8 +759,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
             {/* Language Modal */}
             {showLanguageModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
-                    <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative animate-scaleIn">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn" onClick={() => setShowLanguageModal(false)}>
+                    <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative animate-scaleIn" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => setShowLanguageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
@@ -724,10 +780,19 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         placeholder="Choose language"
                                         value={languageInput}
                                         onChange={(e) => {
-                                            setLanguageInput(e.target.value);
+                                            const val = e.target.value;
+                                            setLanguageInput(val);
+                                            setLanguageForm(prev => ({ ...prev, name: val }));
                                             setShowLanguageDropdown(true);
                                         }}
-                                        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking input
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (languageForm.name) {
+                                                setLanguageInput("");
+                                                setLanguageForm(prev => ({ ...prev, name: "" }));
+                                            }
+                                            setShowLanguageDropdown(true);
+                                        }}
                                     />
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${showLanguageDropdown ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                 </div>
@@ -736,7 +801,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                     <div className="absolute top-full left-0 right-0 mt-3 max-h-60 overflow-y-auto z-30 p-1 space-y-2 no-scrollbar">
                                         {languageSuggestions.map((lang, idx) => (
                                             <div
-                                                key={idx}
+                                                key={lang}
                                                 className="px-5 py-3.5 rounded-xl bg-white border border-gray-100 cursor-pointer text-sm font-bold text-gray-700 shadow-sm hover:shadow-md transition-all hover:bg-gray-50 hover:scale-[1.01]"
                                                 onClick={() => {
                                                     setLanguageForm(prev => ({ ...prev, name: lang }));
@@ -832,7 +897,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             )}
             {/* Education Modal */}
             {showEducationModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn" onClick={() => setShowEducationModal(false)}>
                     <div className="bg-white rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative animate-scaleIn max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <button type="button" onClick={() => setShowEducationModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -882,6 +947,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         ))}
                                     </div>
                                 )}
+                                {eduErrors.level && <p className="text-red-500 text-xs mt-1">{eduErrors.level}</p>}
                             </div>
 
                             {/* Course */}
@@ -956,6 +1022,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         )}
                                     </>
                                 )}
+                                {eduErrors.course && <p className="text-red-500 text-xs mt-1">{eduErrors.course}</p>}
                             </div>
 
                             {/* Manual Entry for "Other" Course */}
@@ -973,6 +1040,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         onClick={(e) => e.stopPropagation()}
                                         onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
+                                    {eduErrors.course && <p className="text-red-500 text-xs mt-1">{eduErrors.course}</p>}
                                 </div>
                             )}
 
@@ -1051,6 +1119,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         )}
                                     </>
                                 )}
+                                {eduErrors.university && <p className="text-red-500 text-xs mt-1">{eduErrors.university}</p>}
                             </div>
 
                             {/* Manual Entry for "Other" University */}
@@ -1068,6 +1137,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         onClick={(e) => e.stopPropagation()}
                                         onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                                     />
+                                    {eduErrors.university && <p className="text-red-500 text-xs mt-1">{eduErrors.university}</p>}
                                 </div>
                             )}
 
@@ -1091,6 +1161,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         </label>
                                     ))}
                                 </div>
+                                {eduErrors.courseType && <p className="text-red-500 text-xs mt-1">{eduErrors.courseType}</p>}
                             </div>
 
                             {/* Course Duration */}
@@ -1165,6 +1236,9 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         )}
                                     </div>
                                 </div>
+                                {(eduErrors.startYear || eduErrors.endYear) && (
+                                    <p className="text-red-500 text-xs mt-1">{eduErrors.startYear || eduErrors.endYear}</p>
+                                )}
                             </div>
                         </div>
 
@@ -1199,8 +1273,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
             )}
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
-                    <div className="bg-white rounded-2xl p-8 w-[420px] flex flex-col items-center shadow-2xl relative animate-scaleIn">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn" onClick={() => setShowDeleteConfirm(false)}>
+                    <div className="bg-white rounded-2xl p-8 w-[420px] flex flex-col items-center shadow-2xl relative animate-scaleIn" onClick={(e) => e.stopPropagation()}>
                         {/* Illustration */}
                         <div className="w-64 h-48 mb-2 flex items-center justify-center">
                             <img src={deleteEducationImg} alt="Delete" className="w-full h-full object-contain" />
@@ -1237,8 +1311,8 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
 
             {/* Language Delete Confirmation Modal */}
             {showLanguageDeleteConfirm && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn">
-                    <div className="bg-white rounded-2xl p-8 w-[420px] flex flex-col items-center shadow-2xl relative animate-scaleIn">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/0 backdrop-blur-sm animate-fadeIn" onClick={() => setShowLanguageDeleteConfirm(false)}>
+                    <div className="bg-white rounded-2xl p-8 w-[420px] flex flex-col items-center shadow-2xl relative animate-scaleIn" onClick={(e) => e.stopPropagation()}>
                         {/* Illustration */}
                         <div className="w-64 h-48 mb-2 flex items-center justify-center">
                             <img src={deleteEducationImg} alt="Delete" className="w-full h-full object-contain" />

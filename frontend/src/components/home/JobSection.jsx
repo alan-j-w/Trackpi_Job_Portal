@@ -3,10 +3,11 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import JobCard from "./JobCard";
 import JobDetailsModal from "./JobDetailsModal";
 import Pagination from "./Pagination";
-import "remixicon/fonts/remixicon.css";
+import { TiArrowBack } from "react-icons/ti";
 import { API_URL } from "../../config";
 
-const JobSection = ({ className = "", isHome = false }) => {
+
+const JobSection = ({ className = "", isHome = false, showBack = false }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialKeyword = searchParams.get("keyword") || "";
@@ -80,7 +81,13 @@ const JobSection = ({ className = "", isHome = false }) => {
         setLoading(false);
       }
     };
-    fetchJobs();
+
+    // Defer fetch until browser is idle so it doesn't block initial paint
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(() => fetchJobs(), { timeout: 2000 });
+    } else {
+      setTimeout(fetchJobs, 100);
+    }
   }, []);
 
   /* -------------------- Constants & Options -------------------- */
@@ -215,7 +222,7 @@ const JobSection = ({ className = "", isHome = false }) => {
 
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = isHome ? sortedJobs.slice(0, 4) : sortedJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const currentJobs = sortedJobs.slice(indexOfFirstJob, indexOfLastJob);
   const totalPages = Math.ceil(sortedJobs.length / jobsPerPage);
 
 
@@ -261,9 +268,17 @@ const JobSection = ({ className = "", isHome = false }) => {
       <div className="max-w-[1200px] mx-auto px-4">
 
         {/* 1. Header Title */}
-        <div className="flex flex-col items-center text-center mb-10">
-          <div className="max-w-[421px]">
-            <h2 className="text-[32px] md:text-[48px] font-bold text-black tracking-tight uppercase leading-none font-cabinet">
+        <div className="flex flex-col items-center text-center mb-10 relative">
+          {showBack && (
+            <button
+              onClick={() => navigate("/")}
+              className="absolute left-4 md:left-8 top-1 md:top-3 text-black hover:text-[#FFB300] transition-colors"
+            >
+              <TiArrowBack size={24} className="font-bold" />
+            </button>
+          )}
+          <div className="max-w-[600px]">
+            <h2 className="text-[38px] md:text-[56px] font-extrabold text-black tracking-tight uppercase leading-none font-cabinet">
               JOB LISTING
             </h2>
             <p className="text-[16px] text-gray-600 mt-2 font-medium">
@@ -292,8 +307,8 @@ const JobSection = ({ className = "", isHome = false }) => {
           </button>
         </div>
 
-        {/* Filters Toolbar - SORT BUTTON HIDDEN on Desktop, keeping logic here if needed */}
-        <div className="flex flex-wrap justify-between items-center gap-3 mb-10 max-w-4xl mx-auto w-full z-20 relative">
+        {/* Filters Toolbar - ALIGNED RIGHT */}
+        <div className="flex justify-end items-center gap-3 mb-10 max-w-7xl mx-auto w-full z-20 relative">
 
           {/* SORT BUTTON & DROPDOWN */}
           <div className="relative" ref={sortRef}>
@@ -302,7 +317,7 @@ const JobSection = ({ className = "", isHome = false }) => {
                 setOpenSort(!openSort);
                 setOpenFilter(false);
               }}
-              className="flex items-center gap-2 px-6 py-3 bg-white border border-black rounded-[12px] text-base font-bold text-black hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-black rounded-[8px] text-[13px] font-bold text-black hover:bg-gray-50 transition-colors shadow-sm"
             >
               Sort <i className="ri-arrow-up-down-line ml-2"></i>
             </button>
@@ -347,7 +362,7 @@ const JobSection = ({ className = "", isHome = false }) => {
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setOpenFilter(!openFilter)}
-              className="flex items-center gap-2 px-6 py-3 bg-[#E0E0E0] rounded-[12px] text-base font-bold text-[#1C1C1C] hover:bg-[#d4d4d4] transition-colors"
+              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-black rounded-[8px] text-[13px] font-bold text-black hover:bg-gray-50 transition-colors shadow-sm"
             >
               Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
               <i className="ri-filter-3-line ml-2"></i>
@@ -471,7 +486,7 @@ const JobSection = ({ className = "", isHome = false }) => {
 
 
         {/* 5. Pagination */}
-        {!isHome && !loading && totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

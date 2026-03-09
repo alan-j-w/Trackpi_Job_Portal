@@ -1,11 +1,38 @@
-import React, { useState, useEffect } from "react";
-import SearchableDropdown from "../../pages/create-profile/components/SearchableDropdown";
+import SearchableDropdown, { CustomDatePicker } from "../../pages/create-profile/components/SearchableDropdown";
 
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
     "Idukki", "Ernakulam", "Thrissur", "Palakkad", "Malappuram",
     "Kozhikode", "Wayanad", "Kannur", "Kasaragod"
 ];
+
+// Compute date constraints
+const getTodayStr = () => new Date().toISOString().split("T")[0];
+const getMaxDOB = () => {
+    // User must be at least 16 years old (can't be born after today-16 years)
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 16);
+    return d.toISOString().split("T")[0];
+};
+const getMinDOB = () => {
+    // Oldest supported: 100 years
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 100);
+    return d.toISOString().split("T")[0];
+};
+
+const isValidUrl = (val) => {
+    if (!val.trim()) return true; // optional
+    try {
+        const url = new URL(val.startsWith("http") ? val : `https://${val}`);
+        return url.hostname.includes(".");
+    } catch {
+        return false;
+    }
+};
+
+const ErrorMsg = ({ msg }) =>
+    msg ? <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠</span>{msg}</p> : null;
 
 const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     if (!isOpen) return null;
@@ -23,11 +50,26 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
         locationState: "",
         countryCode: "+91",
         maritalStatus: "",
-        dob: "",
-        socialLinks: { linkedin: "", twitter: "", facebook: "", portfolio: "" }
+        dob: ""
     });
 
+    const [errors, setErrors] = useState({});
     const [skillInput, setSkillInput] = useState("");
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const getDobMax = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 18);
+        return d.toISOString().split('T')[0];
+    };
+
+    const getDobMin = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 100);
+        return d.toISOString().split('T')[0];
+    };
+
+
 
     // Initialize form with profile data
     useEffect(() => {
@@ -42,43 +84,104 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                 email: profileData.email || "",
                 educationDegree: profileData.education?.[0]?.degree || "",
                 locationCity: profileData.location?.city || "",
-                locationState: profileData.location?.state || "",
+                locationState: profileData.location?.state || "Kerala",
                 countryCode: "+91",
                 maritalStatus: profileData.maritalStatus || "",
-                dob: profileData.dob ? new Date(profileData.dob).toISOString().split('T')[0] : "",
-                socialLinks: {
-                    linkedin: profileData.socialLinks?.linkedin || "",
-                    twitter: profileData.socialLinks?.twitter || "",
-                    facebook: profileData.socialLinks?.facebook || "",
-                    portfolio: profileData.socialLinks?.portfolio || "" // Behance/Portfolio
-                }
+                dob: profileData.dateOfBirth || profileData.dob
+                    ? (() => {
+                        const raw = profileData.dateOfBirth || profileData.dob;
+                        try { return new Date(raw).toISOString().split("T")[0]; } catch { return raw; }
+                    })()
+                    : ""
             });
+            setErrors({});
         }
     }, [profileData]);
 
+    // ─── Validation helpers ─────────────────────────────────────────────────────
+    const validateField = (name, value, currentErrors = { ...errors }) => {
+        const e = { ...currentErrors };
+
+        switch (name) {
+            case "fullName":
+                if (!value.trim()) e.fullName = "Name is required";
+                else if (!/^[A-Za-z\s.'-]+$/.test(value)) e.fullName = "Name should only contain letters";
+                else if (value.trim().length < 2) e.fullName = "Name must be at least 2 characters";
+                else delete e.fullName;
+                break;
+
+            case "jobTitle":
+                if (value.trim() && /^\d+$/.test(value.trim())) e.jobTitle = "Job title cannot be only numbers";
+                else if (value.trim() && /^[^a-zA-Z0-9]+$/.test(value.trim())) e.jobTitle = "Job title must contain valid text";
+                else delete e.jobTitle;
+                break;
+
+            case "phone":
+                if (!value.trim()) e.phone = "Phone number is required";
+                else if (!/^\d+$/.test(value)) e.phone = "Phone number must contain only digits";
+                else if (value.length !== 10) e.phone = "Please enter a valid 10-digit phone number";
+                else if (/^(.)\1{9}$/.test(value)) e.phone = "Phone number cannot be all the same digit";
+                else delete e.phone;
+                break;
+
+            case "email":
+                if (!value.trim()) e.email = "Email is required";
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) e.email = "Please enter a valid email address";
+                else delete e.email;
+                break;
+
+            case "dob": {
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const minDate = new Date(getMinDOB());
+                const maxDate = new Date(getMaxDOB());
+                const selected = new Date(value);
+                if (!value) { delete e.dob; break; }
+                if (isNaN(selected.getTime())) { e.dob = "Invalid date"; break; }
+                if (selected >= today) { e.dob = "Date of birth cannot be today or a future date"; break; }
+                if (selected > maxDate) { e.dob = "You must be at least 16 years old"; break; }
+                if (selected < minDate) { e.dob = "Please enter a valid date of birth"; break; }
+                delete e.dob;
+                break;
+            }
+
+            case "educationDegree":
+                if (value.trim() && /^\d+$/.test(value.trim())) e.educationDegree = "Education cannot be only numbers";
+                else delete e.educationDegree;
+                break;
+
+            default:
+                break;
+        }
+
+        return e;
+    };
+
+    // ─── Handlers ──────────────────────────────────────────────────────────────
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        setErrors(validateField(name, value));
     };
 
-    const handleSocialChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            socialLinks: {
-                ...prev.socialLinks,
-                [name]: value
-            }
-        }));
+    const handleSkillInputChange = (e) => {
+        const val = e.target.value;
+        setSkillInput(val);
+        if (/\d/.test(val)) {
+            setErrors(prev => ({ ...prev, skillInput: "Skills cannot contain numbers" }));
+        } else {
+            setErrors(prev => { const n = { ...prev }; delete n.skillInput; return n; });
+        }
     };
 
     const handleSkillAdd = (e) => {
-        if (e.key === 'Enter' && skillInput.trim()) {
+        if (e.key === "Enter" && skillInput.trim()) {
             e.preventDefault();
+            if (/\d/.test(skillInput)) return;
             if (!formData.skills.includes(skillInput.trim())) {
                 setFormData(prev => ({ ...prev, skills: [...prev.skills, skillInput.trim()] }));
             }
             setSkillInput("");
+            setErrors(prev => { const n = { ...prev }; delete n.skillInput; return n; });
         }
     };
 
@@ -86,26 +189,63 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
         setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }));
     };
 
+    // DOB: reject today and future dates directly
+    const handleDOBChange = (e) => {
+        const value = e.target.value;
+        const selected = new Date(value);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+
+        if (selected >= today) {
+            setErrors(prev => ({ ...prev, dob: "Date of birth cannot be today or a future date" }));
+            return; // Don't update form state with invalid date
+        }
+
+        setFormData(prev => ({ ...prev, dob: value }));
+        setErrors(validateField("dob", value));
+    };
+
     const handleSubmit = () => {
+        // Re-validate all required fields before submit
+        let allErrors = {};
+        allErrors = validateField("fullName", formData.fullName, allErrors);
+        allErrors = validateField("phone", formData.phone, allErrors);
+        allErrors = validateField("email", formData.email, allErrors);
+        if (formData.dob) allErrors = validateField("dob", formData.dob, allErrors);
+        if (formData.jobTitle) allErrors = validateField("jobTitle", formData.jobTitle, allErrors);
+        if (formData.educationDegree) allErrors = validateField("educationDegree", formData.educationDegree, allErrors);
+
+        if (Object.keys(allErrors).length > 0) {
+            setErrors(allErrors);
+            return;
+        }
+
         const finalData = { ...formData };
 
-        // Auto-add pending skill input if user forgot to press Enter
-        if (skillInput.trim()) {
+        // Auto-add pending skill
+        if (skillInput.trim() && !/\d/.test(skillInput)) {
             const newSkill = skillInput.trim();
             if (!finalData.skills.includes(newSkill)) {
                 finalData.skills = [...finalData.skills, newSkill];
             }
         }
 
-        if (finalData.phone && !finalData.phone.startsWith('+91')) {
-            finalData.phone = '+91' + finalData.phone;
+        if (finalData.phone && !finalData.phone.startsWith("+91")) {
+            finalData.phone = "+91" + finalData.phone;
         }
+
         onSave(finalData);
     };
 
+    const inputClass = (hasError) =>
+        `w-full border-b py-2 outline-none text-sm font-medium text-black placeholder-gray-400 transition-colors ${hasError ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#FFB300]"
+        }`;
+
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+            <div
+                className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fadeIn"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h2 className="text-lg font-bold text-gray-800">Edit Profile</h2>
@@ -120,13 +260,17 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
                     {/* Name */}
                     <div>
-                        <label className="block text-sm font-bold text-black mb-2">Enter your Name</label>
+                        <label className="block text-sm font-bold text-black mb-2">
+                            Enter your Name <span className="text-red-500">*</span>
+                        </label>
                         <input
                             name="fullName"
                             value={formData.fullName}
                             onChange={handleChange}
-                            className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
+                            className={inputClass(errors.fullName)}
+                            placeholder="e.g. Alan Joy Wilson"
                         />
+                        <ErrorMsg msg={errors.fullName} />
                     </div>
 
                     {/* Job Title */}
@@ -136,9 +280,10 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                             name="jobTitle"
                             value={formData.jobTitle}
                             onChange={handleChange}
-                            className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
-                            placeholder="Sales Executive"
+                            className={inputClass(errors.jobTitle)}
+                            placeholder="e.g. Sales Executive"
                         />
+                        <ErrorMsg msg={errors.jobTitle} />
                     </div>
 
                     {/* Skills */}
@@ -154,30 +299,24 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                         </div>
                         <input
                             value={skillInput}
-                            onChange={(e) => setSkillInput(e.target.value)}
+                            onChange={handleSkillInputChange}
                             onKeyDown={handleSkillAdd}
-                            className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm placeholder-gray-400"
+                            className={`w-full border-b py-2 outline-none text-sm placeholder-gray-400 transition-colors ${errors.skillInput ? "border-red-500" : "border-gray-300 focus:border-[#FFB300]"}`}
                             placeholder="Type and press Enter to add skills..."
                         />
+                        <ErrorMsg msg={errors.skillInput} />
                     </div>
 
                     {/* Work Status */}
                     <div>
                         <label className="block text-sm font-bold text-black mb-4">Work status</label>
                         <div className="flex flex-wrap gap-8">
-                            {['Fresher', 'Intern', 'Experienced'].map(status => (
+                            {["Fresher", "Intern", "Experienced"].map(status => (
                                 <label key={status} className="flex items-center gap-3 cursor-pointer group">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.workStatus.toLowerCase() === status.toLowerCase() ? 'border-[#FFB300]' : 'border-gray-800'}`}>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.workStatus.toLowerCase() === status.toLowerCase() ? "border-[#FFB300]" : "border-gray-800"}`}>
                                         {formData.workStatus.toLowerCase() === status.toLowerCase() && <div className="w-2.5 h-2.5 rounded-full bg-[#FFB300]" />}
                                     </div>
-                                    <input
-                                        type="radio"
-                                        name="workStatus"
-                                        value={status.toLowerCase()}
-                                        checked={formData.workStatus.toLowerCase() === status.toLowerCase()}
-                                        onChange={handleChange}
-                                        className="hidden"
-                                    />
+                                    <input type="radio" name="workStatus" value={status.toLowerCase()} checked={formData.workStatus.toLowerCase() === status.toLowerCase()} onChange={handleChange} className="hidden" />
                                     <span className="text-sm font-medium text-gray-800">{status}</span>
                                 </label>
                             ))}
@@ -188,19 +327,12 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                     <div>
                         <label className="block text-sm font-bold text-black mb-4">Gender</label>
                         <div className="flex gap-12">
-                            {['Male', 'Female'].map(g => (
+                            {["Male", "Female"].map(g => (
                                 <label key={g} className="flex items-center gap-3 cursor-pointer group">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.gender.toLowerCase() === g.toLowerCase() ? 'border-[#FFB300]' : 'border-gray-800'}`}>
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.gender.toLowerCase() === g.toLowerCase() ? "border-[#FFB300]" : "border-gray-800"}`}>
                                         {formData.gender.toLowerCase() === g.toLowerCase() && <div className="w-2.5 h-2.5 rounded-full bg-[#FFB300]" />}
                                     </div>
-                                    <input
-                                        type="radio"
-                                        name="gender"
-                                        value={g.toLowerCase()}
-                                        checked={formData.gender.toLowerCase() === g.toLowerCase()}
-                                        onChange={handleChange}
-                                        className="hidden"
-                                    />
+                                    <input type="radio" name="gender" value={g.toLowerCase()} checked={formData.gender.toLowerCase() === g.toLowerCase()} onChange={handleChange} className="hidden" />
                                     <span className="text-sm font-medium text-gray-800">{g}</span>
                                 </label>
                             ))}
@@ -209,35 +341,41 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
                     {/* Phone */}
                     <div>
-                        <label className="block text-sm font-bold text-black mb-2">Primary phone number</label>
-                        <div className="flex items-center gap-4 mt-2 border-b border-gray-300 pb-2">
-
-                            {/* Static Code Dropdown for UI match */}
-                            <div className="bg-white border border-gray-200 rounded px-2 py-1 flex items-center gap-2 shadow-sm cursor-pointer">
+                        <label className="block text-sm font-bold text-black mb-2">
+                            Primary phone number <span className="text-red-500">*</span>
+                        </label>
+                        <div className={`flex items-center gap-4 mt-2 border-b pb-2 transition-colors ${errors.phone ? "border-red-500" : "border-gray-300 focus-within:border-[#FFB300]"}`}>
+                            <div className="bg-white border border-gray-200 rounded px-2 py-1 flex items-center gap-2 shadow-sm">
                                 <span className="text-sm font-bold text-black">+91</span>
                                 <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                             </div>
-
                             <input
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleChange}
+                                maxLength={10}
+                                inputMode="numeric"
                                 className="w-full bg-transparent outline-none text-sm font-medium text-gray-600 placeholder-gray-300"
                                 placeholder="9785105567"
                             />
                         </div>
+                        <ErrorMsg msg={errors.phone} />
                     </div>
 
                     {/* Email */}
                     <div>
-                        <label className="block text-sm font-bold text-black mb-2">Email ID</label>
+                        <label className="block text-sm font-bold text-black mb-2">
+                            Email ID <span className="text-red-500">*</span>
+                        </label>
                         <input
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
+                            className={inputClass(errors.email)}
                             placeholder="example@gmail.com"
+                            type="email"
                         />
+                        <ErrorMsg msg={errors.email} />
                     </div>
 
                     {/* Education */}
@@ -247,34 +385,32 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                             name="educationDegree"
                             value={formData.educationDegree}
                             onChange={handleChange}
-                            className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
-                            placeholder="Bsc Computer science"
+                            className={inputClass(errors.educationDegree)}
+                            placeholder="e.g. BSc Computer Science"
                         />
+                        <ErrorMsg msg={errors.educationDegree} />
                     </div>
 
                     {/* Location */}
                     <div className="grid grid-cols-2 gap-6">
-                        {/* District/City */}
                         <div className="relative">
                             <label className="block text-sm font-bold text-black mb-2">District</label>
                             <SearchableDropdown
                                 options={KERALA_DISTRICTS.map(d => ({ name: d, value: d }))}
                                 value={formData.locationCity}
-                                onChange={(val) => handleChange({ target: { name: 'locationCity', value: val } })}
+                                onChange={(val) => handleChange({ target: { name: "locationCity", value: val } })}
                                 placeholder="Select District"
                                 valueKey="value"
                                 labelKey="name"
                                 searchable={false}
                             />
                         </div>
-
-                        {/* State */}
                         <div className="relative">
                             <label className="block text-sm font-bold text-black mb-2">State</label>
                             <SearchableDropdown
                                 options={[{ name: "Kerala", value: "Kerala" }]}
                                 value={formData.locationState || "Kerala"}
-                                onChange={(val) => handleChange({ target: { name: 'locationState', value: val } })}
+                                onChange={(val) => handleChange({ target: { name: "locationState", value: val } })}
                                 placeholder="Select State"
                                 valueKey="value"
                                 labelKey="name"
@@ -287,93 +423,66 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                     <div className="grid grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-bold text-black mb-2">Marital Status</label>
-                            <div className="relative">
-                                <SearchableDropdown
-                                    options={["Single", "Married", "Divorced", "Widowed"].map(s => ({ name: s, value: s }))}
-                                    value={formData.maritalStatus}
-                                    onChange={(val) => handleChange({ target: { name: 'maritalStatus', value: val } })}
-                                    placeholder="Select Status"
-                                    valueKey="value"
-                                    labelKey="name"
-                                    searchable={false}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-black mb-2">Date of Birth</label>
-                            <input
-                                type="date"
-                                name="dob"
-                                value={formData.dob}
-                                onChange={handleChange}
-                                className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#FFB300] text-sm font-medium text-black placeholder-gray-400"
+                            <SearchableDropdown
+                                options={["Single", "Married", "Divorced", "Widowed"].map(s => ({ name: s, value: s.toLowerCase() }))}
+                                value={formData.maritalStatus}
+                                onChange={(val) => handleChange({ target: { name: "maritalStatus", value: val } })}
+                                placeholder="Select Status"
+                                valueKey="value"
+                                labelKey="name"
+                                searchable={false}
                             />
                         </div>
-                    </div>
-
-                    {/* Social Links */}
-                    <div>
-                        <label className="block text-sm font-bold text-black mb-4">Social Links</label>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <span className="w-24 text-sm font-medium text-gray-600">LinkedIn</span>
-                                <input
-                                    name="linkedin"
-                                    value={formData.socialLinks.linkedin}
-                                    onChange={handleSocialChange}
-                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
-                                    placeholder="LinkedIn URL"
-                                />
+                        <div>
+                            <label className="block text-sm font-bold text-black mb-2">
+                                Date of Birth
+                                <span className="ml-2 text-xs text-gray-400 font-normal">(Min age: 16)</span>
+                            </label>
+                            <div
+                                className={`w-full border-b py-2 outline-none text-sm font-medium text-black cursor-pointer flex items-center justify-between transition-colors ${errors.dob ? "border-red-500" : "border-gray-300"}`}
+                                onClick={() => setShowDatePicker(true)}
+                            >
+                                <span>{formData.dob ? new Date(formData.dob).toLocaleDateString('en-GB') : "Select Date"}</span>
+                                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className="w-24 text-sm font-medium text-gray-600">Twitter</span>
-                                <input
-                                    name="twitter"
-                                    value={formData.socialLinks.twitter}
-                                    onChange={handleSocialChange}
-                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
-                                    placeholder="Twitter URL"
+                            {showDatePicker && (
+                                <CustomDatePicker
+                                    value={formData.dob}
+                                    minDate={getDobMin()}
+                                    maxDate={getDobMax()}
+                                    onChange={(val) => {
+                                        setFormData(prev => ({ ...prev, dob: val }));
+                                        setErrors(validateField("dob", val));
+                                    }}
+                                    onClose={() => setShowDatePicker(false)}
                                 />
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="w-24 text-sm font-medium text-gray-600">Facebook</span>
-                                <input
-                                    name="facebook"
-                                    value={formData.socialLinks.facebook}
-                                    onChange={handleSocialChange}
-                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
-                                    placeholder="Facebook URL"
-                                />
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="w-24 text-sm font-medium text-gray-600">Behance</span>
-                                <input
-                                    name="portfolio"
-                                    value={formData.socialLinks.portfolio}
-                                    onChange={handleSocialChange}
-                                    className="flex-1 border-b border-gray-300 py-1 outline-none focus:border-[#FFB300] text-sm"
-                                    placeholder="Behance/Portfolio URL"
-                                />
-                            </div>
+                            )}
+                            <ErrorMsg msg={errors.dob} />
                         </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex justify-center gap-4 pt-4">
-                        <button
-                            onClick={handleSubmit}
-                            className="bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black font-bold py-3 px-12 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
-                        >
-                            Submit
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="bg-white border border-gray-400 text-black font-bold py-3 px-12 rounded-lg hover:bg-gray-50 transition"
-                        >
-                            Cancel
-                        </button>
-                    </div>
+                </div>
 
+                {/* Actions */}
+                <div className="flex justify-center gap-4 pt-4">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={Object.keys(errors).length > 0}
+                        className={`font-bold py-3 px-12 rounded-lg shadow-md transition-all ${Object.keys(errors).length > 0
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : "bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black hover:shadow-lg hover:scale-105 transform"
+                            }`}
+                    >
+                        Submit
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="bg-white border border-gray-400 text-black font-bold py-3 px-12 rounded-lg hover:bg-gray-50 transition"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>

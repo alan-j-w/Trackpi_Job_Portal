@@ -60,4 +60,16 @@ body {
   .checkbox {
     @apply flex items-center gap-2 cursor-pointer;
   }
+
+  .date-icon-left::-webkit-calendar-picker-indicator {
+    position: absolute;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  
+  .date-icon-left::-webkit-datetime-edit {
+    padding-left: 24px;
+  }
 }

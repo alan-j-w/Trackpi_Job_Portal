@@ -58,11 +58,7 @@ const AppliedJobs = () => {
         <div className="bg-[#F8F9FB] min-h-screen pb-20">
             <Navbar />
 
-            <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-10">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Applied vacancies</h1>
-                </div>
+            <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-32">
 
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
