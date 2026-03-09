@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 const router = express.Router();
 
 import {
@@ -13,7 +13,7 @@ import {
     deleteResume
 } from "../controllers/profileController.js";
 
-import { uploadImage, uploadResume as resumeUpload } from "../middleware/uploadMiddleware.js";
+import { profileImageUpload, coverImageUpload, resumeUploadMiddleware } from "../middleware/uploadMiddleware.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -25,7 +25,7 @@ router.get("/status", protect, checkProfileStatus);     // Check if profile exis
 router.post(
     "/cover-image",
     protect, // Using protect alias for authMiddleware
-    uploadImage.single("coverImage"),
+    coverImageUpload.single("coverImage"),
     uploadCoverImage
 );
 
@@ -35,14 +35,14 @@ router.delete("/profile-image", protect, deleteProfileImage);
 router.post(
     "/profile-image",
     protect,
-    uploadImage.single("profileImage"),
+    profileImageUpload.single("profileImage"),
     uploadProfileImage
 );
 
 router.post(
     "/resume",
     protect,
-    resumeUpload.single("resume"),
+    resumeUploadMiddleware.single("resume"),
     uploadResume
 );
 

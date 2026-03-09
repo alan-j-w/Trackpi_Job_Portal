@@ -13,32 +13,41 @@ export const protect = async (req, res, next) => {
             // Get token from header
             token = req.headers.authorization.split(" ")[1];
 
+            if (!process.env.JWT_SECRET) {
+                console.error("FATAL: JWT_SECRET is not defined in environment variables!");
+                return res.status(500).json({ message: "Server configuration error" });
+            }
+
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            console.log("Token decoded successfully for user ID:", decoded.id);
 
             // Get user from the token
             req.user = await User.findById(decoded.id).select("-password");
 
             if (!req.user) {
+                console.warn(`Auth failed: User with ID ${decoded.id} not found in DB`);
                 return res.status(401).json({ message: "Not authorized, user not found" });
             }
 
             if (req.user.status === 'inactive') {
+                console.warn(`Auth failed: User ${req.user.email} is inactive`);
                 return res.status(403).json({ message: "Account is inactive. Please contact support." });
             }
 
             // Update lastActive (Fire and forget, don't await blocking)
             User.findByIdAndUpdate(req.user._id, { lastActive: new Date() }).catch(err => console.error("Error updating lastActive:", err));
 
-            next();
+            return next();
         } catch (error) {
-            console.error(error);
-            res.status(401).json({ message: "Not authorized, token failed", error: error.message });
+            console.error("JWT Verification Error:", error.message);
+            return res.status(401).json({ message: "Not authorized, token failed", error: error.message });
         }
     }
 
     if (!token) {
-        res.status(401).json({ message: "Not authorized, no token" });
+        console.warn("Auth failed: No token provided in headers");
+        return res.status(401).json({ message: "Not authorized, no token" });
     }
 };
 

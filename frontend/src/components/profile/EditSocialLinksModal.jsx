@@ -8,6 +8,8 @@ const EditSocialLinksModal = ({ isOpen, onClose, socialLinks, onSave }) => {
         portfolio: ""
     });
 
+    const [errors, setErrors] = useState({});
+
     useEffect(() => {
         if (socialLinks) {
             setFormData({
@@ -20,18 +22,34 @@ const EditSocialLinksModal = ({ isOpen, onClose, socialLinks, onSave }) => {
     }, [socialLinks, isOpen]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        const newErrors = { ...errors };
+
+        if (value.trim()) {
+            const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)*\/?$/i;
+            if (!urlPattern.test(value.trim())) {
+                newErrors[name] = "Please enter a valid URL.";
+            } else {
+                delete newErrors[name];
+            }
+        } else {
+            delete newErrors[name];
+        }
+
+        setErrors(newErrors);
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = () => {
+        if (Object.keys(errors).length > 0) return;
         onSave(formData);
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 animate-fadeIn">
-            <div className="bg-white w-[600px] rounded-[24px] p-8 relative shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 animate-fadeIn" onClick={onClose}>
+            <div className="bg-white w-[600px] rounded-[24px] p-8 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
                 {/* Header */}
                 <h2 className="text-xl font-bold text-black mb-6">Social Links</h2>
@@ -50,8 +68,9 @@ const EditSocialLinksModal = ({ isOpen, onClose, socialLinks, onSave }) => {
                             value={formData.linkedin}
                             onChange={handleChange}
                             placeholder="www.linkedin.com/in/username"
-                            className="w-full border-b-2 border-[#FFB300] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none focus:border-[#e6a100] transition-colors bg-transparent"
+                            className={`w-full border-b-[2px] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none transition-colors bg-transparent ${errors.linkedin ? 'border-red-500' : 'border-[#FFB300] focus:border-[#e6a100]'}`}
                         />
+                        {errors.linkedin && <p className="text-[#FF0000] text-xs mt-1">{errors.linkedin}</p>}
                     </div>
 
                     {/* Twitter */}
@@ -67,8 +86,9 @@ const EditSocialLinksModal = ({ isOpen, onClose, socialLinks, onSave }) => {
                             value={formData.twitter}
                             onChange={handleChange}
                             placeholder="twitter.com/username"
-                            className="w-full border-b-2 border-[#FFB300] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none focus:border-[#e6a100] transition-colors bg-transparent"
+                            className={`w-full border-b-[2px] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none transition-colors bg-transparent ${errors.twitter ? 'border-red-500' : 'border-[#FFB300] focus:border-[#e6a100]'}`}
                         />
+                        {errors.twitter && <p className="text-[#FF0000] text-xs mt-1">{errors.twitter}</p>}
                     </div>
 
                     {/* Facebook */}
@@ -84,8 +104,9 @@ const EditSocialLinksModal = ({ isOpen, onClose, socialLinks, onSave }) => {
                             value={formData.facebook}
                             onChange={handleChange}
                             placeholder="www.facebook.com/username"
-                            className="w-full border-b-2 border-[#FFB300] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none focus:border-[#e6a100] transition-colors bg-transparent"
+                            className={`w-full border-b-[2px] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none transition-colors bg-transparent ${errors.facebook ? 'border-red-500' : 'border-[#FFB300] focus:border-[#e6a100]'}`}
                         />
+                        {errors.facebook && <p className="text-[#FF0000] text-xs mt-1">{errors.facebook}</p>}
                     </div>
 
                     {/* Behance */}
@@ -101,8 +122,9 @@ const EditSocialLinksModal = ({ isOpen, onClose, socialLinks, onSave }) => {
                             value={formData.portfolio}
                             onChange={handleChange}
                             placeholder="behance.net/username"
-                            className="w-full border-b-2 border-[#FFB300] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none focus:border-[#e6a100] transition-colors bg-transparent"
+                            className={`w-full border-b-[2px] py-2 text-sm text-[#FFB300] placeholder-gray-300 outline-none transition-colors bg-transparent ${errors.portfolio ? 'border-red-500' : 'border-[#FFB300] focus:border-[#e6a100]'}`}
                         />
+                        {errors.portfolio && <p className="text-[#FF0000] text-xs mt-1">{errors.portfolio}</p>}
                     </div>
                 </div>
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { toast } from 'react-hot-toast';
+﻿import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const EditIcon = ({ className, onClick }) => (
     <svg onClick={onClick} className={`cursor-pointer text-black hover:text-gray-600 transition ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -20,25 +20,16 @@ const DownloadIcon = ({ className }) => (
 );
 
 const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete }) => {
+    const navigate = useNavigate();
 
-    const handleEditClick = () => {
-        onEdit();
-    };
-    // ...
     const handleATSClick = () => {
-        if (!resumeUrl || !isGlobalComplete) {
-            toast.error("Please complete your profile (100%) and upload a resume to generate an ATS CV.");
-        } else {
-            toast.success("Generating ATS CV... (Feature coming soon)");
-            // Future: Trigger generation logic here
-        }
+        navigate("/resume-gen");
     };
 
     const isATSUnlocked = resumeUrl && isGlobalComplete;
 
     return (
         <div className="pt-5 pb-0">
-
             <div className="flex justify-between items-center mb-4">
                 <h2 className="font-bold text-lg text-black">Resume</h2>
                 <div className="flex gap-4 items-center">
@@ -85,7 +76,7 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete })
                 style={{
                     width: '238px',
                     height: '46px',
-                    borderRadius: '8px', // Hug/Radius seems to be standard, using 8px
+                    borderRadius: '8px',
                     border: '1px solid #827E7E',
                     background: 'linear-gradient(90deg, #D9D9D9 0%, rgba(153, 153, 153, 0.00) 76%)'
                 }}

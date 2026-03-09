@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
     const [skills, setSkills] = useState(currentSkills || []);
     const [inputValue, setInputValue] = useState("");
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         setSkills(currentSkills || []);
@@ -12,10 +13,12 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && inputValue.trim()) {
             e.preventDefault();
+            if (/\d/.test(inputValue)) return;
             if (!skills.includes(inputValue.trim())) {
                 setSkills([...skills, inputValue.trim()]);
             }
             setInputValue("");
+            setError(null);
         }
     };
 
@@ -25,7 +28,7 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
 
     const handleSave = () => {
         let finalSkills = [...skills];
-        if (inputValue.trim() && !skills.includes(inputValue.trim())) {
+        if (inputValue.trim() && !/\d/.test(inputValue) && !skills.includes(inputValue.trim())) {
             finalSkills.push(inputValue.trim());
         }
         onSave(finalSkills);
@@ -59,13 +62,22 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
                     <div className="relative border-b border-gray-400">
                         <input
                             value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setInputValue(val);
+                                if (/\d/.test(val)) {
+                                    setError("Skills cannot contain numbers.");
+                                } else {
+                                    setError(null);
+                                }
+                            }}
                             onKeyDown={handleKeyDown}
-                            className="w-full bg-transparent py-2 outline-none text-sm text-black placeholder-gray-500"
+                            className={`w-full bg-transparent py-2 outline-none text-sm placeholder-gray-500 ${error ? 'text-red-500' : 'text-black'}`}
                             placeholder="Type a skill and press Enter..."
                             autoComplete="off"
                         />
                     </div>
+                    {error && <p className="text-[#FF0000] text-xs mt-1">{error}</p>}
                 </div>
 
                 <div className="flex justify-center gap-6">

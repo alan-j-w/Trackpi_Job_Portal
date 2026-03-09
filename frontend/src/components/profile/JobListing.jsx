@@ -55,7 +55,7 @@ const JobListing = ({ limit }) => {
     const displayedJobs = limit ? jobs.slice(0, limit) : jobs;
 
     return (
-        <div className="relative pb-8 pt-8 px-4 mt-16 font-['Satoshi']">
+        <div className="relative pb-4 pt-8 px-4 mt-16 font-['Satoshi']">
             {/* Header Section */}
             <div className="flex justify-center mb-16 relative">
                 <div className="relative inline-block">
@@ -190,10 +190,10 @@ const JobListing = ({ limit }) => {
 
             {/* Bottom Link - Only show if limited or there's more */}
             {limit && (
-                <div className="flex justify-end mt-8 max-w-7xl mx-auto px-4">
+                <div className="flex justify-end mt-4 max-w-7xl mx-auto px-4">
                     <button
                         onClick={() => navigate('/jobs')}
-                        className="text-black text-sm font-bold flex items-center gap-2 group hover:text-[#FFB300] transition-colors"
+                        className="text-black text-lg font-bold flex items-center gap-2 group hover:text-[#FFB300] transition-colors"
                     >
                         <span className="border-b-2 border-[#FF4D4D] pb-1 group-hover:border-[#FFB300]">Explore for more jobs</span>
                         <i className="ri-arrow-right-line text-lg group-hover:translate-x-1 transition-transform"></i>
