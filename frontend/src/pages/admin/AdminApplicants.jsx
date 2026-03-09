@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Eye, Trash2, FileText, Search, Filter, ArrowUpDown } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import { API_URL } from "../../config";
+import DeleteUserModal from "../../components/admin/DeleteUserModal";
 
 
 const CircularProgress = ({ percentage }) => {
@@ -54,6 +55,10 @@ const AdminApplicants = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [candidateToDelete, setCandidateToDelete] = useState(null);
 
     const isSignupPage = location.pathname.includes("signup");
     const PERM_RESUME = isSignupPage ? PERMISSIONS.SIGNUP_RESUME : PERMISSIONS.APPLICANTS_RESUME;
@@ -129,20 +134,27 @@ const AdminApplicants = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this candidate?")) return;
+    const handleDeleteClick = (id) => {
+        setCandidateToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!candidateToDelete) return;
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`${API_URL}/api/admin/candidates/${id}`, {
+            const response = await fetch(`${API_URL}/api/admin/candidates/${candidateToDelete}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (!response.ok) throw new Error("Failed to delete candidate");
 
-            setCandidates(candidates.filter(c => c.id !== id));
-            setSelectedIds(selectedIds.filter(sid => sid !== id));
+            setCandidates(candidates.filter(c => c.id !== candidateToDelete));
+            setSelectedIds(selectedIds.filter(sid => sid !== candidateToDelete));
+            setIsDeleteModalOpen(false);
+            setCandidateToDelete(null);
         } catch (err) {
             console.error("Error deleting candidate:", err);
             alert("Failed to delete candidate");
@@ -258,7 +270,11 @@ const AdminApplicants = () => {
                                         <td className="p-4 text-center">
                                             <div className="flex gap-2 justify-center">
                                                 {hasPermission(PERM_VIEW_DETAILS) && (
-                                                    <button className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition" title="View">
+                                                    <button
+                                                        onClick={() => navigate(`/admin/candidates/${candidate.id}`)}
+                                                        className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition"
+                                                        title="View"
+                                                    >
                                                         <Eye size={18} />
                                                     </button>
                                                 )}
@@ -266,7 +282,7 @@ const AdminApplicants = () => {
                                                     <button
                                                         className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded hover:bg-red-200 transition"
                                                         title="Delete"
-                                                        onClick={() => handleDelete(candidate.id)}
+                                                        onClick={() => handleDeleteClick(candidate.id)}
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
@@ -293,6 +309,14 @@ const AdminApplicants = () => {
                     </div>
                 </div>
             </div>
+            {/* Delete Modal */}
+            <DeleteUserModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete candidates"
+                message="Sure you want to delete"
+            />
         </div>
     );
 };

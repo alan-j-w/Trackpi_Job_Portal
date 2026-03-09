@@ -19,11 +19,11 @@ const ProgressBar = ({ currentStep, steps }) => {
 
                                 {/* Circle */}
                                 <div
-                                    className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-lg z-10 transition-all duration-300 border-[3px]
-                      ${isActive || isCompleted ? 'bg-[#FFB300] border-[#D68F00] text-white shadow-md' : 'bg-white border-gray-300 text-gray-400'}
+                                    className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xl z-10 transition-all duration-300 border-[3px] shadow-sm
+                      ${isActive || isCompleted ? 'bg-gradient-to-br from-[#FFC107] to-[#FF9800] border-transparent text-white shadow-[#FFB300]/50 shadow-lg' : 'bg-white border-gray-300 text-[#FF9800]'}
                     `}
                                 >
-                                    {isCompleted ? <Check size={24} strokeWidth={3} /> : stepNum}
+                                    {isActive || isCompleted ? <Check size={24} strokeWidth={3} /> : stepNum}
                                 </div>
 
                                 {/* Right Line */}

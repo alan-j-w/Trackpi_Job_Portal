@@ -15,6 +15,9 @@ router.get("/dashboard-stats", checkPermission(PERMISSIONS.DASHBOARD_VIEW), admi
 // Get All Candidates (Job Seekers)
 router.get("/candidates", checkPermission(PERMISSIONS.SIGNUP_VIEW), adminController.getAllCandidates);
 
+// Get Single Candidate Profile
+router.get("/candidates/:id", checkPermission(PERMISSIONS.SIGNUP_VIEW_DETAILS), adminController.getCandidateById);
+
 // Get All Jobs (Admin View)
 router.get("/jobs", checkPermission(PERMISSIONS.JOBS_VIEW), adminController.getAdminJobs);
 

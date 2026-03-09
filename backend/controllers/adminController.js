@@ -84,11 +84,24 @@ export const createSuperUser = async (req, res) => {
 
         // Add to Role
         if (roleId) {
-            await AdminRole.findByIdAndUpdate(roleId, { $addToSet: { users: newUser._id } });
+            console.log(`[CreateSuperUser] Attempting to add User ${newUser._id} to Role ${roleId}`);
+
+            const roleDoc = await AdminRole.findById(roleId);
+            if (roleDoc) {
+                // Check if user is already in role (shouldn't be for new user, but good sanity check)
+                if (!roleDoc.users.includes(newUser._id)) {
+                    roleDoc.users.push(newUser._id);
+                    await roleDoc.save();
+                    console.log(`[CreateSuperUser] Successfully linked User ${newUser._id} to Role ${roleDoc.name}`);
+                }
+            } else {
+                console.warn(`[CreateSuperUser] Role ID ${roleId} not found.`);
+            }
         }
 
         res.status(201).json({ message: "Super User created", user: newUser, password: password });
     } catch (error) {
+        console.error("[CreateSuperUser] Error:", error);
         res.status(500).json({ message: "Failed to create Super User", error: error.message });
     }
 };
@@ -152,6 +165,33 @@ export const getAllCandidates = async (req, res) => {
         res.status(200).json(candidatesWithProfiles);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch candidates", error: error.message });
+    }
+};
+
+// Get Single Candidate Profile
+export const getCandidateById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if user exists and is a jobseeker (optional restriction)
+        const user = await User.findById(id).select("-password");
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Candidate not found" });
+        }
+
+        const profile = await Profile.findOne({ user: id }).populate("user", "name email");
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "Profile not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            profile
+        });
+    } catch (error) {
+        console.error("Error fetching candidate profile:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch candidate profile" });
     }
 };
 

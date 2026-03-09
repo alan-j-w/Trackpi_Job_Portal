@@ -13,7 +13,7 @@ const PlusIcon = ({ className }) => (
     </svg>
 );
 
-const ExperienceSection = ({ workExperience, onAddExperience, onManage }) => {
+const ExperienceSection = ({ workExperience, onAddExperience, onManage, readOnly }) => {
     return (
         <div className="py-6 border-b border-black">
             <div className="flex justify-between items-center mb-6">

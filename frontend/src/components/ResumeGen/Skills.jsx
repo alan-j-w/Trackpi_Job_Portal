@@ -5,20 +5,27 @@ import { Plus, Trash2 } from 'lucide-react';
 const Skills = () => {
     const { resumeData, setResumeData } = useResume();
     const { skills } = resumeData;
-    const { hard = [], soft = [] } = skills; // Fallback defaults
+    const { hard = [], soft = [], other = [] } = skills; // Fallback defaults
 
-    const [newSkill, setNewSkill] = useState({ type: 'hard', value: '' });
+    const [newSkills, setNewSkills] = useState({ hard: '', soft: '', other: '' });
 
-    const handleAdd = () => {
-        if (!newSkill.value) return;
+    const handleAdd = (type) => {
+        if (!newSkills[type].trim()) return;
         setResumeData(prev => ({
             ...prev,
             skills: {
                 ...prev.skills,
-                [newSkill.type]: [...(prev.skills[newSkill.type] || []), newSkill.value]
+                [type]: [...(prev.skills[type] || []), newSkills[type].trim()]
             }
         }));
-        setNewSkill({ ...newSkill, value: '' });
+        setNewSkills({ ...newSkills, [type]: '' });
+    };
+
+    const handleKeyDown = (e, type) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAdd(type);
+        }
     };
 
     const handleRemove = (type, index) => {
@@ -36,10 +43,10 @@ const Skills = () => {
 
             {/* Hard Skills Section */}
             <div>
-                <h4 className="text-lg font-bold text-gray-800 mb-3">Hard Skills</h4>
-                <div className="flex flex-wrap gap-2 mb-3">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Hard skills</label>
+                <div className="flex flex-wrap gap-2 mb-2">
                     {hard.map((skill, index) => (
-                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium flex items-center gap-2">
+                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-sm text-sm font-medium flex items-center gap-2">
                             {skill}
                             <button onClick={() => handleRemove('hard', index)} className="text-gray-400 hover:text-red-500">
                                 &times;
@@ -50,28 +57,21 @@ const Skills = () => {
                 <div className="flex gap-4">
                     <input
                         type="text"
-                        value={newSkill.type === 'hard' ? newSkill.value : ''}
-                        onChange={(e) => setNewSkill({ type: 'hard', value: e.target.value })}
-                        onFocus={() => setNewSkill({ ...newSkill, type: 'hard' })}
+                        value={newSkills.hard}
+                        onChange={(e) => setNewSkills({ ...newSkills, hard: e.target.value })}
+                        onKeyDown={(e) => handleKeyDown(e, 'hard')}
                         placeholder="Add your hard skills"
-                        className="flex-1 border p-3 rounded-lg border-gray-300 focus:border-[#FFB300] outline-none transition"
+                        className="flex-1 border p-3 rounded-r-sm rounded-l-sm border-gray-400 focus:border-[#FFB300] outline-none transition"
                     />
-                    <button
-                        onClick={handleAdd}
-                        disabled={newSkill.type !== 'hard' || !newSkill.value}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-800 p-3 rounded-lg transition disabled:opacity-50"
-                    >
-                        <Plus size={20} />
-                    </button>
                 </div>
             </div>
 
             {/* Soft Skills Section */}
             <div>
-                <h4 className="text-lg font-bold text-gray-800 mb-3">Soft Skills</h4>
-                <div className="flex flex-wrap gap-2 mb-3">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Soft skills</label>
+                <div className="flex flex-wrap gap-2 mb-2">
                     {soft.map((skill, index) => (
-                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium flex items-center gap-2">
+                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-sm text-sm font-medium flex items-center gap-2">
                             {skill}
                             <button onClick={() => handleRemove('soft', index)} className="text-gray-400 hover:text-red-500">
                                 &times;
@@ -82,19 +82,37 @@ const Skills = () => {
                 <div className="flex gap-4">
                     <input
                         type="text"
-                        value={newSkill.type === 'soft' ? newSkill.value : ''}
-                        onChange={(e) => setNewSkill({ type: 'soft', value: e.target.value })}
-                        onFocus={() => setNewSkill({ ...newSkill, type: 'soft' })}
+                        value={newSkills.soft}
+                        onChange={(e) => setNewSkills({ ...newSkills, soft: e.target.value })}
+                        onKeyDown={(e) => handleKeyDown(e, 'soft')}
                         placeholder="Add your soft skills"
-                        className="flex-1 border p-3 rounded-lg border-gray-300 focus:border-[#FFB300] outline-none transition"
+                        className="flex-1 border p-3 rounded-r-sm rounded-l-sm border-gray-400 focus:border-[#FFB300] outline-none transition"
                     />
-                    <button
-                        onClick={handleAdd}
-                        disabled={newSkill.type !== 'soft' || !newSkill.value}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-800 p-3 rounded-lg transition disabled:opacity-50"
-                    >
-                        <Plus size={20} />
-                    </button>
+                </div>
+            </div>
+
+            {/* Other Skills Section */}
+            <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Other skills</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {other.map((skill, index) => (
+                        <span key={index} className="px-3 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-sm text-sm font-medium flex items-center gap-2">
+                            {skill}
+                            <button onClick={() => handleRemove('other', index)} className="text-gray-400 hover:text-red-500">
+                                &times;
+                            </button>
+                        </span>
+                    ))}
+                </div>
+                <div className="flex gap-4">
+                    <input
+                        type="text"
+                        value={newSkills.other}
+                        onChange={(e) => setNewSkills({ ...newSkills, other: e.target.value })}
+                        onKeyDown={(e) => handleKeyDown(e, 'other')}
+                        placeholder="Add your other skills"
+                        className="flex-1 border p-3 rounded-r-sm rounded-l-sm border-gray-400 focus:border-[#FFB300] outline-none transition bg-[#F3F2EA]"
+                    />
                 </div>
             </div>
 
