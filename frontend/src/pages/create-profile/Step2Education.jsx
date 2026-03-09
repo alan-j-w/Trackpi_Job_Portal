@@ -20,7 +20,19 @@ const KERALA_DISTRICTS = [
     "Kozhikode", "Wayanad", "Kannur", "Kasaragod"
 ];
 
-const YEARS = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
+const getStartYears = () => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 31 }, (_, i) => (currentYear - i).toString());
+};
+
+const getEndYears = (startYearValue) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = startYearValue ? parseInt(startYearValue) : currentYear - 30;
+    const endYear = currentYear + 10;
+    const length = endYear - startYear + 1;
+    // Return array from highest to lowest year for better UX
+    return Array.from({ length: length > 0 ? length : 1 }, (_, i) => (startYear + i).toString()).reverse();
+};
 
 const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack }) => {
     const containerRef = React.useRef(null);
@@ -390,6 +402,9 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
         if (!educationForm.courseType) errors.courseType = "Course type is required";
         if (!educationForm.startYear) errors.startYear = "Starting year is required";
         if (!educationForm.endYear) errors.endYear = "Ending year is required";
+        if (educationForm.startYear && educationForm.endYear && parseInt(educationForm.endYear) < parseInt(educationForm.startYear)) {
+            errors.endYear = "Ending year must be greater than or equal to the starting year.";
+        }
 
         if (Object.keys(errors).length > 0) {
             setEduErrors(errors);
@@ -1184,13 +1199,20 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         </div>
                                         {openDropdown === 'startYear' && (
                                             <div className="absolute top-full left-0 right-0 mt-3 max-h-48 overflow-y-auto z-30 p-1 space-y-1 no-scrollbar bg-white rounded-xl border border-gray-100 shadow-xl">
-                                                {YEARS.map((year) => (
+                                                {getStartYears().map((year) => (
                                                     <div
                                                         key={year}
                                                         className="px-4 py-2 rounded-lg cursor-pointer text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            setEducationForm({ ...educationForm, startYear: year });
+                                                            setEducationForm(prev => {
+                                                                const newData = { ...prev, startYear: year };
+                                                                // If end year exists and is less than new start year, reset or update it
+                                                                if (prev.endYear && parseInt(prev.endYear) < parseInt(year)) {
+                                                                    newData.endYear = year;
+                                                                }
+                                                                return newData;
+                                                            });
                                                             setOpenDropdown(null);
                                                         }}
                                                     >
@@ -1219,7 +1241,7 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                                         </div>
                                         {openDropdown === 'endYear' && (
                                             <div className="absolute top-full left-0 right-0 mt-3 max-h-48 overflow-y-auto z-30 p-1 space-y-1 no-scrollbar bg-white rounded-xl border border-gray-100 shadow-xl">
-                                                {YEARS.map((year) => (
+                                                {getEndYears(educationForm.startYear).map((year) => (
                                                     <div
                                                         key={year}
                                                         className="px-4 py-2 rounded-lg cursor-pointer text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"

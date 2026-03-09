@@ -55,8 +55,8 @@ const Navbar = ({ mode = "auto" }) => {
                         <span className="text-2xl font-bold text-gray-900">My Profile</span>
                     ) : location.pathname === "/testimonials" && token ? (
                         <span className="text-2xl font-bold text-gray-900">Testimonials</span>
-                    ) : location.pathname === "/jobs" ? (
-                        <span className="text-2xl font-bold text-gray-900">Brows jobs</span>
+                    ) : location.pathname === "/jobs" || location.pathname === "/browse-jobs" ? (
+                        <span className="text-2xl font-bold text-gray-900">Browse Jobs</span>
                     ) : location.pathname === "/applied-jobs" ? (
                         <span className="text-2xl font-bold text-gray-900">Applied vacancies</span>
                     ) : (
@@ -92,10 +92,10 @@ const Navbar = ({ mode = "auto" }) => {
                                     Testimonial
                                 </Link>
                                 <Link
-                                    to="/jobs"
-                                    className={`hover:text-[#FFB300] ${location.pathname === "/jobs" ? "border-b-2 border-gray-300 pb-1" : ""}`}
+                                    to="/browse-jobs"
+                                    className={`hover:text-[#FFB300] ${location.pathname === "/browse-jobs" ? "border-b-2 border-gray-300 pb-1" : ""}`}
                                 >
-                                    Brows job
+                                    Browse Jobs
                                 </Link>
                                 <Link
                                     to="/applied-jobs"
@@ -194,7 +194,7 @@ const Navbar = ({ mode = "auto" }) => {
                                 <Link to="/profile" onClick={() => setOpen(false)}>Home</Link>
                                 <a href="https://chat.whatsapp.com/sample-group-invite" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>Join our community</a>
                                 <Link to="/testimonials" onClick={() => setOpen(false)}>Testimonial</Link>
-                                <Link to="/jobs" onClick={() => setOpen(false)}>Brows job</Link>
+                                <Link to="/browse-jobs" onClick={() => setOpen(false)}>Browse Jobs</Link>
                                 <Link to="/applied-jobs" onClick={() => setOpen(false)}>Applied vacancies</Link>
                             </>
                         ) : (

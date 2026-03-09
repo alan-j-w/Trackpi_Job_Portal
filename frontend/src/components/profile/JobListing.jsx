@@ -192,7 +192,7 @@ const JobListing = ({ limit }) => {
             {limit && (
                 <div className="flex justify-end mt-4 max-w-7xl mx-auto px-4">
                     <button
-                        onClick={() => navigate('/jobs')}
+                        onClick={() => navigate('/browse-jobs')}
                         className="text-black text-lg font-bold flex items-center gap-2 group hover:text-[#FFB300] transition-colors"
                     >
                         <span className="border-b-2 border-[#FF4D4D] pb-1 group-hover:border-[#FFB300]">Explore for more jobs</span>
