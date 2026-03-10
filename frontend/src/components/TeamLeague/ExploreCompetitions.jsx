@@ -1,74 +1,67 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import graphicDesignerImg from "../../assets/illustrations/side_circle_requested.png";
 import uiUxDesignerImg from "../../assets/illustrations/ui_ux_middle_requested.png";
 import videoEditorImg from "../../assets/illustrations/side_circle_requested.png";
-import trophyWireframe from "../../assets/competitions/trophy-wireframe-blue-large.png";
+import trophyWireframe from "../../assets/competitions/trophy-wireframe-new.png";
 
 const ExploreCompetitions = () => {
     const competitions = [
         {
             title: "Graphic designer",
             image: graphicDesignerImg,
-            description: "Unleash your creativity! The Creative Minds Design Challenge invites talented graphic designers to showcase their skills and imagination.",
+            description: "Unleash your creativity! Join the graphic design challenge and show the world your unique visual style.",
         },
         {
             title: "UI UX Designer",
             image: uiUxDesignerImg,
-            description: "Unleash your creativity! The Creative Minds Design Challenge invites talented UI UX designers to showcase their skills and imagination.",
+            description: "Build intuitive and beautiful experiences! Showcase your interaction design and problem-solving skills.",
             isCenter: true,
         },
         {
             title: "Video editors",
             image: videoEditorImg,
-            description: "Unleash your creativity! The Creative Minds Design Challenge invites talented Video editors to showcase their skills and imagination.",
+            description: "Craft compelling stories! Test your video editing abilities to create engaging and dynamic reels.",
         },
     ];
 
     return (
-        <section className="relative w-full py-20 bg-[#0a0a0a] overflow-hidden">
+        <section id="explore-competitions" className="relative w-full pt-28 pb-40 bg-transparent overflow-hidden">
             {/* Background Glows (Optional, to match theme) */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-yellow-600/10 blur-[150px] rounded-full pointer-events-none" />
+            {/* Background Glows removed as per request */}
 
             {/* Confetti Background - Restored */}
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-                <img
-                    src="/assets/confetti_bg.png"
-                    alt="Confetti"
-                    className="absolute bottom-0 left-0 w-[600px] opacity-80 mix-blend-screen"
-                />
-            </div>
 
-            {/* Right Side Golden Glow */}
-            <div
-                className="absolute pointer-events-none z-0"
-                style={{
-                    width: '837px',
-                    height: '1241px',
-                    left: '654px',
-                    top: '770px',
-                    background: 'linear-gradient(180deg, rgba(255, 179, 0, 0.2) 0%, rgba(255, 179, 0, 0) 100%)',
-                    filter: 'blur(100px)',
-                    opacity: 1
-                }}
-            />
 
-            {/* Background Trophy */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-xs pointer-events-none z-0">
-                <img
-                    src={trophyWireframe}
-                    alt="Trophy Background"
-                    className="w-48 h-auto object-contain mx-auto opacity-30"
-                />
-            </div>
+            {/* Background elements removed for clean black background */}
 
             <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-                <h2 className="text-4xl md:text-5xl font-bold mb-16 font-russo">
-                    <span className="text-[#FFB300] drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">
+                <div className="relative inline-block">
+                    <img
+                        src={trophyWireframe}
+                        alt="Trophy Background"
+                        className="absolute left-[56%] top-[60%] -translate-x-1/2 -translate-y-1/2 w-[140px] md:w-[280px] opacity-100 pointer-events-none z-0 transform -rotate-[18deg]"
+                        style={{ filter: 'drop-shadow(0 0 25px rgba(104, 86, 207, 0.8))' }}
+                    />
+                    <h2 className="relative z-10 font-russo mb-32 text-center" style={{
+                        fontSize: '48px',
+                        lineHeight: '100%',
+                        color: '#FFB300',
+                        textShadow: '0px 4px 4px rgba(255, 255, 255, 0.45)'
+                    }}>
                         Explore our competitions
-                    </span>
-                </h2>
+                    </h2>
+                </div>
 
                 <div className="flex flex-col lg:flex-row items-center justify-center gap-16 relative">
+                    {/* Spanning Confetti Background for Graphic Designer and UI/UX Designer */}
+                    <div className="absolute left-[-250px] lg:left-[-25%] bottom-[-280px] w-[900px] h-[450px] pointer-events-none z-30">
+                        <img
+                            src="/assets/confetti_bg.png"
+                            alt=""
+                            className="w-full h-full rounded-full opacity-100 mix-blend-screen object-contain brightness-125 saturate-150 contrast-110"
+                        />
+                    </div>
 
                     {/* Navigation Arrows (Visual Only for now as per image) */}
                     <button className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 text-[#FFB300] text-3xl hover:scale-110 transition-transform z-30">
@@ -87,14 +80,9 @@ const ExploreCompetitions = () => {
                                     : 'w-[220px] h-[220px] md:w-[290px] md:h-[290px] z-10 lg:-translate-y-16 justify-start pt-5 md:pt-6 gap-1'}
                             `}
                         >
-                            {/* Decorative Trophy for Graphic Designer Card */}
-                            {index === 0 && (
-                                <img
-                                    src={trophyWireframe}
-                                    alt=""
-                                    className="absolute left-[20px] top-[35%] -translate-y-1/2 w-[70px] opacity-40 mix-blend-screen pointer-events-none rotate-12"
-                                />
-                            )}
+                            {/* Decorative Trophies removed for cleanup */}
+
+                            {/* Confetti removed from here as it now spans multiple circles at the section level */}
                             <h3 className="text-white text-sm md:text-lg leading-tight z-10">{comp.title}</h3>
 
                             <div className={`relative z-10 ${comp.isCenter ? 'w-48 h-48 md:w-56 md:h-56 -mt-4 md:-mt-8 mb-0' : 'w-20 h-20 md:w-28 md:h-28'}`}>
@@ -106,9 +94,17 @@ const ExploreCompetitions = () => {
                             </p>
 
                             <div className="mt-auto mb-3 md:mb-5 z-10">
-                                <button className="px-8 py-1 rounded-lg bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-serif text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
-                                    Go on <i className="ri-arrow-right-s-line text-xs md:text-sm"></i>
-                                </button>
+                                {comp.title === "UI UX Designer" ? (
+                                    <Link to="/competition/ui-ux">
+                                        <button className="px-8 py-1 rounded-lg bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-serif text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+                                            Go On <i className="ri-arrow-right-s-line text-xs md:text-sm"></i>
+                                        </button>
+                                    </Link>
+                                ) : (
+                                    <button className="px-8 py-1 rounded-lg bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-serif text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+                                        Coming Soon
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}

@@ -54,7 +54,7 @@ const Footer = () => {
             <img
               src={isBlackFooter ? logoDark : logoLight}
               alt="TrackPi Logo"
-              className="w-[100px] h-auto object-contain ml-6 sm:ml-28 mt-3"
+              className="w-[120px] md:w-[150px] h-auto object-contain ml-6 sm:ml-28 mt-3"
             />
             <p className={`${subTextClass} text-sm leading-relaxed font-urbanist text-justify max-w-full`}>
               Empowering businesses to succeed through expert
@@ -103,10 +103,7 @@ const Footer = () => {
           {/* 🛠 Services */}
           <div className="mt-4">
             <h3 className={`font-extrabold text-lg mb-6 ${mainTextClass} text-left font-urbanist w-[185px] h-[29px]`}>Services</h3>
-            <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist w-[185px] h-[180px] font-bold`}>
-              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Software development</Link></li>
-              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Sales training</Link></li>
-              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Operations training</Link></li>
+            <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist w-[185px] font-bold`}>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Software development</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Sales training</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Operations training</Link></li>

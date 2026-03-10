@@ -5,11 +5,15 @@ import NavbarTalent from "./NavbarTalent"; // Assuming a specific navbar or use 
 
 export default function TalentHunt() {
     return (
-        <div className="bg-[#0a0a0a] min-h-screen">
+        <div className="bg-black min-h-screen overflow-hidden">
             {/* Note: Navbar might be in App.jsx or Layout, adding Hero directly */}
             <HeroTalent />
-            <ExploreCompetitions />
-            <TrackpiTalentHunt />
+            <div className="relative z-10 -mt-20">
+                <ExploreCompetitions />
+            </div>
+            <div className="relative z-10 -mt-[1px]">
+                <TrackpiTalentHunt />
+            </div>
         </div>
     );
 }
