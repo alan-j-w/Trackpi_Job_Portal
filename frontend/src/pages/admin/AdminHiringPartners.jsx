@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, ExternalLink, Search } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
