@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { CustomDatePicker } from "../../pages/create-profile/components/SearchableDropdown";
+
 import { Country } from "country-state-city";
 
 const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
@@ -11,6 +13,23 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
         preferredWorkMode: "",
         maritalStatus: ""
     });
+
+    const [errors, setErrors] = useState({});
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const getDobMax = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 18);
+        return d.toISOString().split('T')[0];
+    };
+
+    const getDobMin = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 100);
+        return d.toISOString().split('T')[0];
+    };
+
+
 
     // Country Code State
     const [countries, setCountries] = useState(Country.getAllCountries());
@@ -48,18 +67,34 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        let newErrors = { ...errors };
+
+        if (name === 'altPhone') {
+            if (value && !/^\d+$/.test(value)) {
+                newErrors.altPhone = "Phone number must contain only digits";
+            } else if (value && value.length !== 10) {
+                newErrors.altPhone = "Please enter a valid 10-digit phone number";
+            } else {
+                delete newErrors.altPhone;
+            }
+        }
+
+        setErrors(newErrors);
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = () => {
-        // Prepare data for save
-        // We need to map "drivingLicense" boolean back to what the backend expects (likely an array or boolean depending on schema, let's look at schema logic later, but sidebar implies array)
-        // For now pass the form data, and let Profile.jsx handle the transformation if needed, OR transform here.
-        // Let's pass the raw form data and a "computed" object.
+        if (formData.altPhone && !/^\d{10}$/.test(formData.altPhone)) {
+            setErrors(prev => ({ ...prev, altPhone: "Please enter a valid 10-digit phone number" }));
+            return;
+        }
+
+        if (Object.keys(errors).length > 0) return;
 
         const submissionData = {
             ...formData,
-            fullAltPhone: `${formData.altPhoneCode}${formData.altPhone}`
+            fullAltPhone: formData.altPhone ? `${formData.altPhoneCode}${formData.altPhone}` : ""
         };
         onSave(submissionData);
     };
@@ -144,8 +179,8 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
     );
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 animate-fadeIn p-4">
-            <div className="bg-white w-[700px] rounded-[24px] p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 animate-fadeIn p-4" onClick={onClose}>
+            <div className="bg-white w-[700px] rounded-[24px] p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
 
                 <h2 className="text-xl font-bold text-black mb-8">Additional Details</h2>
 
@@ -194,13 +229,20 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                             </div>
 
                             <input
-                                className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400 text-gray-700"
+                                className={`flex-1 bg-transparent text-sm outline-none placeholder-gray-400 text-gray-700 ${errors.altPhone ? 'text-red-500' : ''}`}
                                 placeholder="Enter phone number"
                                 name="altPhone"
                                 value={formData.altPhone}
                                 onChange={handleChange}
+                                maxLength={10}
+                                inputMode="numeric"
                             />
                         </div>
+                        {errors.altPhone && (
+                            <p className="text-red-500 text-[11px] font-medium mt-2 flex items-center gap-1">
+                                <span>⚠</span> {errors.altPhone}
+                            </p>
+                        )}
                     </div>
 
                     {/* Driving License */}
@@ -213,16 +255,24 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                     {/* Date of Birth */}
                     <div className="mb-6">
                         <label className="block text-sm font-bold text-black mb-2">Date of Birth</label>
-                        <div className="border-b border-dashed border-gray-300 pb-2 flex justify-between items-center">
-                            <input
-                                type="date"
-                                name="dob"
-                                value={formData.dob}
-                                onChange={handleChange}
-                                className="bg-transparent text-sm outline-none text-gray-500 w-full uppercase"
-                                placeholder="DD/MM/YYYY"
-                            />
+                        <div
+                            className="border-b border-dashed border-gray-300 pb-2 flex justify-between items-center cursor-pointer"
+                            onClick={() => setShowDatePicker(true)}
+                        >
+                            <span className="text-sm text-gray-500">{formData.dob ? new Date(formData.dob).toLocaleDateString('en-GB') : "DD/MM/YYYY"}</span>
+                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                         </div>
+                        {showDatePicker && (
+                            <CustomDatePicker
+                                value={formData.dob}
+                                minDate={getDobMin()}
+                                maxDate={getDobMax()}
+                                onChange={(val) => setFormData(prev => ({ ...prev, dob: val }))}
+                                onClose={() => setShowDatePicker(false)}
+                            />
+                        )}
                     </div>
 
                     {/* Career Break */}

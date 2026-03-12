@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { redirectAfterLogin } from "../utils/redirectAfterLogin";
 import config from "../config";
 
@@ -39,12 +40,12 @@ const Login = () => {
                 await redirectAfterLogin(navigate);
             } catch (error) {
                 console.error("Google login failed:", error.response?.data || error.message);
-                alert("Google login failed");
+                toast.error("Google login failed");
             } finally {
                 setLoading(false);
             }
         },
-        onError: () => alert("Google login failed"),
+        onError: () => toast.error("Google login failed"),
     });
 
     /* ---------------- LINKEDIN LOGIN ---------------- */

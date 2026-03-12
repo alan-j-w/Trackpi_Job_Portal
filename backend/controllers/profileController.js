@@ -10,9 +10,9 @@ export const createOrUpdateProfile = async (req, res) => {
 
         // 1. Safety Whitelist
         const allowedFields = [
-            'fullName', 'jobTitle', 'phone', 'altPhone', 'email',
+            'fullName', 'jobTitle', 'phone', 'altPhone', 'alternatePhone', 'email',
             'country', 'state', 'city', 'pincode', 'location', // Added location object and flattened fields
-            'dob', 'gender', 'maritalStatus', 'workStatus',
+            'dob', 'dateOfBirth', 'gender', 'maritalStatus', 'workStatus',
             'education', 'workExperience', // Arrays
             'skills', 'languages',
             'preferredLocations', 'willRelocate', 'preferredWorkMode', // Step 2 fields
@@ -28,6 +28,20 @@ export const createOrUpdateProfile = async (req, res) => {
                 safeUpdates[key] = bodyData[key];
             }
         });
+
+        // Map 'dob' to 'dateOfBirth' if needed
+        if (safeUpdates.dob && !safeUpdates.dateOfBirth) {
+            safeUpdates.dateOfBirth = safeUpdates.dob;
+        }
+        delete safeUpdates.dob;
+
+        // Map 'altPhone' to 'alternatePhone'
+        if (safeUpdates.altPhone !== undefined) {
+            if (safeUpdates.alternatePhone === undefined) {
+                safeUpdates.alternatePhone = safeUpdates.altPhone;
+            }
+            delete safeUpdates.altPhone;
+        }
 
         // Handle Location Mapping (Flat -> Nested)
         // If flat fields exist, merge them into location object
@@ -73,6 +87,14 @@ export const createOrUpdateProfile = async (req, res) => {
             }
             // Sync Phone to User Model (Critical for OTP Login)
             if (bodyData.phone) {
+                // Check if this phone is already taken by ANOTHER user
+                const phoneExists = await User.findOne({ phone: bodyData.phone, _id: { $ne: userId } });
+                if (phoneExists) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "This phone number is already associated with another account. Please use a different number or login with that account."
+                    });
+                }
                 userUpdates.phone = bodyData.phone;
             }
             await User.findByIdAndUpdate(userId, userUpdates);

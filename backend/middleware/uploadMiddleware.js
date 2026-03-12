@@ -1,61 +1,113 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../config/cloudinary.js";
+import { Readable } from "stream";
+import pkg from "multer-storage-cloudinary";
 
-/* IMAGE STORAGE (Profile + Cover) */
-const imageStorage = new CloudinaryStorage({
-    cloudinary,
-    params: (req) => ({
-        folder: "trackpi/profile/images",
-        allowed_formats: ["jpg", "jpeg", "png", "webp"],
-        public_id: `${req.user.id}_${Date.now()}`
-    }),
+// ─── Helper: Stream buffer to Cloudinary ─────────────────────────────────────
+const streamToCloudinary = (buffer, options) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+        });
+        Readable.from(buffer).pipe(stream);
+    });
+};
+
+// ─── Helper: Build a custom upload middleware ─────────────────────────────────
+const buildUploadMiddleware = ({ fieldName, mimeTypes, mimeError, folder, resourceType, getPublicId }) => {
+    const memMulter = multer({
+        storage: multer.memoryStorage(),
+        limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+        fileFilter: (req, file, cb) => {
+            if (mimeTypes.includes(file.mimetype)) {
+                cb(null, true);
+            } else {
+                cb(new Error(mimeError), false);
+            }
+        }
+    });
+
+    const middleware = (req, res, next) => {
+        console.log(`[Upload] Starting '${fieldName}' upload check...`);
+        memMulter.single(fieldName)(req, res, async (err) => {
+            if (err) {
+                console.error(`[Upload] multer error for '${fieldName}':`, err.message);
+                return next(err);
+            }
+            if (!req.file) {
+                console.warn(`[Upload] No file found in request for field '${fieldName}'`);
+                return next(); // no file, let controller handle
+            }
+
+            console.log(`[Upload] Received file: ${req.file.originalname} (${req.file.size} bytes)`);
+
+            try {
+                const publicId = getPublicId ? getPublicId(req) : `${fieldName}_${Date.now()}`;
+                console.log(`[Upload] Uploading to Cloudinary folder '${folder}' with ID '${publicId}'...`);
+
+                const result = await streamToCloudinary(req.file.buffer, {
+                    folder,
+                    resource_type: resourceType || "image",
+                    public_id: publicId,
+                    type: "upload"
+                });
+
+                // Set req.file.path to the secure URL so all controllers work consistently
+                req.file.path = result.secure_url;
+                console.log(`[Upload] ${fieldName} successfully uploaded: ${result.secure_url}`);
+                next();
+            } catch (uploadError) {
+                console.error(`[Upload] Cloudinary error for '${fieldName}':`, uploadError.message || uploadError);
+                next(uploadError);
+            }
+        });
+    };
+
+    // Return object with .single() method to match multer API used in routes
+    return { single: () => middleware };
+};
+
+// ─── Profile Image Upload ─────────────────────────────────────────────────────
+export const profileImageUpload = buildUploadMiddleware({
+    fieldName: "profileImage",
+    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/jpg"],
+    mimeError: "Only image files (JPG, PNG, WEBP) are allowed!",
+    folder: "trackpi/profile/images",
+    resourceType: "image",
+    getPublicId: (req) => `profile_${req.user?.id || "unknown"}_${Date.now()}`
 });
 
-/* RESUME STORAGE */
-const resumeStorage = new CloudinaryStorage({
-    cloudinary,
-    params: async (req, file) => {
+// ─── Cover Image Upload ───────────────────────────────────────────────────────
+export const coverImageUpload = buildUploadMiddleware({
+    fieldName: "coverImage",
+    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/jpg"],
+    mimeError: "Only image files (JPG, PNG, WEBP) are allowed!",
+    folder: "trackpi/profile/covers",
+    resourceType: "image",
+    getPublicId: (req) => `cover_${req.user?.id || "unknown"}_${Date.now()}`
+});
+
+// ─── Resume Upload ────────────────────────────────────────────────────────────
+export const resumeUploadMiddleware = buildUploadMiddleware({
+    fieldName: "resume",
+    mimeTypes: ["application/pdf"],
+    mimeError: "Only PDF files are allowed!",
+    folder: "trackpi/profile/resumes",
+    resourceType: "raw",
+    getPublicId: (req) => {
         const user = req.user;
-        let filename = `resume_${Date.now()}`;
-
-        if (user && user.name) {
-            const sanitized = user.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
-            filename = `${sanitized}_resume_${Date.now()}`;
-        } else if (req.body.name) {
-            // Fallback for guest application
-            const sanitized = req.body.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
-            filename = `${sanitized}_resume_${Date.now()}`;
+        let prefix = "resume";
+        if (user?.name) {
+            prefix = user.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
         }
-
-        return {
-            folder: "trackpi/profile/resumes",
-            resource_type: "raw",
-            type: "upload",
-            public_id: filename
-        };
-    },
-});
-
-export const uploadImage = multer({
-    storage: imageStorage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
-
-export const uploadResume = multer({
-    storage: resumeStorage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype === "application/pdf") {
-            cb(null, true);
-        } else {
-            cb(new Error("Only PDF files are allowed!"), false);
-        }
+        return `${prefix}_resume_${Date.now()}`;
     }
 });
 
-/* TESTIMONIAL STORAGE (Images + Video) */
-const testimonialStorage = new CloudinaryStorage({
+// ─── Testimonial Upload ───────────────────────────────────────────────────────
+// Kept as-is since it needs auto resource_type for video support
+const testimonialStorage = pkg({
     cloudinary,
     params: {
         folder: "trackpi/testimonials",
@@ -65,6 +117,7 @@ const testimonialStorage = new CloudinaryStorage({
 
 export const uploadTestimonial = multer({ storage: testimonialStorage });
 
+// ─── Generic upload (memory) ──────────────────────────────────────────────────
 export const upload = multer({ storage: multer.memoryStorage() });
 
 export default uploadTestimonial;

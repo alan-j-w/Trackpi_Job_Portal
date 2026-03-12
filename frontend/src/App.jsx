@@ -36,6 +36,7 @@ import LinkedInCallback from "./pages/LinkedInCallback";
 import CreateProfile from "./pages/CreateProfile";
 import Profile from "./pages/Profile";
 import AppliedJobs from "./pages/AppliedJobs";
+import BrowseJobs from "./pages/BrowseJobs";
 import AddTestimonial from "./pages/admin/AddTestimonial";
 import TestimonialDetails from "./pages/admin/TestimonialDetails";
 import EditTestimonial from "./pages/admin/EditTestimonial";
@@ -50,6 +51,7 @@ import ResumeGen from "./pages/ResumeGen";
 import About from "./pages/About";
 import Testimonials from "./pages/Testimonials";
 import TalentLeague from "./pages/TalentLeague";
+import UiUxCompetition from "./pages/UiUxCompetition";
 import Creators from "./pages/Creators";
 import Jobs from "./pages/Jobs";
 import Terms from "./pages/Terms";
@@ -67,6 +69,7 @@ function App() {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/testimonials" element={<Testimonials />} />
         <Route path="/talent-league" element={<TalentLeague />} />
+        <Route path="/competition/ui-ux" element={<UiUxCompetition />} />
         <Route path="/creators" element={<Creators />} />
         <Route path="/resume-gen" element={<ResumeGen />} />
         <Route path="/jobs" element={<Jobs />} />
@@ -94,6 +97,7 @@ function App() {
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/user/dashboard" element={<UserDashboard />} />
           <Route path="/applied-jobs" element={<AppliedJobs />} />
+          <Route path="/browse-jobs" element={<BrowseJobs />} />
 
         </Route>
 

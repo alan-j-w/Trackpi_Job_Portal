@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import config from "../../config";
 
 const EDUCATION_LEVELS = [
     "10th",
@@ -9,7 +10,18 @@ const EDUCATION_LEVELS = [
     "PhD / Doctorate"
 ];
 
-const YEARS = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
+const getStartYears = () => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 31 }, (_, i) => (currentYear - i).toString());
+};
+
+const getEndYears = (startYearValue) => {
+    const currentYear = new Date().getFullYear();
+    const startYear = startYearValue ? parseInt(startYearValue) : currentYear - 30;
+    const endYear = currentYear + 10;
+    const length = endYear - startYear + 1;
+    return Array.from({ length: length > 0 ? length : 1 }, (_, i) => (startYear + i).toString()).reverse();
+};
 
 const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing }) => {
     const [formData, setFormData] = useState({
@@ -36,6 +48,8 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
 
     // 'level' | 'course' | 'university' | 'startYear' | 'endYear' | null
     const [openDropdown, setOpenDropdown] = useState(null);
+
+    const [errors, setErrors] = useState({});
 
     const abortControllerRef = useRef(null);
 
@@ -104,7 +118,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                 const query = courseSearch.trim();
                 const levelParam = formData.degree ? `&level=${encodeURIComponent(formData.degree)}` : "";
 
-                const res = await axios.get(`http://localhost:8000/api/education/courses?query=${query}${levelParam}`);
+                const res = await axios.get(`${config.API_URL}/api/education/courses?query=${query}${levelParam}`);
                 let courses = res.data.map(c => c.name);
 
                 if (!courses.includes("Other")) {
@@ -137,7 +151,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
             try {
                 setIsSearchingUni(true);
                 const res = await axios.get(
-                    `http://localhost:8000/api/education/universities?query=${universitySearch.trim()}`,
+                    `${config.API_URL}/api/education/universities?query=${universitySearch.trim()}`,
                     { signal: abortControllerRef.current.signal }
                 );
 
@@ -161,8 +175,28 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
     }, [universitySearch]);
 
 
+    const validateInput = (name, value) => {
+        const newErrors = { ...errors };
+        if (name === 'institution') {
+            if (/^\d+$/.test(value.trim()) || /^[^a-zA-Z0-9]+$/.test(value.trim())) {
+                newErrors.institution = "Institution name must contain valid text";
+            } else {
+                delete newErrors.institution;
+            }
+        }
+        if (name === 'course') {
+            if (/^\d+$/.test(value.trim()) || /^[^a-zA-Z0-9]+$/.test(value.trim())) {
+                newErrors.course = "Course name must contain valid text";
+            } else {
+                delete newErrors.course;
+            }
+        }
+        setErrors(newErrors);
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
+        if (name === 'institution' || name === 'course') validateInput(name, value);
         setFormData({ ...formData, [name]: value });
     };
 
@@ -179,10 +213,18 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
             finalUniversity = customUniversity;
         }
 
-        if (!formData.degree || !finalUniversity || !finalCourse || !formData.startYear || !formData.endYear) {
-            // Using alert for consistency with existing code style, or could use toast if available in props
-            // The previous code had `alert("Please fill all required fields")`
-            alert("Please fill all required fields");
+        const submitErrors = { ...errors };
+        if (!formData.degree) submitErrors.degree = "Please select an education level.";
+        if (!finalUniversity || !finalUniversity.trim()) submitErrors.institution = "University/Institute is required.";
+        if (!finalCourse || !finalCourse.trim()) submitErrors.course = "Course is required.";
+        if (!formData.startYear) submitErrors.startYear = "Start year is required.";
+        if (!formData.endYear) submitErrors.endYear = "End year is required.";
+        if (formData.startYear && formData.endYear && parseInt(formData.endYear) < parseInt(formData.startYear)) {
+            submitErrors.endYear = "Ending year must be greater than or equal to the starting year.";
+        }
+
+        if (Object.keys(submitErrors).length > 0) {
+            setErrors(submitErrors);
             return;
         }
 
@@ -193,8 +235,8 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
             courseType: formData.courseType,
             startDate: formData.startYear,
             endDate: formData.endYear,
-            domain: formData.domain, // Save domain
-            year: `${formData.startYear} - ${formData.endYear}` // Derived for backward compatibility
+            domain: formData.domain,
+            year: `${formData.startYear} - ${formData.endYear}`
         };
 
         onSave(payload);
@@ -232,7 +274,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                     <div className="relative group">
                         <label className="block text-sm font-bold text-gray-700 mb-2">Education <span className="text-red-500">*</span></label>
                         <div
-                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-[#FFB300]"
+                            className={`w-full bg-white border rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer focus-within:ring-1 ${errors.degree ? 'border-red-400 focus-within:ring-red-400' : 'border-gray-300 focus-within:ring-[#FFB300]'}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setOpenDropdown(openDropdown === 'level' ? null : 'level');
@@ -267,6 +309,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 ))}
                             </div>
                         )}
+                        {errors.degree && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠</span>{errors.degree}</p>}
                     </div>
 
                     {/* University/Institute */}
@@ -279,7 +322,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 value={formData.institution}
                                 onChange={handleChange}
                                 placeholder="Enter University/Institute"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#FFB300]"
+                                className={`w-full border py-3 px-4 rounded-lg focus:outline-none ${errors.institution ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:ring-1 focus:ring-[#FFB300]'}`}
                             />
                         ) : (
                             <>
@@ -297,6 +340,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                         onChange={(e) => {
                                             setUniversitySearch(e.target.value);
                                             setFormData({ ...formData, institution: e.target.value });
+                                            validateInput('institution', e.target.value);
                                             setOpenDropdown('university');
                                         }}
                                         onClick={(e) => {
@@ -306,6 +350,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                     />
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'university' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                 </div>
+                                {errors.institution && <p className="text-[#FF0000] text-xs mt-1">{errors.institution}</p>}
                                 {openDropdown === 'university' && (
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto z-30 bg-white rounded-xl border border-gray-100 shadow-xl">
                                         {isSearchingUni && (
@@ -327,16 +372,22 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                                     setOpenDropdown(null);
                                                 }}
                                             >
-                                                <div className="w-6 h-6 rounded-full overflow-hidden bg-white border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0 text-[#FFB300]">
                                                     {uni.logo || uni.domain ? (
                                                         <img
                                                             src={uni.logo || `https://logo.clearbit.com/${uni.domain}`}
-                                                            alt="logo"
-                                                            className="w-full h-full object-contain"
-                                                            onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '<span class="text-[8px] font-bold text-gray-400">?</span>'; }}
+                                                            alt=""
+                                                            className="w-full h-full object-contain bg-white"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                const initial = uni.name ? uni.name.charAt(0).toUpperCase() : 'U';
+                                                                e.target.parentElement.innerHTML = `<span class="text-[12px] font-bold">${initial}</span>`;
+                                                            }}
                                                         />
                                                     ) : (
-                                                        <span className="text-[8px] font-bold text-gray-400">?</span>
+                                                        <span className="text-[12px] font-bold">
+                                                            {uni.name ? uni.name.charAt(0).toUpperCase() : 'U'}
+                                                        </span>
                                                     )}
                                                 </div>
                                                 {uni.name}
@@ -355,14 +406,19 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                             <div className="mt-3 animate-fadeIn">
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Specify University/Institute Name <span className="text-red-500">*</span></label>
                                 <input
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 outline-none text-gray-700 font-medium placeholder-gray-400 focus:ring-1 focus:ring-[#FFB300]"
+                                    className={`w-full bg-white border py-3 px-4 rounded-lg outline-none text-gray-700 font-medium placeholder-gray-400 ${errors.institution ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:ring-1 focus:ring-[#FFB300]'}`}
                                     placeholder="Enter specific university name"
                                     value={customUniversity}
-                                    onChange={(e) => setCustomUniversity(e.target.value)}
+                                    onChange={(e) => {
+                                        setCustomUniversity(e.target.value);
+                                        validateInput('institution', e.target.value);
+                                    }}
                                     autoFocus
                                 />
                             </div>
                         )}
+                        {['10th', '12th'].includes(formData.degree) && errors.institution && <p className="text-[#FF0000] text-xs mt-1">{errors.institution}</p>}
+                        {formData.institution === "Other" && errors.institution && <p className="text-[#FF0000] text-xs mt-1">{errors.institution}</p>}
                     </div>
 
                     {/* Course */}
@@ -370,10 +426,13 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                         <label className="block text-sm font-bold text-gray-700 mb-2">Course <span className="text-red-500">*</span></label>
                         {["10th", "12th"].includes(formData.degree) ? (
                             <input
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#FFB300]"
+                                className={`w-full border rounded-lg px-4 py-3 focus:outline-none ${errors.course ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:ring-1 focus:ring-[#FFB300]'}`}
                                 placeholder="Enter course name"
                                 value={formData.course}
-                                onChange={(e) => setFormData({ ...formData, course: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, course: e.target.value });
+                                    validateInput('course', e.target.value);
+                                }}
                             />
                         ) : (
                             <>
@@ -396,6 +455,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                             } else {
                                                 setFormData(prev => ({ ...prev, course: "Other" }));
                                             }
+                                            validateInput('course', e.target.value);
                                             setOpenDropdown('course');
                                         }}
                                         onClick={(e) => {
@@ -405,6 +465,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                     />
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transform transition-transform ${openDropdown === 'course' ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
                                 </div>
+                                {errors.course && <p className="text-[#FF0000] text-xs mt-1">{errors.course}</p>}
                                 {openDropdown === 'course' && (
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto z-30 bg-white rounded-xl border border-gray-100 shadow-xl">
                                         {filteredCourses.map((course, idx) => (
@@ -437,14 +498,19 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                             <div className="mt-3 animate-fadeIn">
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Specify Course Name <span className="text-red-500">*</span></label>
                                 <input
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 outline-none text-gray-700 font-medium placeholder-gray-400 focus:ring-1 focus:ring-[#FFB300]"
+                                    className={`w-full bg-white border py-3 px-4 rounded-lg outline-none text-gray-700 font-medium placeholder-gray-400 ${errors.course ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:ring-1 focus:ring-[#FFB300]'}`}
                                     placeholder="Enter your specific course name"
-                                    onChange={(e) => setCustomCourse(e.target.value)}
+                                    onChange={(e) => {
+                                        setCustomCourse(e.target.value);
+                                        validateInput('course', e.target.value);
+                                    }}
                                     value={customCourse}
                                     autoFocus
                                 />
                             </div>
                         )}
+                        {['10th', '12th'].includes(formData.degree) && errors.course && <p className="text-[#FF0000] text-xs mt-1">{errors.course}</p>}
+                        {formData.course === "Other" && errors.course && <p className="text-[#FF0000] text-xs mt-1">{errors.course}</p>}
                     </div>
 
                     {/* Course Type */}
@@ -494,13 +560,17 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 </div>
                                 {openDropdown === 'startYear' && (
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto z-30 p-1 space-y-1 no-scrollbar bg-white rounded-xl border border-gray-100 shadow-xl">
-                                        {YEARS.map((year) => (
+                                        {getStartYears().map((year) => (
                                             <div
                                                 key={year}
                                                 className="px-4 py-2 rounded-lg cursor-pointer text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleChange({ target: { name: 'startYear', value: year } });
+                                                    const newData = { ...formData, startYear: year };
+                                                    if (formData.endYear && parseInt(formData.endYear) < parseInt(year)) {
+                                                        newData.endYear = year;
+                                                    }
+                                                    setFormData(newData);
                                                     setOpenDropdown(null);
                                                 }}
                                             >
@@ -509,6 +579,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                         ))}
                                     </div>
                                 )}
+                                {errors.startYear && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠</span>{errors.startYear}</p>}
                             </div>
 
                             <span className="text-gray-400 text-sm">To</span>
@@ -529,7 +600,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                 </div>
                                 {openDropdown === 'endYear' && (
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto z-30 p-1 space-y-1 no-scrollbar bg-white rounded-xl border border-gray-100 shadow-xl">
-                                        {YEARS.map((year) => (
+                                        {getEndYears(formData.startYear).map((year) => (
                                             <div
                                                 key={year}
                                                 className="px-4 py-2 rounded-lg cursor-pointer text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
@@ -544,6 +615,7 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                         ))}
                                     </div>
                                 )}
+                                {errors.endYear && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠</span>{errors.endYear}</p>}
                             </div>
                         </div>
                     </div>

@@ -4,6 +4,10 @@ import { calculateProfileStrength } from "../../utils/profileUtils";
 import ProfileStrengthCircle from "../../components/profile/ProfileStrengthCircle";
 
 const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit }) => {
+    const containerRef = React.useRef(null);
+    const [stepError, setStepError] = useState("");
+    const [salaryError, setSalaryError] = useState("");
+    const [socialLinkErrors, setSocialLinkErrors] = useState({});
 
     const { strength } = calculateProfileStrength({
         ...formData,
@@ -22,6 +26,45 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
                 return { ...prev, drivingLicenses: [...licenses, type] };
             }
         });
+    };
+
+    const handleSocialLinkChange = (e) => {
+        const { name, value } = e.target;
+        const platform = name.split('.')[1];
+
+        const newErrors = { ...socialLinkErrors };
+
+        if (value.trim()) {
+            const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)*\/?$/i;
+            if (!urlPattern.test(value.trim())) {
+                newErrors[platform] = "Please enter a valid URL.";
+            } else {
+                delete newErrors[platform];
+            }
+        } else {
+            delete newErrors[platform];
+        }
+
+        setSocialLinkErrors(newErrors);
+        handleChange(e);
+    };
+
+    const handleCreateProfile = () => {
+        // Step 3 fields are optional. We allow proceeding if fields are blank.
+        // We only block if there are validation errors on fields that HAVE data.
+        const validSalary = !formData.expectedSalary || !salaryError;
+        const validSocials = Object.keys(socialLinkErrors).every(p => !formData.socialLinks?.[p] || !socialLinkErrors[p]);
+
+        if (!validSalary || !validSocials) {
+            setStepError("Please fix the invalid data or clear the fields to proceed.");
+            if (containerRef.current) {
+                containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        setStepError("");
+        onSubmit();
     };
 
     return (
@@ -44,7 +87,12 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
             </div>
 
             {/* Scrollable Content Section */}
-            <div className="flex-1 overflow-y-auto px-1">
+            <div ref={containerRef} className="flex-1 overflow-y-auto px-1">
+                {stepError && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 mb-6 text-center shadow-sm font-semibold animate-fadeIn">
+                        {stepError}
+                    </div>
+                )}
                 {/* Form Sections */}
                 <div className="space-y-6">
 
@@ -52,17 +100,25 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Expected Salary */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${formData.expectedSalary ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${(formData.expectedSalary && !salaryError) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-2">Expected Salary</label>
                         <input
                             name="expectedSalary"
                             className="w-full bg-transparent border-b border-dashed border-[#9CA3AF] py-3 text-sm focus:border-[#FFB300] outline-none text-gray-800 placeholder-gray-400 font-medium"
-                            placeholder="Eg: 20,000₹"
+                            placeholder="Eg: 20,000"
                             value={formData.expectedSalary}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                handleChange(e);
+                                if (e.target.value && !/^\d+$/.test(e.target.value.replace(/[,₹\s]/g, ''))) {
+                                    setSalaryError("Salary must contain only numeric values.");
+                                } else {
+                                    setSalaryError("");
+                                }
+                            }}
                         />
+                        {salaryError && <p className="text-[#FF0000] text-xs mt-1">{salaryError}</p>}
                     </div>
 
                     {/* Driving License */}
@@ -140,21 +196,24 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
 
                     {/* Social Links */}
                     <div className="bg-[#FFF9E5] rounded-xl p-6 relative">
-                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${Object.values(formData.socialLinks || {}).some(Boolean) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
+                        <div className={`absolute top-4 right-4 rounded-full p-1 transition-colors duration-300 ${(Object.values(formData.socialLinks || {}).some(Boolean) && Object.keys(socialLinkErrors).length === 0) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'}`}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                         </div>
                         <label className="block text-sm font-bold text-black mb-4">Social Links</label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
                             {['linkedin', 'behance', 'facebook', 'twitter'].map((platform) => (
-                                <div key={platform} className="flex items-center bg-white rounded-full px-4 py-2 border border-transparent focus-within:border-[#FFB300] shadow-sm">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="gray" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                    <input
-                                        name={`socialLinks.${platform}`}
-                                        className="w-full bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400 capitalize"
-                                        placeholder={platform}
-                                        value={formData.socialLinks?.[platform] || ""}
-                                        onChange={handleChange}
-                                    />
+                                <div key={platform} className="relative flex flex-col">
+                                    <div className={`flex items-center bg-white rounded-full px-4 py-2 border shadow-sm transition-colors ${socialLinkErrors[platform] ? 'border-red-500' : 'border-transparent focus-within:border-[#FFB300]'}`}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="gray" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                        <input
+                                            name={`socialLinks.${platform}`}
+                                            className="w-full bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400 capitalize"
+                                            placeholder={platform}
+                                            value={formData.socialLinks?.[platform] || ""}
+                                            onChange={handleSocialLinkChange}
+                                        />
+                                    </div>
+                                    {socialLinkErrors[platform] && <p className="text-[#FF0000] text-[11px] mt-1 absolute -bottom-5 left-4">{socialLinkErrors[platform]}</p>}
                                 </div>
                             ))}
                         </div>
@@ -167,7 +226,7 @@ const Step3Experience = ({ formData, setFormData, handleChange, onBack, onSubmit
                     <button onClick={onBack} className="bg-white border text-black font-semibold py-3 px-10 rounded-xl shadow-sm hover:bg-gray-50 transition min-w-[120px]">
                         Back
                     </button>
-                    <button onClick={onSubmit} className="bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-10 rounded-xl shadow-lg transition transform hover:scale-105 min-w-[160px]">
+                    <button onClick={handleCreateProfile} className="bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-10 rounded-xl shadow-lg transition transform hover:scale-105 min-w-[160px]">
                         Create profile
                     </button>
                 </div>

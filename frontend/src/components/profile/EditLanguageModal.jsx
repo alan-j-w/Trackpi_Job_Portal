@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing }) => {
+const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing, onDelete }) => {
     const [formData, setFormData] = useState({
         name: "",
         proficiency: "",
@@ -9,8 +9,13 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
         canSpeak: false
     });
 
+    const [errors, setErrors] = useState({});
+    const [submitted, setSubmitted] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
+            setErrors({});
+            setSubmitted(false);
             if (isEditing && languageData) {
                 setFormData({
                     name: languageData.name || "",
@@ -31,30 +36,41 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
         }
     }, [isOpen, languageData, isEditing]);
 
+    const validate = (data) => {
+        const newErrors = {};
+        if (!data.name) newErrors.name = "Please select a language.";
+        if (!data.proficiency) newErrors.proficiency = "Please select a proficiency level.";
+        return newErrors;
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
+        const updated = {
+            ...formData,
             [name]: type === 'checkbox' || type === 'radio' ? (type === 'checkbox' ? checked : value) : value
-        }));
+        };
+        setFormData(updated);
+        if (submitted) setErrors(validate(updated));
     };
 
     const handleSkillChange = (skill) => {
-        setFormData(prev => ({
-            ...prev,
-            [skill]: !prev[skill]
-        }));
+        const updated = { ...formData, [skill]: !formData[skill] };
+        setFormData(updated);
     };
 
     const handleSubmit = () => {
-        if (!formData.name || !formData.proficiency) {
-            alert("Please select language and proficiency");
+        setSubmitted(true);
+        const newErrors = validate(formData);
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
         onSave(formData);
     };
 
     if (!isOpen) return null;
+
+    const hasErrors = Object.keys(errors).length > 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -68,7 +84,7 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
                     <div className="flex flex-col md:flex-row gap-6">
                         {/* Language */}
                         <div className="flex-1">
-                            <div className="relative border border-gray-200 rounded-xl px-4 py-3 bg-white shadow-sm">
+                            <div className={`relative border rounded-xl px-4 py-3 bg-white shadow-sm ${errors.name ? 'border-red-400' : 'border-gray-200'}`}>
                                 <select
                                     name="name"
                                     value={formData.name}
@@ -92,13 +108,14 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
                                     </svg>
                                 </div>
                             </div>
-                            {/* Floating label if needed, using placeholder for now as per design */}
-                            <span className="absolute -top-2 left-6 bg-white px-1 text-xs text-gray-400 hidden">Language</span>
+                            {errors.name && (
+                                <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠</span>{errors.name}</p>
+                            )}
                         </div>
 
                         {/* Proficiency */}
                         <div className="flex-1">
-                            <div className="relative border border-gray-200 rounded-xl px-4 py-3 bg-white shadow-sm">
+                            <div className={`relative border rounded-xl px-4 py-3 bg-white shadow-sm ${errors.proficiency ? 'border-red-400' : 'border-gray-200'}`}>
                                 <select
                                     name="proficiency"
                                     value={formData.proficiency}
@@ -117,6 +134,9 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
                                     </svg>
                                 </div>
                             </div>
+                            {errors.proficiency && (
+                                <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠</span>{errors.proficiency}</p>
+                            )}
                         </div>
                     </div>
 
@@ -142,37 +162,36 @@ const EditLanguageModal = ({ isOpen, onClose, languageData, onSave, isEditing })
                         ))}
                     </div>
 
-
                     {/* Actions */}
-                    <div className="flex justify-between items-center pt-8">
-                        {/* Delete logic can be added here if needed */}
-                        <div className="w-10">
-                            {isEditing && (
-                                <button className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors ml-auto">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            )}
-                        </div>
+                    <div className="flex justify-center items-center gap-4 pt-8 relative">
+                        <button
+                            onClick={handleSubmit}
+                            className={`font-bold py-2.5 px-10 rounded-lg shadow-sm transition border ${hasErrors && submitted
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200'
+                                : 'bg-[#FFB300] text-black hover:bg-[#e6a000] border-[#e6a000]'
+                                }`}
+                        >
+                            Submit
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="bg-white border border-black text-black font-bold py-2.5 px-10 rounded-lg hover:bg-gray-50 transition"
+                        >
+                            Cancel
+                        </button>
 
-                        <div className="flex gap-4">
+                        {/* Delete Button — shown only in edit mode */}
+                        {isEditing && (
                             <button
-                                onClick={handleSubmit}
-                                className="bg-[#FFB300] text-black font-bold py-2.5 px-10 rounded-lg shadow-sm hover:bg-[#e6a000] transition border border-[#e6a000]"
+                                onClick={onDelete}
+                                className="absolute right-0 text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                                title="Delete language"
                             >
-                                Submit
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                             </button>
-                            <button
-                                onClick={onClose}
-                                className="bg-white border border-black text-black font-bold py-2.5 px-10 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-
-                        {/* Empty Spacer to verify layout balance if needed or reuse delete button area purely for flex */}
-                        <div className="w-10"></div>
+                        )}
                     </div>
 
                 </div>

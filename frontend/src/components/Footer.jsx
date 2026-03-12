@@ -1,4 +1,3 @@
-// src/components/Footer.
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
@@ -10,7 +9,9 @@ import {
   FaQuora,
   FaBloggerB,
   FaMediumM,
+  FaWhatsapp,
 } from "react-icons/fa";
+
 import logoDark from "../assets/logo_footer_v9.png"; // Especially For Black Footer 
 import logoLight from "../assets/logo.png";          // For White Footer
 
@@ -18,10 +19,25 @@ const Footer = () => {
   const location = useLocation();
   const isBlackFooter = location.pathname.includes("/talent-league");
 
+  // Detect auth state (same approach as Navbar)
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  // Guest users see the sidebar on all public landing pages
+  const GUEST_SIDEBAR_PAGES = ["/", "/about", "/testimonials", "/contact"];
+  // Logged-in users only see it on the Testimonials page
+  const AUTH_SIDEBAR_PAGES = ["/testimonials"];
+
+  // Pages where the floating WhatsApp button is visible (guests only on landing + about)
+  const WHATSAPP_PAGES = ["/", "/about"];
+
+  const showSidebar = isLoggedIn
+    ? AUTH_SIDEBAR_PAGES.includes(location.pathname)
+    : GUEST_SIDEBAR_PAGES.includes(location.pathname);
+  const showWhatsapp = !isLoggedIn && WHATSAPP_PAGES.includes(location.pathname);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
-
 
   const bgClass = isBlackFooter ? "bg-[#0A0A0A]" : "bg-white";
   const mainTextClass = isBlackFooter ? "text-white" : "text-black";
@@ -38,7 +54,7 @@ const Footer = () => {
             <img
               src={isBlackFooter ? logoDark : logoLight}
               alt="TrackPi Logo"
-              className="w-[100px] h-auto object-contain ml-6 sm:ml-28 mt-3"
+              className="w-[120px] md:w-[150px] h-auto object-contain ml-6 sm:ml-28 mt-3"
             />
             <p className={`${subTextClass} text-sm leading-relaxed font-urbanist text-justify max-w-full`}>
               Empowering businesses to succeed through expert
@@ -87,10 +103,7 @@ const Footer = () => {
           {/* 🛠 Services */}
           <div className="mt-4">
             <h3 className={`font-extrabold text-lg mb-6 ${mainTextClass} text-left font-urbanist w-[185px] h-[29px]`}>Services</h3>
-            <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist w-[185px] h-[180px] font-bold`}>
-              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Software development</Link></li>
-              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Sales training</Link></li>
-              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Operations training</Link></li>
+            <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist w-[185px] font-bold`}>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Software development</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Sales training</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Operations training</Link></li>
@@ -133,102 +146,117 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
       </footer>
 
-      {/* ---------------- FIXED SOCIAL SIDEBAR (LEFT) — hidden on mobile ---------------- */}
-      <div className="hidden sm:flex fixed left-0 bottom-1 flex-col items-start z-50 w-auto">
-        {/* Instagram */}
+      {/* ---------------- FLOATING WHATSAPP BUTTON (RIGHT) — Landing & About only ---------------- */}
+      {showWhatsapp && (
         <a
-          href="https://www.instagram.com/trackpi_official/"
+          href="https://wa.me/919538610745"
           target="_blank"
           rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[140px] hover:rounded-r-md"
+          className="fixed bottom-4 right-4 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-300 animate-bounce-slow"
+          title="Chat on WhatsApp"
         >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaInstagram size={18} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-2">INSTAGRAM</span>
+          <FaWhatsapp size={26} className="sm:hidden" />
+          <FaWhatsapp size={32} className="hidden sm:block" />
         </a>
+      )}
 
-        {/* Facebook */}
-        <a
-          href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-[#1877F2] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[140px] hover:rounded-r-md"
-        >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaFacebookF size={18} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap ml-2">FACEBOOK</span>
-        </a>
+      {/* ---------------- FIXED SOCIAL SIDEBAR (LEFT) — public pages only ---------------- */}
+      {showSidebar && (
+        <div className="hidden sm:flex fixed left-0 bottom-1 flex-col items-start z-50 w-auto">
+          {/* Instagram */}
+          <a
+            href="https://www.instagram.com/trackpi_official/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[140px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaInstagram size={18} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">INSTAGRAM</span>
+          </a>
 
-        {/* YouTube */}
-        <a
-          href="https://www.youtube.com/@trackpi"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-[#FF0000] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
-        >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaYoutube size={18} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap ml-2">YOUTUBE</span>
-        </a>
+          {/* Facebook */}
+          <a
+            href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-[#1877F2] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[140px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaFacebookF size={18} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">FACEBOOK</span>
+          </a>
 
-        {/* LinkedIn */}
-        <a
-          href="https://www.linkedin.com/company/trackpi-private-limited/posts/?feedView=all&viewAsMember=true"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-[#0A66C2] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
-        >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaLinkedinIn size={18} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap ml-2">LINKEDIN</span>
-        </a>
+          {/* YouTube */}
+          <a
+            href="https://www.youtube.com/@trackpi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-[#FF0000] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaYoutube size={18} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">YOUTUBE</span>
+          </a>
 
-        {/* Quora */}
-        <a
-          href="https://www.quora.com/profile/Trackpi-Private-Limited"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-[#cf2e2e] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[120px] hover:rounded-r-md"
-        >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaQuora size={16} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap ml-2">QUORA</span>
-        </a>
+          {/* LinkedIn */}
+          <a
+            href="https://www.linkedin.com/company/trackpi-private-limited/posts/?feedView=all&viewAsMember=true"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-[#0A66C2] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaLinkedinIn size={18} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">LINKEDIN</span>
+          </a>
 
-        {/* Blogger */}
-        <a
-          href="https://trackpi.blogspot.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-[#F57D00] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
-        >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaBloggerB size={18} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap ml-2">BLOGGER</span>
-        </a>
+          {/* Quora */}
+          <a
+            href="https://www.quora.com/profile/Trackpi-Private-Limited"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-[#cf2e2e] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[120px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaQuora size={16} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">QUORA</span>
+          </a>
 
-        {/* Medium */}
-        <a
-          href="https://medium.com/@trackpi"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-[36px] flex items-center bg-black text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[120px] hover:rounded-r-md"
-        >
-          <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
-            <FaMediumM size={18} />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap ml-2">MEDIUM</span>
-        </a>
-      </div>
+          {/* Blogger */}
+          <a
+            href="https://trackpi.blogspot.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-[#F57D00] text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[130px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaBloggerB size={18} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">BLOGGER</span>
+          </a>
+
+          {/* Medium */}
+          <a
+            href="https://medium.com/@trackpi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-[36px] flex items-center bg-black text-white shadow-md overflow-hidden transition-all duration-300 w-[36px] hover:w-[120px] hover:rounded-r-md"
+          >
+            <div className="w-[36px] min-w-[36px] h-full flex items-center justify-center">
+              <FaMediumM size={18} />
+            </div>
+            <span className="text-xs font-bold whitespace-nowrap ml-2">MEDIUM</span>
+          </a>
+        </div>
+      )}
     </>
   );
 };

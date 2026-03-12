@@ -3,11 +3,12 @@ import axios from "axios";
 import { Country, State, City } from "country-state-city";
 import fresherIcon from "../../assets/fresher_icon.png";
 import experiencedIcon from "../../assets/experienced_icon.png";
-import SearchableDropdown from "./components/SearchableDropdown";
+import SearchableDropdown, { CustomDatePicker } from "./components/SearchableDropdown";
 import { fetchLocationDetails } from "../../utils/locationUtils";
 import config from "../../config";
 import OtpVerificationModal from "../../components/OtpVerificationModal";
 import toast from 'react-hot-toast';
+import { useNavigate } from "react-router-dom";
 
 const Step1BasicInfo = ({
     formData,
@@ -19,8 +20,16 @@ const Step1BasicInfo = ({
     setAltPhoneCode,
     onNext
 }) => {
-    // Location State
+    const navigate = useNavigate();
+
+    // Location State 
     const [countries, setCountries] = useState(Country.getAllCountries());
+    const [nameError, setNameError] = useState("");
+    const [phoneError, setPhoneError] = useState("");
+    const [altPhoneError, setAltPhoneError] = useState("");
+    const [pincodeError, setPincodeError] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [dobError, setDobError] = useState("");
     const [states, setStates] = useState([]);
     const [cities, setCities] = useState([]);
 
@@ -37,6 +46,10 @@ const Step1BasicInfo = ({
 
     const primaryDropdownRef = useRef(null);
     const altDropdownRef = useRef(null);
+    const experienceModalRef = useRef(null);
+
+    // Form Error State
+    const [formError, setFormError] = useState("");
 
     // Work Experience State
     const [showExperienceModal, setShowExperienceModal] = useState(false);
@@ -51,6 +64,31 @@ const Step1BasicInfo = ({
         location: "",
         description: ""
     });
+    const [experienceError, setExperienceError] = useState("");
+    const [showDobPicker, setShowDobPicker] = useState(false);
+    const [showExpStartPicker, setShowExpStartPicker] = useState(false);
+    const [showExpEndPicker, setShowExpEndPicker] = useState(false);
+
+    // Date Validation Helpers
+    const getTodayStr = () => new Date().toISOString().split('T')[0];
+    const getDobMax = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 18);
+        return d.toISOString().split('T')[0];
+    };
+    const getDobMin = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 100);
+        return d.toISOString().split('T')[0];
+    };
+    const getExpStartMin = () => {
+        if (!formData.dob) return "1900-01-01";
+        const d = new Date(formData.dob);
+        d.setFullYear(d.getFullYear() + 18);
+        return d.toISOString().split('T')[0];
+    };
+
+
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -78,6 +116,14 @@ const Step1BasicInfo = ({
         c.code.includes(countryCodeSearch)
     );
 
+    // Load states when country is India ("IN")
+    useEffect(() => {
+        if (formData.country === "IN") {
+            const stateList = State.getStatesOfCountry("IN");
+            setStates(stateList);
+        }
+    }, [formData.country]);
+
     // Location Handlers
     const handleCountryChange = (countryCode) => {
         setFormData(prev => ({ ...prev, country: countryCode, state: "", city: "" }));
@@ -88,7 +134,8 @@ const Step1BasicInfo = ({
 
     const handleStateChange = (stateCode) => {
         setFormData(prev => ({ ...prev, state: stateCode, city: "" }));
-        const cityList = City.getCitiesOfState(formData.country, stateCode);
+        // Using "IN" directly as requested for pincode context
+        const cityList = City.getCitiesOfState("IN", stateCode);
         setCities(cityList);
     };
 
@@ -98,11 +145,13 @@ const Step1BasicInfo = ({
 
     // Auto-fill location by Pincode
     const handlePincodeChange = async (e) => {
-        const value = e.target.value;
+        // Strip non-numeric characters automatically
+        const value = e.target.value.replace(/\D/g, "");
         const newFormData = { ...formData, pincode: value };
 
         // Update form data first to show typing
         setFormData(newFormData);
+        setPincodeError("");
 
         // If 6 digits, fetch location
         if (value.length === 6) {
@@ -111,33 +160,70 @@ const Step1BasicInfo = ({
                 if (details) {
                     const countryCode = "IN"; // API is India only
 
-                    // Logic from handleCountryChange but without conflicting state updates
+                    // 1. Get all states for India
                     const stateList = State.getStatesOfCountry(countryCode);
-                    const matchedState = stateList.find(s => s.name.toLowerCase() === details.state.toLowerCase());
+
+                    // 2. Find matching state robustly
+                    let matchedState = stateList.find(s =>
+                        s.name.toLowerCase() === details.state.toLowerCase() ||
+                        s.name.toLowerCase().includes(details.state.toLowerCase()) ||
+                        details.state.toLowerCase().includes(s.name.toLowerCase())
+                    );
+
+                    // fallback for common variations
+                    if (!matchedState && details.state.toLowerCase() === "kerala") {
+                        matchedState = stateList.find(s => s.isoCode === "KL");
+                    }
 
                     if (matchedState) {
                         setStates(stateList);
-                        const cityList = City.getCitiesOfState(countryCode, matchedState.isoCode);
-                        setCities(cityList);
+                        // 3. Get cities for that state
+                        let cityList = City.getCitiesOfState(countryCode, matchedState.isoCode);
 
-                        const matchedCity = cityList.find(c => c.name.toLowerCase() === details.city.toLowerCase());
+                        // 4. Find matching city robustly
+                        let matchedCity = cityList.find(c =>
+                            c.name.toLowerCase() === details.city.toLowerCase() ||
+                            c.name.toLowerCase().includes(details.city.toLowerCase()) ||
+                            details.city.toLowerCase().includes(c.name.toLowerCase())
+                        );
+
+                        // 5. If city not in list, add it dynamically so dropdown can show it
+                        if (!matchedCity && details.city) {
+                            const newCity = { name: details.city, stateCode: matchedState.isoCode, countryCode: countryCode };
+                            cityList = [newCity, ...cityList];
+                            matchedCity = newCity;
+                        }
+
+                        setCities(cityList);
 
                         setFormData(prev => ({
                             ...prev,
                             country: countryCode,
                             state: matchedState.isoCode,
                             city: matchedCity ? matchedCity.name : details.city,
-                            pincode: value // ensure pincode stays
+                            pincode: value
                         }));
+                        setPincodeError("");
                     } else {
-                        // Fallback if state match fails
-                        setFormData(prev => ({ ...prev, country: countryCode }));
-                        setStates(stateList);
+                        // Reset fields if state match fails
+                        setFormData(prev => ({ ...prev, country: "", state: "", city: "" }));
+                        setStates([]);
+                        setCities([]);
+                        setPincodeError("Invalid pincode.");
                     }
+                } else {
+                    // Reset fields if API returns no results
+                    setFormData(prev => ({ ...prev, country: "", state: "", city: "" }));
+                    setStates([]);
+                    setCities([]);
+                    setPincodeError("Invalid pincode.");
                 }
             } catch (err) {
                 console.error("Pincode fetch failed", err);
+                setPincodeError("Failed to fetch location details.");
             }
+        } else if (value.length > 0 && value.length < 6) {
+            // Optional: You could reset here too, but maybe wait for 6 digits
         }
     };
 
@@ -161,7 +247,7 @@ const Step1BasicInfo = ({
             // alert("OTP sent to your phone (Check server console for demo)"); // Optional feedback
         } catch (err) {
             console.error("Send OTP Failed", err);
-            alert("Failed to send OTP");
+            toast.error("Failed to send OTP");
         }
     };
 
@@ -175,35 +261,117 @@ const Step1BasicInfo = ({
             if (res.data.success) {
                 setPhoneVerified(true);
                 setShowOtpModal(false); // Close Modal
-                alert("Phone verified successfully!");
+                toast.success("Phone verified successfully!");
             } else {
-                alert("Invalid OTP");
+                toast.error("Invalid OTP");
             }
         } catch (err) {
             console.error("Verify OTP Failed", err);
-            alert("OTP verification failed");
+            toast.error("OTP verification failed");
         }
     };
 
     // Validation
     // Validation (Logic Only - Minimal)
     const canProceed = () => {
-        // Minimal validation as requested
+        // Validation as requested
         return (
             formData.fullName.trim() !== "" &&
             formData.phone.trim() !== "" &&
-            formData.email.trim() !== ""
-            // Add other critical fields if strictly required, but usually name/contact is bare minimum to start
+            phoneVerified &&
+            formData.email.trim() !== "" &&
+            formData.country !== "" &&
+            formData.state !== "" &&
+            formData.city !== "" &&
+            formData.pincode.trim() !== "" &&
+            pincodeError === "" && // Added pincodeError check
+            formData.dob !== "" &&
+            formData.gender !== "" &&
+            formData.workStatus !== "" &&
+            (formData.resumeFile || formData.resumeName)
         );
     };
 
     const saveStep1AndContinue = async () => {
         // Validation Check with Feedback
+        if (formData.fullName && !/^[A-Za-z\s]+$/.test(formData.fullName)) {
+            setNameError("Name should contain only alphabets.");
+            return;
+        } else {
+            setNameError("");
+        }
+
+        if (formData.phone) {
+            if (!/^\d*$/.test(formData.phone)) {
+                setPhoneError("Phone number must contain only digits.");
+                return;
+            } else if (!/^\d{10}$/.test(formData.phone)) {
+                setPhoneError("Please enter a valid 10-digit phone number.");
+                return;
+            } else {
+                setPhoneError("");
+            }
+        } else {
+            setPhoneError("");
+        }
+
+        if (formData.altPhone) {
+            if (!/^\d*$/.test(formData.altPhone)) {
+                setAltPhoneError("Alternate phone number must contain only digits.");
+                return;
+            } else if (!/^\d{10}$/.test(formData.altPhone)) {
+                setAltPhoneError("Please enter a valid 10-digit phone number.");
+                return;
+            } else {
+                setAltPhoneError("");
+            }
+        } else {
+            setAltPhoneError("");
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (formData.email && !emailRegex.test(formData.email)) {
+            setEmailError("Please enter a valid email address.");
+            return;
+        } else {
+            setEmailError("");
+        }
+
+        if (formData.pincode && !/^\d+$/.test(formData.pincode)) {
+            setPincodeError("Pincode must contain only numeric values.");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        } else {
+            setPincodeError("");
+        }
+
         if (!canProceed()) {
-            // Logic only, minimal feedback or just block
-            alert("Please fill required fields (Name, Phone, Email) to proceed.");
+            if (!formData.dob) {
+                setFormError("Please fill all mandatory fields to proceed.");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            if (!phoneVerified && formData.fullName && formData.phone) {
+                setFormError("Please verify your primary phone number via OTP to proceed.");
+            } else {
+                setFormError("Please fill all mandatory fields to proceed.");
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
+
+        if (formData.dob) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (formData.dob >= todayStr) {
+                setDobError("Invalid date of birth.");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            } else {
+                setDobError("");
+            }
+        }
+
+        setFormError("");
 
         // Proceed to next step without saving to DB
         onNext();
@@ -222,10 +390,16 @@ const Step1BasicInfo = ({
 
             <div className="space-y-6 relative z-10">
 
+                {formError && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-center shadow-sm font-semibold animate-fadeIn">
+                        {formError}
+                    </div>
+                )}
+
                 {/* Name */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${formData.fullName.trim() ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${(formData.fullName.trim() && !nameError) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -237,8 +411,16 @@ const Step1BasicInfo = ({
                         name="fullName"
                         placeholder="Enter your name"
                         value={formData.fullName}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                            handleChange(e);
+                            if (e.target.value && !/^[A-Za-z\s]+$/.test(e.target.value)) {
+                                setNameError("Name should contain only alphabets.");
+                            } else {
+                                setNameError("");
+                            }
+                        }}
                     />
+                    {nameError && <p className="text-[#FF0000] text-xs mt-1">{nameError}</p>}
                 </div>
 
                 {/* Primary Phone Number & Verify */}
@@ -302,7 +484,33 @@ const Step1BasicInfo = ({
                                     name="phone"
                                     placeholder="Enter your number"
                                     value={formData.phone}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        const val = e.target.value;
+                                        if (phoneError) {
+                                            if (/^\d{10}$/.test(val)) {
+                                                setPhoneError("");
+                                            } else if (!/^\d*$/.test(val)) {
+                                                setPhoneError("Phone number must contain only digits.");
+                                            } else if (val.length !== 10) {
+                                                setPhoneError("Please enter a valid 10-digit phone number.");
+                                            }
+                                        }
+                                    }}
+                                    onBlur={(e) => {
+                                        const val = e.target.value;
+                                        if (val) {
+                                            if (!/^\d*$/.test(val)) {
+                                                setPhoneError("Phone number must contain only digits.");
+                                            } else if (!/^\d{10}$/.test(val)) {
+                                                setPhoneError("Please enter a valid 10-digit phone number.");
+                                            } else {
+                                                setPhoneError("");
+                                            }
+                                        } else {
+                                            setPhoneError("");
+                                        }
+                                    }}
                                     readOnly={phoneVerified} // Lock if verified
                                 />
                             </div>
@@ -323,6 +531,7 @@ const Step1BasicInfo = ({
                                 <span className="text-green-600 font-bold text-sm">Verified ✓</span>
                             )}
                         </div>
+                        {phoneError && <p className="text-[#FF0000] text-xs mt-1">{phoneError}</p>}
                     </div>
                 </div>
 
@@ -338,7 +547,7 @@ const Step1BasicInfo = ({
                 {/* Alternate Phone Number */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${formData.altPhone.length >= 10 ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${(formData.altPhone.length >= 10 && !altPhoneError) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -393,15 +602,42 @@ const Step1BasicInfo = ({
                             name="altPhone"
                             placeholder="Enter your number"
                             value={formData.altPhone}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                handleChange(e);
+                                const val = e.target.value;
+                                if (altPhoneError) {
+                                    if (val === "" || /^\d{10}$/.test(val)) {
+                                        setAltPhoneError("");
+                                    } else if (!/^\d*$/.test(val)) {
+                                        setAltPhoneError("Alternate phone number must contain only digits.");
+                                    } else if (val.length !== 10) {
+                                        setAltPhoneError("Please enter a valid 10-digit phone number.");
+                                    }
+                                }
+                            }}
+                            onBlur={(e) => {
+                                const val = e.target.value;
+                                if (val) {
+                                    if (!/^\d*$/.test(val)) {
+                                        setAltPhoneError("Alternate phone number must contain only digits.");
+                                    } else if (!/^\d{10}$/.test(val)) {
+                                        setAltPhoneError("Please enter a valid 10-digit phone number.");
+                                    } else {
+                                        setAltPhoneError("");
+                                    }
+                                } else {
+                                    setAltPhoneError("");
+                                }
+                            }}
                         />
                     </div>
+                    {altPhoneError && <p className="text-[#FF0000] text-xs mt-1">{altPhoneError}</p>}
                 </div>
 
                 {/* Email ID */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${formData.email.includes('@') ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${(formData.email && !emailError) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -413,14 +649,36 @@ const Step1BasicInfo = ({
                         name="email"
                         placeholder="www.you@example.com"
                         value={formData.email}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                            handleChange(e);
+                            if (emailError) {
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                if (emailRegex.test(e.target.value)) {
+                                    setEmailError("");
+                                }
+                            }
+                        }}
+                        onBlur={(e) => {
+                            const val = e.target.value;
+                            if (val) {
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                if (!emailRegex.test(val)) {
+                                    setEmailError("Please enter a valid email address.");
+                                } else {
+                                    setEmailError("");
+                                }
+                            } else {
+                                setEmailError("");
+                            }
+                        }}
                     />
+                    {emailError && <p className="text-[#FF0000] text-xs mt-1">{emailError}</p>}
                 </div>
 
                 {/* Location */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${(formData.pincode && formData.country && formData.state && formData.city) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${(formData.pincode && formData.country && formData.state && formData.city && !pincodeError) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -428,13 +686,23 @@ const Step1BasicInfo = ({
                     </div>
                     <label className="block text-sm font-semibold text-black mb-4">Location <span className="text-[#FF0000]">*</span></label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input
-                            className="bg-white px-4 py-3 rounded-xl shadow-sm text-sm outline-none focus:ring-1 focus:ring-[#FFB300] placeholder-[#827E7E]"
-                            name="pincode"
-                            placeholder="Pin Code"
-                            value={formData.pincode}
-                            onChange={handlePincodeChange}
-                        />
+                        <div className="flex flex-col">
+                            <input
+                                className="bg-white px-4 py-3 rounded-xl shadow-sm text-sm outline-none focus:ring-1 focus:ring-[#FFB300] placeholder-[#827E7E]"
+                                name="pincode"
+                                placeholder="Pin Code"
+                                value={formData.pincode}
+                                onChange={handlePincodeChange}
+                                onBlur={(e) => {
+                                    if (e.target.value && !/^\d+$/.test(e.target.value)) {
+                                        setPincodeError("Pincode must contain only numeric values.");
+                                    } else {
+                                        setPincodeError("");
+                                    }
+                                }}
+                            />
+                            {pincodeError && <p className="text-[#FF0000] text-xs mt-1 px-1">{pincodeError}</p>}
+                        </div>
                         <SearchableDropdown
                             options={countries}
                             value={formData.country}
@@ -469,7 +737,7 @@ const Step1BasicInfo = ({
                 {/* Date of Birth */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-6 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${formData.dob ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${formData.dob && !dobError ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -477,15 +745,29 @@ const Step1BasicInfo = ({
                     </div>
                     <label className="block text-sm font-semibold text-black mb-1">Date of Birth <span className="text-[#FF0000]">*</span></label>
                     <div className="relative border-b border-dashed border-[#827E7E]/50 pb-2">
-                        <input
-                            type="date"
-                            className="w-full bg-transparent text-sm outline-none text-[#827E7E] uppercase"
-                            name="dob"
-                            placeholder="dd-mm-yyyy"
-                            value={formData.dob}
-                            onChange={handleChange}
-                        />
+                        <div
+                            className="w-full bg-transparent text-sm outline-none text-[#827E7E] cursor-pointer flex items-center gap-2"
+                            onClick={() => setShowDobPicker(true)}
+                        >
+                            <svg className="w-4 h-4 text-[#827E7E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>{formData.dob ? new Date(formData.dob).toLocaleDateString('en-GB') : "DD-MM-YYYY"}</span>
+                        </div>
+                        {showDobPicker && (
+                            <CustomDatePicker
+                                value={formData.dob}
+                                minDate={getDobMin()}
+                                maxDate={getDobMax()}
+                                onChange={(val) => {
+                                    setFormData(prev => ({ ...prev, dob: val }));
+                                    setDobError("");
+                                }}
+                                onClose={() => setShowDobPicker(false)}
+                            />
+                        )}
                     </div>
+                    {dobError && <p className="text-[#FF0000] text-xs mt-1">{dobError}</p>}
                 </div>
 
                 {/* Gender */}
@@ -613,6 +895,7 @@ const Step1BasicInfo = ({
                                         location: "",
                                         description: ""
                                     });
+                                    setExperienceError("");
                                     setShowExperienceModal(true);
                                 }}
                                 className="text-[#FFB300] font-bold text-sm"
@@ -635,6 +918,7 @@ const Step1BasicInfo = ({
                                             onClick={() => {
                                                 setEditingExperienceIndex(index);
                                                 setExperienceForm(exp);
+                                                setExperienceError("");
                                                 setShowExperienceModal(true);
                                             }}
                                             className="text-xs font-bold text-[#FFB300] hover:underline"
@@ -665,10 +949,9 @@ const Step1BasicInfo = ({
 
 
                 {/* Resume */}
-                {/* Resume */}
                 <div className="bg-[#FFF9E5] rounded-xl px-6 py-5 relative">
                     <div className="absolute top-4 right-4">
-                        <div className={`${formData.resumeFile || formData.resumeUrl ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
+                        <div className={`${(formData.resumeFile || formData.resumeUrl || formData.resumeName) ? 'bg-[#22C55E]' : 'bg-[#FFB300]'} w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-colors duration-300`}>
                             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 3L4.5 8.5L2 6" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -676,7 +959,23 @@ const Step1BasicInfo = ({
                     </div>
                     <label className="block text-sm font-bold text-black mb-4">Resume <span className="text-[#FF0000]">*</span></label>
                     <div className="flex flex-col md:flex-row gap-4">
-                        <button className="flex-1 bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-4 rounded-lg shadow-sm transition text-sm">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                // Cache current formData and phone codes to localStorage
+                                const cacheData = {
+                                    formData,
+                                    primaryPhoneCode,
+                                    altPhoneCode,
+                                    step: 1
+                                };
+                                localStorage.setItem("profileCreationCache", JSON.stringify(cacheData));
+
+                                // Navigate to resume-gen
+                                navigate('/resume-gen');
+                            }}
+                            className="flex-1 bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-4 rounded-lg shadow-sm transition text-sm"
+                        >
                             Create ATS friendly CV
                         </button>
 
@@ -690,11 +989,11 @@ const Step1BasicInfo = ({
                                     const file = e.target.files[0];
                                     if (file) {
                                         if (file.type !== "application/pdf") {
-                                            alert("Only PDF files are allowed.");
+                                            toast.error("Only PDF files are allowed.");
                                             return;
                                         }
                                         if (file.size > 5 * 1024 * 1024) {
-                                            alert("File size too large (max 5MB)");
+                                            toast.error("File size too large (max 5MB)");
                                             return;
                                         }
                                         setFormData(prev => ({
@@ -737,15 +1036,24 @@ const Step1BasicInfo = ({
                 {/* Work Experience Modal */}
                 {showExperienceModal && (
                     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                        <div className="bg-white w-[700px] rounded-2xl p-8 relative animate-fadeIn shadow-2xl max-h-[90vh] overflow-y-auto">
+                        <div ref={experienceModalRef} className="bg-white w-[700px] rounded-2xl p-8 relative animate-fadeIn shadow-2xl max-h-[90vh] overflow-y-auto">
 
                             <div className="flex justify-between items-center mb-6">
                                 <div>
                                     <h2 className="text-xl font-bold text-black">Work Experience <span className="text-red-500">*</span></h2>
                                     <p className="text-xs text-gray-500">Details like job title, company name, etc, help employers understand your work</p>
                                 </div>
-                                <button onClick={() => setShowExperienceModal(false)} className="text-gray-500 hover:text-black font-bold text-xl">✕</button>
+                                <button onClick={() => {
+                                    setShowExperienceModal(false);
+                                    setExperienceError("");
+                                }} className="text-gray-500 hover:text-black font-bold text-xl">✕</button>
                             </div>
+
+                            {experienceError && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                                    {experienceError}
+                                </div>
+                            )}
 
                             <div className="space-y-5">
 
@@ -806,22 +1114,45 @@ const Step1BasicInfo = ({
                                 <div className="flex gap-4">
                                     <div className="flex-1">
                                         <label className="block text-sm font-semibold mb-1">Joining date <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="date"
-                                            className="w-full border rounded-lg px-3 py-2 text-sm text-gray-500 outline-none focus:border-[#FFB300]"
-                                            value={experienceForm.startDate}
-                                            onChange={(e) => setExperienceForm({ ...experienceForm, startDate: e.target.value })}
-                                        />
+                                        <div
+                                            className="w-full border rounded-lg px-3 py-2 text-sm text-gray-500 cursor-pointer flex items-center gap-2"
+                                            onClick={() => setShowExpStartPicker(true)}
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span>{experienceForm.startDate ? new Date(experienceForm.startDate).toLocaleDateString('en-GB') : "Select Date"}</span>
+                                        </div>
+                                        {showExpStartPicker && (
+                                            <CustomDatePicker
+                                                value={experienceForm.startDate}
+                                                minDate={getExpStartMin()}
+                                                maxDate={getTodayStr()}
+                                                onChange={(val) => setExperienceForm({ ...experienceForm, startDate: val })}
+                                                onClose={() => setShowExpStartPicker(false)}
+                                            />
+                                        )}
                                     </div>
                                     <div className="flex-1">
                                         <label className="block text-sm font-semibold mb-1">End date</label>
-                                        <input
-                                            type="date"
-                                            className="w-full border rounded-lg px-3 py-2 text-sm text-gray-500 outline-none focus:border-[#FFB300]"
-                                            disabled={experienceForm.currentlyWorking}
-                                            value={experienceForm.endDate}
-                                            onChange={(e) => setExperienceForm({ ...experienceForm, endDate: e.target.value })}
-                                        />
+                                        <div
+                                            className={`w-full border rounded-lg px-3 py-2 text-sm text-gray-500 flex items-center gap-2 ${experienceForm.currentlyWorking ? 'bg-gray-50 cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                                            onClick={() => !experienceForm.currentlyWorking && setShowExpEndPicker(true)}
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span>{experienceForm.endDate ? new Date(experienceForm.endDate).toLocaleDateString('en-GB') : "Select Date"}</span>
+                                        </div>
+                                        {showExpEndPicker && !experienceForm.currentlyWorking && (
+                                            <CustomDatePicker
+                                                value={experienceForm.endDate}
+                                                minDate={experienceForm.startDate}
+                                                maxDate={getTodayStr()}
+                                                onChange={(val) => setExperienceForm({ ...experienceForm, endDate: val })}
+                                                onClose={() => setShowExpEndPicker(false)}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
@@ -852,7 +1183,10 @@ const Step1BasicInfo = ({
                             <div className="flex justify-end gap-4 mt-8">
                                 <button
                                     className="border border-[#FFB300] text-[#FFB300] font-bold px-8 py-2.5 rounded-lg hover:bg-[#FFF9E5] transition"
-                                    onClick={() => setShowExperienceModal(false)}
+                                    onClick={() => {
+                                        setShowExperienceModal(false);
+                                        setExperienceError("");
+                                    }}
                                 >
                                     Cancel
                                 </button>
@@ -860,6 +1194,29 @@ const Step1BasicInfo = ({
                                 <button
                                     className="bg-[#FFB300] text-black font-bold px-10 py-2.5 rounded-lg hover:bg-[#ffaa00] transition shadow-md"
                                     onClick={() => {
+                                        if (
+                                            !experienceForm.jobTitle.trim() ||
+                                            !experienceForm.company.trim() ||
+                                            !experienceForm.startDate ||
+                                            !experienceForm.location.trim()
+                                        ) {
+                                            setExperienceError("Please fill all mandatory fields.");
+                                            if (experienceModalRef.current) {
+                                                experienceModalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }
+                                            return;
+                                        }
+
+                                        if (!/[a-zA-Z]/.test(experienceForm.jobTitle)) {
+                                            setExperienceError("Job title must contain valid text.");
+                                            if (experienceModalRef.current) {
+                                                experienceModalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }
+                                            return;
+                                        }
+
+                                        setExperienceError("");
+
                                         if (editingExperienceIndex !== null) {
                                             setFormData(prev => {
                                                 const newExp = [...prev.workExperiences];

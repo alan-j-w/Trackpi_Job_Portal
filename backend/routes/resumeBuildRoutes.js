@@ -1,13 +1,13 @@
 import express from "express";
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import pkg from "multer-storage-cloudinary";
 import cloudinary from "../config/cloudinary.js";
 import ResumeCandidate from "../models/ResumeCandidate.js";
 import { optionalAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-const storage = new CloudinaryStorage({
+const storage = pkg({
     cloudinary: cloudinary,
     params: {
         folder: "trackpi/resume_candidates",

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import axios from "axios";
 import { Country, State } from "country-state-city";
 import LoadingIllustration from '../assets/illustrations/loading-illustration.png'; // Make sure this path is correct based on where we copied it
@@ -15,7 +16,7 @@ const CreateProfile = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
 
-    // Check if profile already exists
+    // Check if profile already exists or cache exists
     useEffect(() => {
         const checkProfile = async () => {
             const token = localStorage.getItem("token");
@@ -37,6 +38,28 @@ const CreateProfile = () => {
         };
 
         checkProfile();
+
+        // Restore cached form data if available
+        const cachedData = localStorage.getItem("profileCreationCache");
+        if (cachedData) {
+            try {
+                const parsedCache = JSON.parse(cachedData);
+                if (parsedCache.formData) {
+                    setFormData(prev => ({ ...prev, ...parsedCache.formData }));
+                }
+                if (parsedCache.primaryPhoneCode) {
+                    setPrimaryPhoneCode(parsedCache.primaryPhoneCode);
+                }
+                if (parsedCache.altPhoneCode) {
+                    setAltPhoneCode(parsedCache.altPhoneCode);
+                }
+                if (parsedCache.step) {
+                    setStep(parsedCache.step);
+                }
+            } catch (e) {
+                console.error("Failed to parse cached profile data", e);
+            }
+        }
     }, [navigate]);
 
     // Form State
@@ -154,6 +177,11 @@ const CreateProfile = () => {
                 description: exp.description
             })) || [];
 
+            // Explicitly map Date of Birth
+            if (payload.dob && !payload.dateOfBirth) {
+                payload.dateOfBirth = payload.dob;
+            }
+
             // Backend Safety Flag
             payload.isFinalSubmission = true;
 
@@ -163,9 +191,6 @@ const CreateProfile = () => {
             delete payload.resumeFile; // Don't send file object in JSON JSON
             delete payload.resumeName;
 
-
-            // Simulate loading delay for visual effect (as requested)
-            await new Promise(resolve => setTimeout(resolve, 3000));
 
             await axios.post(`${config.API_URL}/api/profile`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -184,13 +209,16 @@ const CreateProfile = () => {
                     });
                 } catch (uploadErr) {
                     console.error("Resume upload failed", uploadErr);
-                    // Strict handling: Alert and block navigation
-                    alert("Profile saved successfully, but Resume upload failed. Please try uploading your resume again.");
+                    // Strict handling: Toast and block navigation
+                    toast.error("Profile saved successfully, but Resume upload failed. Please try uploading your resume again.");
                     setLoading(false);
                     return;
                 }
             }
             // ---------------------------
+
+            // Clear caching on successful submission
+            localStorage.removeItem("profileCreationCache");
 
             navigate("/profile");
         } catch (err) {
@@ -199,14 +227,14 @@ const CreateProfile = () => {
             const errorMessage = err.response?.data?.message || err.message || "Profile creation failed";
 
             if (status === 401) {
-                alert("Session expired or invalid. Please login again.");
+                toast.error("Session expired or invalid. Please login again.");
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = "/login";
                 return;
             }
 
-            alert(`Error: ${errorMessage}`);
+            toast.error(errorMessage);
             setLoading(false); // Stop loading if error
         }
     };
