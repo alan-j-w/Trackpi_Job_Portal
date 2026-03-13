@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Search, FileDown, Trash2, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
+import Pagination from "../../components/admin/Pagination";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -186,49 +187,29 @@ const AdminResumeCandidates = () => {
                 </table>
             </div>
 
-            {/* Pagination Controls */}
-            {!loading && pagination.pages > 1 && (
-                <div className="flex justify-end gap-2 mt-4">
-                    <button
-                        onClick={() => fetchCandidates(pagination.page - 1, searchTerm)}
-                        disabled={pagination.page === 1}
-                        className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
-                    >
-                        Prev
-                    </button>
-                    <span className="px-3 py-1 text-gray-600">
-                        {pagination.page} / {pagination.pages}
-                    </span>
-                    <button
-                        onClick={() => fetchCandidates(pagination.page + 1, searchTerm)}
-                        disabled={pagination.page === pagination.pages}
-                        className="px-3 py-1 rounded bg-gray-100 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
+            <Pagination 
+                currentPage={pagination.page}
+                totalPages={pagination.pages}
+                onPageChange={(page) => fetchCandidates(page, searchTerm)}
+                totalResults={pagination.total}
+                itemsPerPage={pagination.limit}
+            />
 
             {/* Bottom Floating Action Bar for Selected Items matching UI */}
-            <div className="mt-8 flex items-center justify-between text-sm px-2">
-                <div className="flex flex-col">
-                    <span className="text-gray-800 mb-1 font-medium">Selected <span className="text-yellow-500 font-bold">{selectedIds.length}</span> items</span>
-                    <button
-                        onClick={() => handleDelete(selectedIds)}
-                        disabled={selectedIds.length === 0}
-                        className={`text-yellow-500 border-b border-transparent hover:border-yellow-500 flex items-center w-max ${selectedIds.length === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        Delete <span className="text-lg leading-none ml-1">→</span>
-                    </button>
+            {selectedIds.length > 0 && (
+                <div className="mt-8 flex items-center text-sm px-2">
+                    <div className="flex flex-col">
+                        <span className="text-gray-800 mb-1 font-medium">Selected <span className="text-yellow-500 font-bold">{selectedIds.length}</span> items</span>
+                        <button
+                            onClick={() => handleDelete(selectedIds)}
+                            disabled={selectedIds.length === 0}
+                            className={`text-yellow-500 border-b border-transparent hover:border-yellow-500 flex items-center w-max ${selectedIds.length === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            Delete <span className="text-lg leading-none ml-1">→</span>
+                        </button>
+                    </div>
                 </div>
-
-                {/* Simulated Records limit dropdown (not fully functional but matches UI) */}
-                <div className="relative">
-                    <button className="flex items-center gap-2 border border-black rounded px-3 py-1.5 font-medium">
-                        6 <ChevronDown size={16} />
-                    </button>
-                </div>
-            </div>
+            )}
         </div>
     );
 };

@@ -24,6 +24,9 @@ router.get("/jobs", checkPermission(PERMISSIONS.JOBS_VIEW), adminController.getA
 // Get Job Specific Applicants
 router.get("/jobs/:id/applicants", checkPermission(PERMISSIONS.APPLICANTS_VIEW), adminController.getJobApplicants);
 
+// Get All Applications Globally
+router.get("/applications/all", checkPermission(PERMISSIONS.APPLICANTS_VIEW), adminController.getAllApplications);
+
 // Toggle Application Check
 router.patch("/applications/:id/toggle-check", checkPermission(PERMISSIONS.APPLICANTS_VIEW), adminController.toggleApplicationChecked);
 

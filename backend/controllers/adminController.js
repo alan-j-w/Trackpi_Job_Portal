@@ -605,6 +605,47 @@ export const getJobApplicants = async (req, res) => {
     }
 };
 
+// Get all applications across all jobs
+export const getAllApplications = async (req, res) => {
+    try {
+        const applications = await Application.find()
+            .populate("jobId", "title")
+            .sort({ createdAt: -1 });
+
+        const applicants = await Promise.all(applications.map(async (app) => {
+            let profile = null;
+            let user = null;
+
+            if (app.userId) {
+                user = await User.findById(app.userId).select("-password");
+                profile = await Profile.findOne({ user: app.userId });
+            }
+
+            return {
+                _id: user?._id || app._id,
+                name: app.name,
+                email: app.email,
+                role: app.jobId?.title || "N/A",
+                profile: profile || {
+                    fullName: app.name,
+                    phone: app.phone,
+                    email: app.email,
+                    resumeUrl: app.resumeUrl,
+                    jobTitle: app.experience ? `${app.experience} experience` : "N/A"
+                },
+                isChecked: app.isChecked,
+                applicationId: app._id,
+                appliedAt: app.createdAt
+            };
+        }));
+
+        res.status(200).json(applicants);
+    } catch (error) {
+        console.error("Error fetching all applications:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch all applications", error: error.message });
+    }
+};
+
 // Toggle application isChecked status
 export const toggleApplicationChecked = async (req, res) => {
     try {

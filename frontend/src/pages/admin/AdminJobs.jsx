@@ -5,6 +5,7 @@ import axios from "axios";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import { API_URL } from "../../config";
+import Pagination from "../../components/admin/Pagination";
 
 
 const AdminJobs = () => {
@@ -13,10 +14,17 @@ const AdminJobs = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [openDropdownId, setOpenDropdownId] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     useEffect(() => {
         fetchJobs();
     }, []);
+
+    // Reset pagination on search
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const fetchJobs = async () => {
         try {
@@ -43,6 +51,13 @@ const AdminJobs = () => {
     const filteredJobs = jobs.filter((job) =>
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.company.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
+    const paginatedJobs = filteredJobs.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     );
 
     // Generic function to update job status
@@ -120,7 +135,7 @@ const AdminJobs = () => {
                                     <td colSpan="6" className="p-8 text-center text-gray-500">No jobs found.</td>
                                 </tr>
                             ) : (
-                                filteredJobs.map((job) => (
+                                paginatedJobs.map((job) => (
                                     <tr key={job._id} className="hover:bg-gray-50 transition-colors">
                                         {/* Job Title */}
                                         <td className="p-4 pl-6">
@@ -256,13 +271,13 @@ const AdminJobs = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                <div className="flex justify-end p-4">
-                    <button className="flex items-center gap-1 border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
-                        6
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                    </button>
-                </div>
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalResults={filteredJobs.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                />
             </div>
         </div>
     );

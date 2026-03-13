@@ -5,6 +5,7 @@ import { Pencil, Trash2, ExternalLink, Play, Search } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import DeleteUserModal from "../../components/admin/DeleteUserModal";
+import Pagination from "../../components/admin/Pagination";
 
 const AdminTestimonials = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ const AdminTestimonials = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null); // ID for single delete
   const [isBulkDelete, setIsBulkDelete] = useState(false); // Flag for bulk delete
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   /* SELECT */
   const toggleSelect = (id) => {
@@ -54,11 +57,21 @@ const AdminTestimonials = () => {
     fetchTestimonials();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   /* FILTER */
   const filteredTestimonials = testimonials.filter(
     (t) =>
       t.name.toLowerCase().includes(search.toLowerCase()) ||
       t.jobTitle.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredTestimonials.length / ITEMS_PER_PAGE);
+  const paginatedTestimonials = filteredTestimonials.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   /* DELETE HANDLERS */
@@ -165,7 +178,7 @@ const AdminTestimonials = () => {
               ) : filteredTestimonials.length === 0 ? (
                 <tr><td colSpan="6" className="p-8 text-center text-gray-500">No testimonials found.</td></tr>
               ) : (
-                filteredTestimonials.map((t) => (
+                paginatedTestimonials.map((t) => (
                   <tr key={t._id} className="hover:bg-yellow-50/10 transition-colors">
                     <td className="p-4 pl-6">
                       {hasPermission(PERMISSIONS.TESTIMONIALS_DELETE) && (
@@ -225,13 +238,13 @@ const AdminTestimonials = () => {
             </tbody>
           </table>
         </div>
-        {/* Pagination (Static) */}
-        <div className="flex justify-end p-4">
-          <button className="flex items-center gap-1 border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
-            6
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-          </button>
-        </div>
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalResults={filteredTestimonials.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       </div>
 
       {/* Footer Selection Status */}

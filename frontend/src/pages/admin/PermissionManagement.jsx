@@ -3,8 +3,8 @@ import { Edit, Trash2, Search, Plus, UserCheck, Shield, Clock, Calendar } from "
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../../config";
-
 import { getUserRole } from "../../utils/auth";
+import Pagination from "../../components/admin/Pagination";
 
 const PermissionManagement = () => {
     const navigate = useNavigate();
@@ -12,6 +12,8 @@ const PermissionManagement = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRoles, setSelectedRoles] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const currentUserRole = getUserRole();
     // Allow both Super Admin and Admin to manage permissions
@@ -20,6 +22,10 @@ const PermissionManagement = () => {
     useEffect(() => {
         fetchRoles();
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const fetchRoles = async () => {
         try {
@@ -83,6 +89,12 @@ const PermissionManagement = () => {
 
     const filteredRoles = roles.filter(role =>
         role.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredRoles.length / ITEMS_PER_PAGE);
+    const paginatedRoles = filteredRoles.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     );
 
     return (
@@ -167,7 +179,7 @@ const PermissionManagement = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredRoles.map((role) => {
+                                paginatedRoles.map((role) => {
                                     const createdDate = new Date(role.createdAt);
                                     const userCount = role.users?.length || 0;
 
@@ -243,6 +255,14 @@ const PermissionManagement = () => {
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalResults={filteredRoles.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                />
             </div>
             {/* Delete Modal */}
             {showDeleteModal && (
