@@ -138,19 +138,25 @@ const AdminJobs = () => {
                                         {/* Applying Candidates */}
                                         <td className="p-4">
                                             <div className="flex gap-2">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between">
-                                                        <Users size={14} className="text-gray-600" />
-                                                        <span className="text-xs font-bold text-gray-800">{job.applicantsCount || 0}</span>
+                                                <div 
+                                                    onClick={() => navigate(`/admin/candidates/applicants/${job._id}`)}
+                                                    className="flex flex-col items-center cursor-pointer group/all"
+                                                >
+                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between group-hover/all:bg-[#FFB300] transition-colors">
+                                                        <Users size={14} className="text-gray-600 group-hover/all:text-white" />
+                                                        <span className="text-xs font-bold text-gray-800 group-hover/all:text-white">{job.applicantsCount || 0}</span>
                                                     </div>
-                                                    <span className="text-[10px] text-gray-500 mt-1">All</span>
+                                                    <span className="text-[10px] text-gray-500 mt-1 group-hover/all:text-[#FFB300] font-medium">All</span>
                                                 </div>
-                                                <div className="flex flex-col items-center ml-2">
-                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between">
-                                                        <FileText size={14} className="text-gray-600" />
-                                                        <span className="text-xs font-bold text-gray-800">{job.pendingApplicantsCount || 0}</span>
+                                                <div 
+                                                    onClick={() => navigate(`/admin/candidates/applicants/${job._id}?filter=pending`)}
+                                                    className="flex flex-col items-center ml-2 cursor-pointer group/pending"
+                                                >
+                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between group-hover/pending:bg-red-500 transition-colors">
+                                                        <FileText size={14} className="text-gray-600 group-hover/pending:text-white" />
+                                                        <span className="text-xs font-bold text-gray-800 group-hover/pending:text-white">{job.pendingApplicantsCount || 0}</span>
                                                     </div>
-                                                    <span className="text-[10px] text-gray-500 mt-1">Pending</span>
+                                                    <span className="text-[10px] text-gray-500 mt-1 group-hover/pending:text-red-500 font-medium">Pending</span>
                                                 </div>
                                             </div>
                                         </td>

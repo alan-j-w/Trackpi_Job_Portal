@@ -1,11 +1,25 @@
 import { useState, useEffect } from "react";
 import { Eye, Trash2, FileText, Search, Filter, ArrowUpDown } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import { API_URL } from "../../config";
 import DeleteUserModal from "../../components/admin/DeleteUserModal";
 
+
+const Toggle = ({ checked, onChange, disabled }) => {
+    return (
+        <button
+            disabled={disabled}
+            onClick={onChange}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${checked ? 'bg-green-500' : 'bg-gray-300'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+            <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`}
+            />
+        </button>
+    );
+};
 
 const CircularProgress = ({ percentage }) => {
     const radius = 18;
@@ -54,11 +68,15 @@ const AdminApplicants = () => {
     const [error, setError] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [stats, setStats] = useState({ totalCount: 0, pendingCount: 0 });
     const location = useLocation();
     const navigate = useNavigate();
+    const { jobId } = useParams();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [candidateToDelete, setCandidateToDelete] = useState(null);
+
+    const isPendingFilter = new URLSearchParams(location.search).get("filter") === "pending";
 
     const isSignupPage = location.pathname.includes("signup");
     const PERM_RESUME = isSignupPage ? PERMISSIONS.SIGNUP_RESUME : PERMISSIONS.APPLICANTS_RESUME;
@@ -87,23 +105,37 @@ const AdminApplicants = () => {
         const fetchCandidates = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch(`${API_URL}/api/admin/candidates`, {
+                let endpoint = jobId 
+                    ? `${API_URL}/api/admin/jobs/${jobId}/applicants`
+                    : `${API_URL}/api/admin/candidates`;
+                
+                if (isPendingFilter && jobId) {
+                    endpoint += "?status=pending";
+                }
+                
+                const response = await fetch(endpoint, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
                 if (!response.ok) throw new Error("Failed to fetch candidates");
 
-                const data = await response.json();
+                const result = await response.json();
+                const data = jobId ? result.applicants : result;
+
+                if (jobId) {
+                    setStats({ totalCount: result.totalCount, pendingCount: result.pendingCount });
+                }
 
                 const formattedData = data.map(user => ({
                     id: user._id,
                     name: user.name,
-                    role: user.profile?.jobTitle || "N/A",
-                    phone: user.profile?.phone || "N/A",
+                    role: user.profile?.jobTitle || (user.experience ? `${user.experience}` : "N/A"),
+                    phone: user.profile?.phone || user.phone || "N/A",
                     email: user.email,
                     gender: user.profile?.gender || "N/A",
-                    resume: user.profile?.resumeUrl,
-                    progress: calculateProgress(user, user.profile),
+                    resume: user.profile?.resumeUrl || user.resumeUrl,
+                    isChecked: user.isChecked,
+                    applicationId: user.applicationId
                 }));
 
                 setCandidates(formattedData);
@@ -116,11 +148,55 @@ const AdminApplicants = () => {
         };
 
         fetchCandidates();
-    }, []);
+    }, [jobId, location.search]);
+
+    const handleToggleCheck = async (candidate) => {
+        // If in pending view, "can only toggled to checked"
+        if (isPendingFilter && candidate.isChecked) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            const newStatus = !candidate.isChecked;
+            
+            const appId = candidate.applicationId || candidate.id;
+            const response = await fetch(`${API_URL}/api/admin/applications/${appId}/toggle-check`, {
+                method: "PATCH",
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}` 
+                },
+                body: JSON.stringify({ isChecked: newStatus })
+            });
+
+            if (!response.ok) throw new Error("Failed to update status");
+
+            // Optimistic update
+            if (isPendingFilter && newStatus) {
+                // If it becomes checked in pending view, remove it
+                setCandidates(candidates.filter(c => c.applicationId !== appId && c.id !== appId));
+                // Decrease pending count
+                setStats(prev => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
+            } else {
+                setCandidates(candidates.map(c => 
+                    (c.applicationId === appId || c.id === appId) ? { ...c, isChecked: newStatus } : c
+                ));
+                // Adjust pending count if in jobId view
+                if (jobId) {
+                    setStats(prev => ({ 
+                        ...prev, 
+                        pendingCount: newStatus ? Math.max(0, prev.pendingCount - 1) : prev.pendingCount + 1 
+                    }));
+                }
+            }
+        } catch (err) {
+            console.error("Error toggling status:", err);
+            alert("Failed to update application status");
+        }
+    };
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setSelectedIds(candidates.map(c => c.id));
+            setSelectedIds(candidates.map(c => c.applicationId || c.id));
         } else {
             setSelectedIds([]);
         }
@@ -170,7 +246,17 @@ const AdminApplicants = () => {
         <div className="bg-white p-8 min-h-[90vh]">
             {/* Header / Top Bar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <h1 className="text-2xl font-bold text-gray-900">Signup candidates</h1>
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {isPendingFilter ? "Pending candidates" : jobId ? "All candidates" : isSignupPage ? "Signup candidates" : "Job applicants"}
+                    </h1>
+                    {jobId && (
+                        <div className="flex gap-4 text-sm font-medium">
+                            <span className="text-gray-500">Total: <span className="text-gray-900">{stats.totalCount}</span></span>
+                            <span className="text-gray-500">Pending: <span className="text-red-500">{stats.pendingCount}</span></span>
+                        </div>
+                    )}
+                </div>
                 <div className="w-full md:w-auto text-right">
                     <button
                         onClick={() => setSelectedIds(candidates.map(c => c.id))}
@@ -229,7 +315,7 @@ const AdminApplicants = () => {
                                 <th className="p-4 font-normal text-center">Gender</th>
                                 <th className="p-4 font-normal text-center">Resume</th>
                                 <th className="p-4 font-normal text-center">Action</th>
-                                <th className="p-4 font-normal text-center">Progress Bar</th>
+                                <th className="p-4 font-normal text-center">{jobId ? "Status" : "Progress Bar"}</th>
                             </tr>
                         </thead>
                         <tbody className="text-black text-sm font-medium">
@@ -239,13 +325,13 @@ const AdminApplicants = () => {
                                 <tr><td colSpan="9" className="p-10 text-center text-gray-500">No candidates found</td></tr>
                             ) : (
                                 filteredCandidates.map((candidate) => (
-                                    <tr key={candidate.id} className="border-b border-gray-200 hover:bg-yellow-50/10 transition group">
+                                    <tr key={candidate.applicationId || candidate.id} className="border-b border-gray-200 hover:bg-yellow-50/10 transition group">
                                         <td className="p-4 text-left">
                                             <input
                                                 type="checkbox"
                                                 className="w-4 h-4 rounded border-gray-400 text-[#FFB300] focus:ring-[#FFB300] cursor-pointer"
-                                                checked={selectedIds.includes(candidate.id)}
-                                                onChange={() => handleSelectOne(candidate.id)}
+                                                checked={selectedIds.includes(candidate.applicationId || candidate.id)}
+                                                onChange={() => handleSelectOne(candidate.applicationId || candidate.id)}
                                             />
                                         </td>
                                         <td className="p-4 text-gray-900 font-semibold text-center">{candidate.name}</td>
@@ -291,7 +377,20 @@ const AdminApplicants = () => {
                                         </td>
                                         <td className="p-4 text-center">
                                             <div className="flex justify-center">
-                                                <CircularProgress percentage={candidate.progress} />
+                                                {jobId ? (
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <Toggle 
+                                                            checked={candidate.isChecked} 
+                                                            onChange={() => handleToggleCheck(candidate)}
+                                                            disabled={isPendingFilter && candidate.isChecked}
+                                                        />
+                                                        <span className={`text-[10px] font-bold ${candidate.isChecked ? 'text-green-600' : 'text-gray-400'}`}>
+                                                            {candidate.isChecked ? 'Checked' : 'Unchecked'}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <CircularProgress percentage={candidate.progress || 0} />
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

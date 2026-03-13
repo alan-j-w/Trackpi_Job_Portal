@@ -21,6 +21,12 @@ router.get("/candidates/:id", checkPermission(PERMISSIONS.SIGNUP_VIEW_DETAILS), 
 // Get All Jobs (Admin View)
 router.get("/jobs", checkPermission(PERMISSIONS.JOBS_VIEW), adminController.getAdminJobs);
 
+// Get Job Specific Applicants
+router.get("/jobs/:id/applicants", checkPermission(PERMISSIONS.APPLICANTS_VIEW), adminController.getJobApplicants);
+
+// Toggle Application Check
+router.patch("/applications/:id/toggle-check", checkPermission(PERMISSIONS.APPLICANTS_VIEW), adminController.toggleApplicationChecked);
+
 // Delete Candidate
 router.delete("/candidates/:id", checkPermission(PERMISSIONS.SIGNUP_DELETE), adminController.deleteCandidate);
 

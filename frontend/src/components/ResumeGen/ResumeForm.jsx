@@ -11,9 +11,11 @@ import { RotateCcw, UploadCloud } from 'lucide-react';
 import { useResume } from './ResumeContext';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import config from '../../config';
 
 const ResumeForm = () => {
+    const navigate = useNavigate();
     const { resumeData } = useResume();
     const [step, setStep] = useState(1);
     const steps = ["Personal Info", "Education", "Internship", "Skills", "Additional section"];
@@ -66,11 +68,10 @@ const ResumeForm = () => {
             formData.append('phone', resumeData.personalInfo.phone || 'N/A');
             formData.append('email', resumeData.personalInfo.email || '');
 
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
             const headers = {};
             if (isLoggedIn) headers.Authorization = `Bearer ${token}`;
 
-            const res = await axios.post(`${API_URL}/api/resume/build`, formData, { headers });
+            const res = await axios.post(`${config.API_URL}/api/resume/build`, formData, { headers });
 
             if (res.data.success) {
                 toast.success("Resume Built Successfully!");
@@ -135,9 +136,29 @@ const ResumeForm = () => {
         }
     };
 
-    const handleUploadToProfile = () => {
-        // Feature implementation for later
-        toast.success("Feature coming soon: Attach to Profile automatically");
+    const handleUploadToProfile = async () => {
+        const loadingToast = toast.loading("Uploading resume to profile...");
+        try {
+            const pdfBlob = await generateCleanPdfBlob();
+            const formData = new FormData();
+            formData.append("resume", pdfBlob, `${resumeData.personalInfo.fullName || 'resume'}.pdf`);
+
+            const res = await axios.post(`${config.API_URL}/api/profile/resume`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data"
+                }
+            });
+
+            if (res.data) {
+                toast.success("Resume attached to profile successfully!", { id: loadingToast });
+                // Redirect back to profile creation
+                navigate('/create-profile');
+            }
+        } catch (error) {
+            console.error("Failed to upload to profile", error);
+            toast.error("Failed to upload resume to profile.", { id: loadingToast });
+        }
     };
 
     const handleNext = () => {
