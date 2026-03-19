@@ -31,7 +31,13 @@ const CreateProfile = () => {
                 if (res.data.profileCompleted) {
                     navigate("/profile");
                 }
-                // If profile exists but not completed (e.g. just resume uploaded), stay here to finish it.
+                if (res.data.resumeUrl) {
+                    setFormData(prev => ({
+                        ...prev,
+                        resumeUrl: res.data.resumeUrl,
+                        resumeName: res.data.resumeUrl.split('/').pop()
+                    }));
+                }
             } catch (err) {
                 console.error("Profile status check error:", err);
             }

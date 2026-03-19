@@ -3,13 +3,15 @@ import { Search, Edit, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react
 import axios from "axios";
 import { API_URL } from "../../config";
 import { getUserRole } from "../../utils/auth";
+import Pagination from "../../components/admin/Pagination";
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [itemsPerPage, setItemsPerPage] = useState(6);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
     const [editingUser, setEditingUser] = useState(null);
 
     // Modal State
@@ -63,6 +65,10 @@ const UserManagement = () => {
         fetchUsers();
         fetchRoles();
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const findUserRole = (userId) => {
         // Robustly check if user exists in any role group
@@ -234,9 +240,14 @@ const UserManagement = () => {
     };
 
     const filteredUsers = users.filter(user =>
-        user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.employeeId?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     );
 
     return (
@@ -299,7 +310,7 @@ const UserManagement = () => {
                             ) : filteredUsers.length === 0 ? (
                                 <tr><td colSpan="6" className="p-8 text-center text-gray-500">No users found.</td></tr>
                             ) : (
-                                filteredUsers.map((user) => {
+                                paginatedUsers.map((user) => {
                                     const role = findUserRole(user._id);
                                     return (
                                         <tr key={user._id} className="hover:bg-gray-50 transition-colors">
@@ -350,39 +361,13 @@ const UserManagement = () => {
                     </table>
                 </div>
 
-                {/* Footer */}
-                <div className="flex justify-between items-center p-4 border-t border-gray-100">
-                    <div className="flex gap-2 text-sm text-gray-600">
-                        {canManage && (
-                            <>
-                                <span>Selected <span className="text-yellow-500 font-bold">{selectedUsers.length}</span> items</span>
-                                {selectedUsers.length > 0 && (
-                                    <button
-                                        onClick={handleBulkDeleteClick}
-                                        className="text-yellow-500 hover:underline"
-                                    >
-                                        Delete &rarr;
-                                    </button>
-                                )}
-                            </>
-                        )}
-                    </div>
-
-                    <div className="relative">
-                        <select
-                            value={itemsPerPage}
-                            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                            className="appearance-none border border-black rounded px-3 py-1 pr-8 bg-white text-gray-900 focus:outline-none text-sm"
-                        >
-                            <option value={6}>6</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <span className="text-xs">▼</span>
-                        </div>
-                    </div>
-                </div>
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalResults={filteredUsers.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                />
             </div>
 
             {/* Delete Modal */}

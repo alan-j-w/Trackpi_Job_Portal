@@ -7,7 +7,7 @@ const AdminDashboard = () => {
         candidates: 0,
         activeJobs: 0,
         resumes: 0,
-        hired: 0
+        totalPending: 0
     });
 
     useEffect(() => {
@@ -23,7 +23,7 @@ const AdminDashboard = () => {
                         candidates: data.candidates || 0,
                         activeJobs: data.activeJobs || 0,
                         resumes: data.resumes || 0,
-                        hired: data.hired || 0
+                        totalPending: data.totalPending || 0
                     });
                 }
             } catch (error) {
@@ -37,7 +37,7 @@ const AdminDashboard = () => {
         { title: "Total Candidates", count: statsData.candidates, icon: Users, color: "bg-blue-500" },
         { title: "Active Jobs", count: statsData.activeJobs, icon: Briefcase, color: "bg-green-500" },
         { title: "Resumes Built", count: statsData.resumes, icon: FileText, color: "bg-purple-500" },
-        { title: "Hired", count: statsData.hired, icon: CheckCircle, color: "bg-yellow-500" },
+        { title: "Pending Applicants", count: statsData.totalPending, icon: Users, color: "bg-red-500" },
     ];
 
     return (

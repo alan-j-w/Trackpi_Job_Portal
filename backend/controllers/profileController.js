@@ -159,6 +159,7 @@ export const checkProfileStatus = async (req, res) => {
             success: true,
             hasProfile: !!profile,
             profileCompleted: profile?.profileCompleted || false,
+            resumeUrl: profile?.resumeUrl || "",
         });
     } catch (error) {
         res.status(500).json({
