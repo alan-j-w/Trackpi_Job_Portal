@@ -27,7 +27,7 @@ const Partners = () => {
   const track = [...partners, ...partners, ...partners, ...partners];
 
   return (
-    <section className="py-12 bg-white font-cabinet">
+    <section className="pt-8 pb-0 bg-white font-cabinet">
       <h2 className="text-center text-[32px] font-[800] mb-8 tracking-wider">
         <span className="text-[#FFB300]">OUR HIRING PARTNERS</span>
       </h2>
