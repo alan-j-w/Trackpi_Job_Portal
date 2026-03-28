@@ -185,7 +185,7 @@ const AdminCandidateDetails = () => {
                         />
 
                         <ResumeSection
-                            resumeUrl={profile.resume}
+                            resumeUrl={profile.resumeUrl}
                             onAdd={null}
                             onEdit={null}
                             onDelete={null}

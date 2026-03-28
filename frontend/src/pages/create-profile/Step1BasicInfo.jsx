@@ -972,7 +972,7 @@ const Step1BasicInfo = ({
                                 localStorage.setItem("profileCreationCache", JSON.stringify(cacheData));
 
                                 // Navigate to resume-gen
-                                navigate('/resume-gen');
+                                navigate('/resume-gen', { state: { fromProfile: true } });
                             }}
                             className="flex-1 bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-4 rounded-lg shadow-sm transition text-sm"
                         >

@@ -5,11 +5,11 @@ import SectionTitle from "../components/Creators/SectionTitle";
 import CreatorCard from "../components/Creators/CreatorCards";
 import img1 from "../assets/creatorsimages/anjali.png";
 import img2 from "../assets/creatorsimages/anshid.png"
-import img3 from "../assets/creatorsimages/anwar.png";
-import img4 from "../assets/creatorsimages/alex.png";
-import img5 from "../assets/creatorsimages/anushka.png";
-import img6 from "../assets/creatorsimages/anwer.png";
-import img7 from "../assets/creatorsimages/alex.png";
+import img3 from "../assets/creatorsimages/alan.jpeg";
+import img4 from "../assets/creatorsimages/anwer.png";
+import img5 from "../assets/creatorsimages/hasna.jpeg";
+import img6 from "../assets/creatorsimages/dony.jpeg";
+import img7 from "../assets/creatorsimages/anwer.png";
 import img8 from "../assets/creatorsimages/anushka.png";
 
 const Creators = () => {
@@ -40,27 +40,27 @@ const Creators = () => {
 
         <CreatorCard
           image={img3}
-          name="Anwar Rasheed"
+          name="Alan Joy Wilson"
           role="MERN Stack Developer"
         />
         <CreatorCard
           image={img4}
-          name="Alex James"
+          name="Adhy Krishna V S"
           role="MERN Stack Developer"
         />
         <CreatorCard
           image={img5}
-          name="Anushka Shiva"
+          name="Hasna K K"
           role="MERN Stack Developer"
         />
         <CreatorCard
           image={img6}
-          name="Anushka Shiva"
+          name="Dony Biji"
           role="MERN Stack Developer"
         />
         <CreatorCard
           image={img7}
-          name="Anwar Rasheed"
+          name="Anushka Shiva"
           role="MERN Stack Developer"
         />
         <CreatorCard

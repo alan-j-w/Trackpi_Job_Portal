@@ -264,7 +264,7 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
   const activeFilterCount = Object.values(filters).flat().length;
 
   return (
-    <section className={`py-16 bg-white font-['Satoshi'] ${className}`}>
+    <section className={`pt-0 pb-16 bg-white font-['Satoshi'] ${className}`}>
       <div className="max-w-[1200px] mx-auto px-4">
 
         {/* 1. Header Title */}
@@ -278,7 +278,7 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
             </button>
           )}
           <div className="max-w-[600px]">
-            <h2 className="text-[38px] md:text-[56px] font-extrabold text-black tracking-tight uppercase leading-none font-cabinet">
+            <h2 className="text-[38px] md:text-[56px] font-extrabold text-black tracking-tight uppercase leading-none font-Cabinet Grotesk">
               JOB LISTING
             </h2>
             <p className="text-[16px] text-gray-600 mt-2 font-medium">
@@ -307,19 +307,19 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
           </button>
         </div>
 
-        {/* Filters Toolbar - ALIGNED RIGHT */}
-        <div className="flex justify-end items-center gap-3 mb-10 max-w-7xl mx-auto w-full z-20 relative">
+        {/* Filters Toolbar - Justify Between / 1252px Max Width / 57px Height */}
+        <div className="flex justify-between items-center mb-10 max-w-[1252px] mx-auto w-full z-20 relative px-0 h-[57px]">
 
-          {/* SORT BUTTON & DROPDOWN */}
+          {/* SORT BUTTON (Left) */}
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => {
                 setOpenSort(!openSort);
                 setOpenFilter(false);
               }}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-black rounded-[8px] text-[13px] font-bold text-black hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-b from-white to-[#F2F2F2] border border-black rounded-[10px] text-[13px] font-bold text-black hover:brightness-95 transition-all shadow-[0_2px_4px_rgba(0,0,0,0.05)]"
             >
-              Sort <i className="ri-arrow-up-down-line ml-2"></i>
+              Sort <i className="ri-arrow-up-down-line ml-1"></i>
             </button>
 
             {openSort && (
@@ -358,14 +358,14 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
             )}
           </div>
 
-          {/* FILTER DROPDOWN (Pixel Perfect Accordion) */}
+          {/* FILTER DROPDOWN (Right) */}
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setOpenFilter(!openFilter)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border border-black rounded-[8px] text-[13px] font-bold text-black hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-b from-white to-[#F2F2F2] border border-black rounded-[10px] text-[13px] font-bold text-black hover:brightness-95 transition-all shadow-[0_2px_4px_rgba(0,0,0,0.05)]"
             >
               Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-              <i className="ri-filter-3-line ml-2"></i>
+              <i className="ri-filter-3-line ml-1"></i>
             </button>
 
             {openFilter && (
