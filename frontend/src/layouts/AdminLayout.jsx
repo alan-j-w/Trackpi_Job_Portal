@@ -72,7 +72,7 @@ const AdminLayout = () => {
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
         {
-            name: "Permission Management",
+            name: "Role Management",
             icon: ShieldCheck,
             children: [
                 { name: "Admin management", path: "/admin/management", icon: ShieldCheck, permission: PERMISSIONS.ADMIN_VIEW },

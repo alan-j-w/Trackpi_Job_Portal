@@ -4,6 +4,7 @@ import Application from "../models/Application.js";
 import AuditLog from "../models/AuditLog.js";
 import Profile from "../models/Profile.js";
 import AdminRole from "../models/AdminRole.js";
+import ResumeCandidate from "../models/ResumeCandidate.js";
 import bcrypt from "bcryptjs";
 import PERMISSIONS from "../config/permissions.js";
 
@@ -498,18 +499,17 @@ export const getDashboardStats = async (req, res) => {
         // Active Jobs (status is not closed)
         const activeJobsCount = await Job.countDocuments({ status: { $ne: "closed" } });
 
-        // Hired Candidates (Applications with status 'hired')
-        // Check if Application model has 'hired' status. Assuming standard status flows.
-        const hiredCount = await Application.countDocuments({ status: "hired" });
+        // Pending Applicants (Applications with isChecked false)
+        const pendingCount = await Application.countDocuments({ isChecked: false });
 
-        // Resumes/Profiles Built
-        const resumesCount = await Profile.countDocuments({});
+        // Resumes Built (from builder)
+        const resumesCount = await ResumeCandidate.countDocuments({});
 
         res.status(200).json({
             candidates: candidateCount,
             admins: adminCount,
             activeJobs: activeJobsCount,
-            hired: hiredCount,
+            totalPending: pendingCount,
             resumes: resumesCount
         });
     } catch (error) {
@@ -525,7 +525,7 @@ export const getAdminJobs = async (req, res) => {
 
         const jobsWithStats = await Promise.all(jobs.map(async (job) => {
             const totalApplicants = await Application.countDocuments({ jobId: job._id });
-            const pendingApplicants = await Application.countDocuments({ jobId: job._id, status: 'applied' });
+            const pendingApplicants = await Application.countDocuments({ jobId: job._id, isChecked: false });
 
             return {
                 ...job.toObject(),
@@ -539,6 +539,133 @@ export const getAdminJobs = async (req, res) => {
     } catch (error) {
         console.error("Error fetching admin jobs:", error);
         res.status(500).json({ message: "Failed to fetch admin jobs", error: error.message });
+    }
+};
+
+// Get applicants for a specific job
+export const getJobApplicants = async (req, res) => {
+    try {
+        const { id } = req.params; // jobId
+
+        // Check if job exists
+        const job = await Job.findById(id);
+        if (!job) {
+            return res.status(404).json({ success: false, message: "Job not found" });
+        }
+
+        // Find applications for this job
+        const filter = { jobId: id };
+        if (req.query.status === "pending") {
+            filter.isChecked = false;
+        }
+
+        const applications = await Application.find(filter).sort({ createdAt: -1 });
+
+        // Map applications to a format similar to getAllCandidates so AdminApplicants can reuse it
+        const applicants = await Promise.all(applications.map(async (app) => {
+            let profile = null;
+            let user = null;
+
+            if (app.userId) {
+                user = await User.findById(app.userId).select("-password");
+                profile = await Profile.findOne({ user: app.userId });
+            }
+
+            return {
+                _id: user?._id || app._id,
+                name: app.name,
+                email: app.email,
+                role: "jobseeker", // default role for candidates
+                profile: profile || {
+                    fullName: app.name,
+                    phone: app.phone,
+                    email: app.email,
+                    resumeUrl: app.resumeUrl,
+                    jobTitle: app.experience ? `${app.experience} experience` : "N/A"
+                },
+                // Include application specific data if needed
+                isChecked: app.isChecked,
+                applicationId: app._id,
+                appliedAt: app.createdAt
+            };
+        }));
+
+        // Fetch counts for summary
+        const totalCount = await Application.countDocuments({ jobId: id });
+        const pendingCount = await Application.countDocuments({ jobId: id, isChecked: false });
+
+        res.status(200).json({
+            applicants,
+            totalCount,
+            pendingCount
+        });
+    } catch (error) {
+        console.error("Error fetching job applicants:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch job applicants", error: error.message });
+    }
+};
+
+// Get all applications across all jobs
+export const getAllApplications = async (req, res) => {
+    try {
+        const applications = await Application.find()
+            .populate("jobId", "title")
+            .sort({ createdAt: -1 });
+
+        const applicants = await Promise.all(applications.map(async (app) => {
+            let profile = null;
+            let user = null;
+
+            if (app.userId) {
+                user = await User.findById(app.userId).select("-password");
+                profile = await Profile.findOne({ user: app.userId });
+            }
+
+            return {
+                _id: user?._id || app._id,
+                name: app.name,
+                email: app.email,
+                role: app.jobId?.title || "N/A",
+                profile: profile || {
+                    fullName: app.name,
+                    phone: app.phone,
+                    email: app.email,
+                    resumeUrl: app.resumeUrl,
+                    jobTitle: app.experience ? `${app.experience} experience` : "N/A"
+                },
+                isChecked: app.isChecked,
+                applicationId: app._id,
+                appliedAt: app.createdAt
+            };
+        }));
+
+        res.status(200).json(applicants);
+    } catch (error) {
+        console.error("Error fetching all applications:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch all applications", error: error.message });
+    }
+};
+
+// Toggle application isChecked status
+export const toggleApplicationChecked = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isChecked } = req.body;
+
+        const application = await Application.findByIdAndUpdate(
+            id,
+            { isChecked },
+            { new: true }
+        );
+
+        if (!application) {
+            return res.status(404).json({ success: false, message: "Application not found" });
+        }
+
+        res.status(200).json({ success: true, application });
+    } catch (error) {
+        console.error("Error toggling application check:", error);
+        res.status(500).json({ success: false, message: "Failed to update application status" });
     }
 };
 
