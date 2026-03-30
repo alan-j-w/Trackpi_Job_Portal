@@ -40,13 +40,15 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
     const { strength, isComplete } = calculateProfileStrength(profile);
     const strengthStatus = strength >= 100 ? "Excellent" : strength >= 70 ? "Good" : strength >= 50 ? "Intermediate" : "Beginner";
 
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)*\/?$/i;
+
     // Define all possible items with their check logic and score
     // Scores must match utils/profileUtils.js
     const allItems = [
         {
             id: 'language',
             label: 'Add language',
-            score: '10%',
+            score: '05%',
             icon: <i className="ri-translate-2 text-xl"></i>,
             isMissing: !profile.languages || profile.languages.length === 0,
             action: 'language'
@@ -72,7 +74,7 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
             label: 'Add summary',
             score: '10%',
             icon: <i className="ri-user-smile-line text-xl"></i>,
-            isMissing: !profile.summary,
+            isMissing: !profile.summary || profile.summary.trim() === "",
             action: 'summary'
         },
         {
@@ -88,7 +90,7 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
             label: 'Add your resume',
             score: '10%',
             icon: <i className="ri-file-user-line text-xl"></i>,
-            isMissing: !profile.resume && !profile.resumeUrl,
+            isMissing: !profile.resumeUrl || profile.resumeUrl.trim() === "",
             action: 'resume'
         },
         {
@@ -112,7 +114,7 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
             label: 'Add social links',
             score: '05%',
             icon: <i className="ri-link text-xl"></i>,
-            isMissing: !profile.socialLinks || !Object.values(profile.socialLinks).some(l => l && l.trim() !== ""),
+            isMissing: !profile.socialLinks || !Object.values(profile.socialLinks).some(link => link && link.trim() !== "" && urlPattern.test(link.trim())),
             action: 'social'
         },
         {
@@ -120,7 +122,7 @@ const MissingDetailsModal = ({ isOpen, onClose, profile, onAction }) => {
             label: 'Add phone number',
             score: '05%',
             icon: <i className="ri-phone-fill text-xl"></i>,
-            isMissing: !profile.phone,
+            isMissing: !profile.phone || profile.phone.length < 10,
             action: 'phone'
         },
         {

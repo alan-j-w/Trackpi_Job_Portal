@@ -254,7 +254,7 @@ export const deleteResume = async (req, res) => {
     try {
         const profile = await Profile.findOneAndUpdate(
             { user: req.user._id },
-            { $set: { resumeUrl: "" } },
+            { $set: { resumeUrl: "" }, $unset: { resume: 1 } },
             { new: true }
         );
 

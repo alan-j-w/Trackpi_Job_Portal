@@ -22,6 +22,8 @@ const JobCard = ({
   gender = "Any",
   status = "New",
   statusColor = "green",
+  hasApplied = false,
+  onApplySuccess,
   onDetailsClick,
 }) => {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ const JobCard = ({
   const [showApplyForm, setShowApplyForm] = useState(false);
 
   const handleApplyClick = () => {
+    if (hasApplied) return;
     const token = localStorage.getItem("token");
     if (token) {
       setShowApplyForm(true);
@@ -132,18 +135,27 @@ const JobCard = ({
 
             {/* ACTION PANEL */}
             <div className="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 md:gap-4 w-full md:w-auto md:min-w-[180px] md:border-l md:border-gray-200 md:pl-6 pt-2 md:my-4">
-              <button
-                onClick={handleApplyClick}
-                className="flex-1 md:flex-none md:w-full bg-[#FFB300] text-black px-6 py-3 rounded-[12px] font-bold text-[14px] sm:text-[15px] hover:bg-[#FFB813] transition-all shadow-sm"
-              >
-                Apply Now
-              </button>
+              {hasApplied ? (
+                <button
+                  disabled
+                  className="flex-1 md:flex-none md:w-full bg-gray-300 text-gray-600 px-6 py-3 rounded-full font-bold text-[14px] sm:text-[15px] shadow-none cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                  Applied <i className="ri-check-line border text-[12px] border-gray-500 rounded-full w-4 h-4 flex items-center justify-center"></i>
+                </button>
+              ) : (
+                <button
+                  onClick={handleApplyClick}
+                  className="flex-1 md:flex-none md:w-full bg-[#FFB300] text-black px-6 py-3 rounded-full font-bold text-[14px] sm:text-[15px] hover:bg-[#FFB813] transition-all shadow-md transform hover:scale-105"
+                >
+                  Apply Now
+                </button>
+              )}
 
               <button
                 onClick={onDetailsClick}
-                className="flex-1 md:flex-none text-[13px] font-bold text-black hover:underline flex items-center justify-center gap-1 py-3"
+                className="flex-1 md:flex-none text-[13px] font-bold text-black hover:underline flex items-center justify-center gap-1 py-3 group"
               >
-                More details <i className="ri-arrow-right-line"></i>
+                More details <i className="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
               </button>
             </div>
           </div>
@@ -157,16 +169,15 @@ const JobCard = ({
 
       {/* ================= APPLY FORM POPUP ================= */}
       {showApplyForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-[80vh] overflow-hidden flex flex-col">
-            <ApplyJobForm
-              jobId={id}
-              job={{ title, company, location }}
-              onCancel={() => setShowApplyForm(false)}
-              onSuccess={() => setShowApplyForm(false)}
-            />
-          </div>
-        </div>
+        <ApplyJobForm
+            jobId={id}
+            job={{ title, company, location }}
+            onCancel={() => setShowApplyForm(false)}
+            onSuccess={() => {
+              if (onApplySuccess) onApplySuccess();
+              setShowApplyForm(false);
+            }}
+        />
       )}
     </>
   );

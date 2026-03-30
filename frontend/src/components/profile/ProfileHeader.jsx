@@ -92,38 +92,44 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                     </div>
                 )}
 
-                <div className="absolute inset-0 max-w-[1440px] mx-auto px-4 md:px-12 pointer-events-none">
-                    <div className="absolute top-6 right-4 md:right-12 pointer-events-auto z-30" ref={menuRef}>
-                        <EditIcon
-                            onClick={() => setShowCoverMenu(!showCoverMenu)}
-                            className="bg-white border border-gray-300 shadow-md hover:bg-gray-50 w-[41px] h-[41px] rounded-full p-2.5 text-black relative"
-                        />
+                <div className="absolute inset-0 w-full flex justify-center pointer-events-none">
+                    <div className="relative w-full max-w-[1440px] px-4 md:px-12 h-full">
+                        <div className="absolute top-6 right-4 md:right-12 pointer-events-auto z-30" ref={menuRef}>
+                            <EditIcon
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowCoverMenu(!showCoverMenu); }}
+                                className="bg-white border border-gray-300 shadow-md hover:bg-gray-50 w-[41px] h-[41px] rounded-full p-2.5 text-black relative z-40"
+                            />
 
-                        {/* Dropdown Menu */}
-                        {showCoverMenu && (
-                            <div className="absolute top-12 right-0 bg-white rounded-lg shadow-xl border border-gray-100 min-w-[200px] z-50 overflow-hidden animate-fadeIn">
-                                <button
-                                    onClick={() => {
-                                        coverInputRef.current?.click();
-                                        setShowCoverMenu(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                    Update cover image
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (onDeleteCover) onDeleteCover();
-                                        setShowCoverMenu(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    Delete cover image
-                                </button>
-                            </div>
-                        )}
+                            {/* Dropdown Menu */}
+                            {showCoverMenu && (
+                                <div className="absolute top-12 right-0 bg-white rounded-lg shadow-xl border border-gray-100 min-w-[200px] z-50 overflow-hidden animate-fadeIn">
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            coverInputRef.current?.click();
+                                            setShowCoverMenu(false);
+                                        }}
+                                        className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                        Update cover image
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            if (onDeleteCover) onDeleteCover();
+                                            setShowCoverMenu(false);
+                                        }}
+                                        className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        Delete cover image
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
