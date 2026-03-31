@@ -1,35 +1,83 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../../config";
 
 const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
-    const [skills, setSkills] = useState(currentSkills || []);
+    const [skills, setSkills] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [error, setError] = useState(null);
+    const [suggestions, setSuggestions] = useState([]);
 
     useEffect(() => {
-        setSkills(currentSkills || []);
-        setInputValue(""); // Clear input when modal opens/updates
+        // Normalize skills to objects
+        const normalized = (currentSkills || []).map(skill => {
+            if (typeof skill === 'string') return { name: skill, isStarred: false };
+            return { name: skill.name, isStarred: !!skill.isStarred };
+        });
+        setSkills(normalized);
+        setInputValue(""); 
     }, [currentSkills, isOpen]);
+
+    // Debounce Search for Skills
+    useEffect(() => {
+        const fetchSkills = async () => {
+            if (inputValue.length < 1) {
+                setSuggestions([]);
+                return;
+            }
+
+            try {
+                const res = await axios.get(`${config.API_URL}/api/skills/search?query=${inputValue}`);
+                // Filter out already selected skills
+                const availableSkills = res.data.filter(suggestedName => 
+                    !skills.some(s => s.name.toLowerCase() === suggestedName.toLowerCase())
+                );
+                setSuggestions(availableSkills);
+            } catch (err) {
+                console.error("Failed to fetch skills", err);
+            }
+        };
+
+        const timeoutId = setTimeout(fetchSkills, 300);
+        return () => clearTimeout(timeoutId);
+    }, [inputValue, skills]);
+
+    const addSkill = (skillName) => {
+        if (!/[a-zA-Z]/.test(skillName)) {
+            setError("Skill must contain valid text.");
+            return;
+        }
+
+        if (!skills.find(s => s.name.toLowerCase() === skillName.toLowerCase())) {
+            setSkills([...skills, { name: skillName, isStarred: false }]);
+        }
+        setInputValue("");
+        setSuggestions([]);
+        setError(null);
+    };
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && inputValue.trim()) {
             e.preventDefault();
-            if (/\d/.test(inputValue)) return;
-            if (!skills.includes(inputValue.trim())) {
-                setSkills([...skills, inputValue.trim()]);
-            }
-            setInputValue("");
-            setError(null);
+            addSkill(inputValue.trim());
         }
     };
 
-    const removeSkill = (skillToRemove) => {
-        setSkills(skills.filter(skill => skill !== skillToRemove));
+    const removeSkill = (index) => {
+        setSkills(skills.filter((_, i) => i !== index));
+    };
+
+    const toggleStar = (index) => {
+        const updated = [...skills];
+        updated[index] = { ...updated[index], isStarred: !updated[index].isStarred };
+        setSkills(updated);
     };
 
     const handleSave = () => {
         let finalSkills = [...skills];
-        if (inputValue.trim() && !/\d/.test(inputValue) && !skills.includes(inputValue.trim())) {
-            finalSkills.push(inputValue.trim());
+        const trimmedInput = inputValue.trim();
+        if (trimmedInput && !/\d/.test(trimmedInput) && !skills.find(s => s.name.toLowerCase() === trimmedInput.toLowerCase())) {
+            finalSkills.push({ name: trimmedInput, isStarred: false });
         }
         onSave(finalSkills);
     };
@@ -43,15 +91,21 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
                 <h2 className="text-2xl font-bold mb-8 text-black">Manage Skills</h2>
 
                 <div className="mb-10">
-                    <label className="block text-sm font-bold text-black mb-3">Skills</label>
+                    <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Click ★ to highlight on profile)</label>
                     <div className="flex flex-wrap gap-3 mb-4">
                         {skills.map((skill, idx) => (
-                            <span key={idx} className="border border-[#FFB300] px-4 py-2 rounded-lg bg-white text-gray-800 text-sm font-bold flex items-center gap-2 shadow-sm">
-                                <span className="text-[#FFB300] text-lg">★</span>
-                                {skill}
+                            <span key={idx} className="border border-[#FFB300] px-4 py-2 rounded-lg bg-white text-gray-800 text-sm font-bold flex items-center gap-2 shadow-sm transition-all">
+                                <span 
+                                    onClick={() => toggleStar(idx)}
+                                    className={`cursor-pointer text-lg leading-none transition-colors ${skill.isStarred ? 'text-[#FFB300]' : 'text-gray-300 hover:text-yellow-400'}`}
+                                    title={skill.isStarred ? "Unstar skill" : "Star skill"}
+                                >
+                                    ★
+                                </span>
+                                {skill.name}
                                 <span
-                                    onClick={() => removeSkill(skill)}
-                                    className="cursor-pointer ml-1 hover:text-red-500 text-lg leading-none"
+                                    onClick={() => removeSkill(idx)}
+                                    className="cursor-pointer ml-1 hover:text-red-500 text-lg leading-none text-gray-400"
                                 >
                                     ×
                                 </span>
@@ -59,23 +113,41 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
                         ))}
                     </div>
 
-                    <div className="relative border-b border-gray-400">
-                        <input
-                            value={inputValue}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setInputValue(val);
-                                if (/\d/.test(val)) {
-                                    setError("Skills cannot contain numbers.");
-                                } else {
-                                    setError(null);
-                                }
-                            }}
-                            onKeyDown={handleKeyDown}
-                            className={`w-full bg-transparent py-2 outline-none text-sm placeholder-gray-500 ${error ? 'text-red-500' : 'text-black'}`}
-                            placeholder="Type a skill and press Enter..."
-                            autoComplete="off"
-                        />
+                    <div className="relative">
+                        <div className="border-b border-gray-400 pb-1">
+                            <input
+                                value={inputValue}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setInputValue(val);
+                                    if (/\d/.test(val)) {
+                                        setError("Skills cannot contain numbers.");
+                                    } else {
+                                        setError(null);
+                                    }
+                                }}
+                                onKeyDown={handleKeyDown}
+                                className={`w-full bg-transparent py-2 outline-none text-sm placeholder-gray-500 ${error ? 'text-red-500' : 'text-black'}`}
+                                placeholder="Type a skill..."
+                                autoComplete="off"
+                            />
+                        </div>
+                        
+                        {/* Auto-suggestions Dropdown */}
+                        {suggestions.length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-[60] max-h-[220px] overflow-y-auto">
+                                {suggestions.map((suggestedSkill, idx) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => addSkill(suggestedSkill)}
+                                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm font-medium text-gray-700 border-b border-gray-50 last:border-0 flex items-center justify-between group transition-colors"
+                                    >
+                                        <span>{suggestedSkill}</span>
+                                        <i className="ri-add-line text-lg text-[#FFB300] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     {error && <p className="text-[#FF0000] text-xs mt-1">{error}</p>}
                 </div>

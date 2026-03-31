@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const EditIcon = ({ className, onClick, children }) => (
     <div onClick={(e) => { e.stopPropagation(); onClick(e); }} className={`cursor-pointer transition flex items-center justify-center ${className}`}>
@@ -26,6 +27,7 @@ const Tag = ({ label, deletable }) => (
 );
 
 const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, onDeleteCover, onDeleteProfileImage, onShare }) => {
+    const navigate = useNavigate();
     const coverInputRef = React.useRef(null);
     const profileInputRef = React.useRef(null);
     const [showCoverMenu, setShowCoverMenu] = useState(false);
@@ -211,16 +213,20 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
 
 
                                 <div className="flex flex-wrap gap-3 mb-4">
-                                    {profile.skills && profile.skills.length > 0 ? (
-                                        profile.skills.map((skill, index) => (
-                                            <Tag key={index} label={skill} />
-                                        ))
+                                    {profile.skills && profile.skills.some(s => s && typeof s === 'object' ? s.isStarred : false) ? (
+                                        profile.skills
+                                            .filter(skill => skill && typeof skill === 'object' && skill.isStarred)
+                                            .map((skill, index) => (
+                                                <Tag key={index} label={skill.name} />
+                                            ))
                                     ) : (
                                         <span
                                             className="text-gray-400 text-sm italic cursor-pointer hover:text-[#FFB300] transition-colors"
                                             onClick={onEdit}
                                         >
-                                            Add skills to showcase your expertise
+                                            {profile.skills && profile.skills.length > 0 
+                                                ? "Star your top skills to showcase them here" 
+                                                : "Add skills to showcase your expertise"}
                                         </span>
                                     )}
                                 </div>
@@ -251,7 +257,10 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                     <div className="absolute top-[80%] right-0 pt-2 w-[280px] hidden group-hover:block z-50">
                                         <div className="bg-white rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
                                             {/* Create ATS Friendly CV */}
-                                            <div className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition text-center">
+                                            <div 
+                                                onClick={() => navigate("/resume-gen", { state: { from: "/profile" } })}
+                                                className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition text-center"
+                                            >
                                                 <span className="text-sm font-bold text-black">Create ATS Friendly CV</span>
                                             </div>
 

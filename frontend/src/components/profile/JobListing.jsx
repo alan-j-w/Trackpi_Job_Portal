@@ -202,19 +202,20 @@ const JobListing = ({ limit }) => {
                             {/* 6. Bottom Row: Work from home & Details */}
                             <div className="flex justify-between items-center w-full pt-1 border-gray-100">
                                 {/* Work From Home Pill */}
-                                <div className="flex items-center gap-2 border border-[#FFB300] rounded-full pl-4 pr-1 py-1 bg-white shadow-sm">
-                                    <span className="text-[11px] font-bold text-black">{job.benefits || "Work from home"}</span>
-                                    <div className="bg-[#FFB300] w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm">
+                                <div className="flex items-center gap-2 border border-[#FFB300] rounded-full pl-4 pr-1 py-1 bg-white shadow-sm max-w-[70%]">
+                                    <span className="text-[11px] font-bold text-black truncate" title={job.benefits || "Work from home"}>
+                                        {job.benefits || "Work from home"}
+                                    </span>
+                                    <div className="bg-[#FFB300] w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm shrink-0">
                                         <i className="ri-home-4-fill text-xs"></i>
                                     </div>
                                 </div>
-
                                 <button
                                     onClick={() => handleDetailsClick(job)}
-                                    className="text-[11px] text-black font-bold flex items-center gap-1 hover:gap-2 transition-all"
+                                    className="text-[11px] text-black font-bold flex items-center gap-1 hover:gap-2 transition-all shrink-0"
                                 >
-                                    More details < i className="ri-arrow-right-line" ></i>
-                                </button >
+                                    More details <i className="ri-arrow-right-line"></i>
+                                </button>
                             </div>
 
                         </div>
