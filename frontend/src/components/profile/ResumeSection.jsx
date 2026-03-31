@@ -24,10 +24,8 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, r
 
     const handleATSClick = () => {
         if (readOnly) return;
-        navigate("/resume-gen");
+        navigate("/resume-gen", { state: { from: "/profile" } });
     };
-
-    const isATSUnlocked = resumeUrl && isGlobalComplete;
 
     return (
         <div className="pt-5 pb-0">
@@ -85,7 +83,6 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, r
                     className={`mt-4 font-bold text-sm shadow-sm flex items-center justify-center text-black hover:shadow-md transition`}
                 >
                     Create ATS friendly CV
-                    {!isATSUnlocked && <span className="ml-2 text-xs opacity-75">🔒</span>}
                 </button>
             )}
         </div>

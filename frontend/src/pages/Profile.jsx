@@ -210,7 +210,8 @@ const Profile = () => {
     const confirmDeleteDirectSkill = async () => {
         if (!skillToDelete) return;
         const oldSkills = profile.skills || [];
-        const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
+        const skillName = typeof skillToDelete === 'object' ? skillToDelete.name : skillToDelete;
+        const updatedSkills = oldSkills.filter(s => (typeof s === 'object' ? s.name : s) !== skillName);
         setProfile(prev => ({ ...prev, skills: updatedSkills }));
         setShowDeleteSkillModal(false);
         try {
@@ -582,7 +583,7 @@ const Profile = () => {
                 isOpen={showDeleteSkillModal}
                 onClose={() => { setShowDeleteSkillModal(false); setSkillToDelete(null); }}
                 onConfirm={confirmDeleteDirectSkill}
-                title={`Are you sure you want to delete "${skillToDelete}"?`}
+                title={`Are you sure you want to delete "${skillToDelete?.name || skillToDelete || ""}"?`}
             />
             <DeleteConfirmationModal
                 isOpen={showDeleteEducationModal}
