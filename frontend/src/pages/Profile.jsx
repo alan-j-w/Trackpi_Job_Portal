@@ -197,9 +197,20 @@ const Profile = () => {
     };
 
     const handleShareProfile = () => {
-        const url = `www.trackpi.in/u/${profile._id}`;
-        navigator.clipboard.writeText(url);
-        toast.success("Profile link copied!");
+        const url = `${window.location.origin}/u/${profile._id || profile.id}`;
+        if (navigator.share) {
+            navigator.share({
+                title: `${profile.fullName}'s Profile | Trackpi`,
+                text: `Check out ${profile.fullName}'s professional profile on Trackpi.`,
+                url: url
+            }).catch(() => {
+                navigator.clipboard.writeText(url);
+                toast.success("Profile link copied!");
+            });
+        } else {
+            navigator.clipboard.writeText(url);
+            toast.success("Profile link copied!");
+        }
     };
 
     const handleDeleteDirectSkill = (skill) => {
