@@ -19,10 +19,11 @@ const DownloadIcon = ({ className }) => (
     </svg>
 );
 
-const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete }) => {
+const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, readOnly = false }) => {
     const navigate = useNavigate();
 
     const handleATSClick = () => {
+        if (readOnly) return;
         navigate("/resume-gen");
     };
 
@@ -35,16 +36,16 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete })
                 <div className="flex gap-4 items-center">
                     {/* Import/Download Icon */}
                     {resumeUrl && (
-                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition" title="Download Resume">
+                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition" title="Download Resume" download>
                             <DownloadIcon className="w-[18px] h-[18px]" />
                         </a>
                     )}
 
                     {/* Edit Icon */}
-                    <EditIcon className="w-[18px] h-[18px]" onClick={onEdit} />
+                    {!readOnly && <EditIcon className="w-[18px] h-[18px]" onClick={onEdit} />}
 
                     {/* Delete Icon */}
-                    {resumeUrl && (
+                    {!readOnly && resumeUrl && (
                         <TrashIcon className="w-[18px] h-[18px]" onClick={onDelete} />
                     )}
                 </div>
@@ -59,32 +60,34 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete })
                             </div>
                             <div className="flex-1 overflow-hidden">
                                 <p className="text-sm font-medium text-gray-900 truncate" title={resumeUrl.split('/').pop()}>{decodeURIComponent(resumeUrl.split('/').pop())}</p>
-                                <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FFB300] hover:underline">View Resume</a>
+                                <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FFB300] hover:underline" download>Download Resume</a>
                             </div>
                         </>
                     ) : (
-                        <div className="w-full h-20 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 transition" onClick={onAdd}>
+                        <div className={`w-full h-20 flex flex-col items-center justify-center text-gray-400 ${!readOnly ? 'cursor-pointer hover:bg-gray-50' : ''} transition`} onClick={!readOnly ? onAdd : undefined}>
                             <span className="text-sm">No resume uploaded</span>
-                            <span className="text-xs text-[#FFB300] font-medium mt-1">Click to upload</span>
+                            {!readOnly && <span className="text-xs text-[#FFB300] font-medium mt-1">Click to upload</span>}
                         </div>
                     )}
                 </div>
             </div>
 
-            <button
-                onClick={handleATSClick}
-                style={{
-                    width: '238px',
-                    height: '46px',
-                    borderRadius: '8px',
-                    border: '1px solid #827E7E',
-                    background: 'linear-gradient(90deg, #D9D9D9 0%, rgba(153, 153, 153, 0.00) 76%)'
-                }}
-                className={`mt-4 font-bold text-sm shadow-sm flex items-center justify-center text-black hover:shadow-md transition`}
-            >
-                Create ATS friendly CV
-                {!isATSUnlocked && <span className="ml-2 text-xs opacity-75">🔒</span>}
-            </button>
+            {!readOnly && (
+                <button
+                    onClick={handleATSClick}
+                    style={{
+                        width: '238px',
+                        height: '46px',
+                        borderRadius: '8px',
+                        border: '1px solid #827E7E',
+                        background: 'linear-gradient(90deg, #D9D9D9 0%, rgba(153, 153, 153, 0.00) 76%)'
+                    }}
+                    className={`mt-4 font-bold text-sm shadow-sm flex items-center justify-center text-black hover:shadow-md transition`}
+                >
+                    Create ATS friendly CV
+                    {!isATSUnlocked && <span className="ml-2 text-xs opacity-75">🔒</span>}
+                </button>
+            )}
         </div>
     );
 };

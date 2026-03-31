@@ -22,7 +22,7 @@ export const redirectAfterLogin = async (navigate) => {
 
 
     try {
-        const res = await axios.get("http://localhost:8000/api/profile/status", {
+        const res = await axios.get(`${config.API_URL}/api/profile/status`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

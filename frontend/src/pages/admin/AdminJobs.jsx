@@ -5,6 +5,7 @@ import axios from "axios";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import { API_URL } from "../../config";
+import Pagination from "../../components/admin/Pagination";
 
 
 const AdminJobs = () => {
@@ -13,10 +14,17 @@ const AdminJobs = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [openDropdownId, setOpenDropdownId] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     useEffect(() => {
         fetchJobs();
     }, []);
+
+    // Reset pagination on search
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const fetchJobs = async () => {
         try {
@@ -43,6 +51,13 @@ const AdminJobs = () => {
     const filteredJobs = jobs.filter((job) =>
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.company.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
+    const paginatedJobs = filteredJobs.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     );
 
     // Generic function to update job status
@@ -120,7 +135,7 @@ const AdminJobs = () => {
                                     <td colSpan="6" className="p-8 text-center text-gray-500">No jobs found.</td>
                                 </tr>
                             ) : (
-                                filteredJobs.map((job) => (
+                                paginatedJobs.map((job) => (
                                     <tr key={job._id} className="hover:bg-gray-50 transition-colors">
                                         {/* Job Title */}
                                         <td className="p-4 pl-6">
@@ -138,19 +153,25 @@ const AdminJobs = () => {
                                         {/* Applying Candidates */}
                                         <td className="p-4">
                                             <div className="flex gap-2">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between">
-                                                        <Users size={14} className="text-gray-600" />
-                                                        <span className="text-xs font-bold text-gray-800">{job.applicantsCount || 0}</span>
+                                                <div 
+                                                    onClick={() => navigate(`/admin/candidates/applicants/${job._id}`)}
+                                                    className="flex flex-col items-center cursor-pointer group/all"
+                                                >
+                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between group-hover/all:bg-[#FFB300] transition-colors">
+                                                        <Users size={14} className="text-gray-600 group-hover/all:text-white" />
+                                                        <span className="text-xs font-bold text-gray-800 group-hover/all:text-white">{job.applicantsCount || 0}</span>
                                                     </div>
-                                                    <span className="text-[10px] text-gray-500 mt-1">All</span>
+                                                    <span className="text-[10px] text-gray-500 mt-1 group-hover/all:text-[#FFB300] font-medium">All</span>
                                                 </div>
-                                                <div className="flex flex-col items-center ml-2">
-                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between">
-                                                        <FileText size={14} className="text-gray-600" />
-                                                        <span className="text-xs font-bold text-gray-800">{job.pendingApplicantsCount || 0}</span>
+                                                <div 
+                                                    onClick={() => navigate(`/admin/candidates/applicants/${job._id}?filter=pending`)}
+                                                    className="flex flex-col items-center ml-2 cursor-pointer group/pending"
+                                                >
+                                                    <div className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded min-w-[60px] justify-between group-hover/pending:bg-red-500 transition-colors">
+                                                        <FileText size={14} className="text-gray-600 group-hover/pending:text-white" />
+                                                        <span className="text-xs font-bold text-gray-800 group-hover/pending:text-white">{job.pendingApplicantsCount || 0}</span>
                                                     </div>
-                                                    <span className="text-[10px] text-gray-500 mt-1">Pending</span>
+                                                    <span className="text-[10px] text-gray-500 mt-1 group-hover/pending:text-red-500 font-medium">Pending</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -250,13 +271,13 @@ const AdminJobs = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                <div className="flex justify-end p-4">
-                    <button className="flex items-center gap-1 border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
-                        6
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                    </button>
-                </div>
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalResults={filteredJobs.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                />
             </div>
         </div>
     );

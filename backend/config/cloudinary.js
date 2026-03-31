@@ -9,4 +9,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Add self-reference to v2 to satisfy libraries that expect the root object with a .v2 property
+cloudinary.v2 = cloudinary;
+
 export default cloudinary;

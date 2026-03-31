@@ -43,8 +43,8 @@ const JobCard = ({
   /* Status Ribbon */
   const ribbonGradient =
     statusColor === "red"
-      ? "linear-gradient(90deg, #E35353 0%, rgba(227,83,83,0) 100%)"
-      : "linear-gradient(90deg, #53E37B 0%, rgba(83,227,123,0) 100%)";
+      ? "linear-gradient(90deg, #E33232 0%, #FFFFFF 100%)"
+      : "linear-gradient(90deg, #2CA734 0%, #FFFFFF 100%)";
 
   return (
     <>
@@ -54,7 +54,7 @@ const JobCard = ({
 
           {/* STATUS RIBBON */}
           <div
-            className="w-[65%] h-[39px] flex items-center px-6 text-white font-semibold text-base rounded-tl-[25px]"
+            className="w-[65%] h-[39px] flex items-center px-6 text-white font-bold text-base rounded-tl-[8px]"
             style={{ background: ribbonGradient }}
           >
             {status}
@@ -91,16 +91,17 @@ const JobCard = ({
                     {company}, {location}
                   </p>
                 </div>
-
-                <img
-                  src={verifiedJob}
-                  alt="Verified Job"
-                  className="w-[80px] h-[70px] sm:w-[100px] sm:h-[80px] object-contain hidden sm:block -mt-2"
-                />
               </div>
 
-              {/* JOB DETAILS */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4 text-[12px] sm:text-[13px] font-semibold mt-4">
+              {/* Verified Job Badge - Exact Figma Position */}
+              <img
+                src={verifiedJob}
+                alt="Verified"
+                className="absolute hidden lg:block w-[158px] h-[138px] top-[46px] left-[790px] p-[10px] object-contain z-20"
+              />
+
+              {/* JOB DETAILS - Tighter Spacing */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-1 gap-x-[97px] text-[12px] sm:text-[13px] font-semibold mt-2 max-w-[732px] h-auto md:h-[48px]">
                 <div className="flex items-center gap-2">
                   <i className="ri-briefcase-line text-[#FFB300] text-lg"></i>
                   {jobType}
@@ -133,30 +134,47 @@ const JobCard = ({
               </div>
             </div>
 
-            {/* ACTION PANEL */}
-            <div className="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 md:gap-4 w-full md:w-auto md:min-w-[180px] md:border-l md:border-gray-200 md:pl-6 pt-2 md:my-4">
-              {hasApplied ? (
-                <button
-                  disabled
-                  className="flex-1 md:flex-none md:w-full bg-gray-300 text-gray-600 px-6 py-3 rounded-full font-bold text-[14px] sm:text-[15px] shadow-none cursor-not-allowed flex items-center justify-center gap-1"
-                >
-                  Applied <i className="ri-check-line border text-[12px] border-gray-500 rounded-full w-4 h-4 flex items-center justify-center"></i>
-                </button>
-              ) : (
-                <button
-                  onClick={handleApplyClick}
-                  className="flex-1 md:flex-none md:w-full bg-[#FFB300] text-black px-6 py-3 rounded-full font-bold text-[14px] sm:text-[15px] hover:bg-[#FFB813] transition-all shadow-md transform hover:scale-105"
-                >
-                  Apply Now
-                </button>
-              )}
-
+            {/* ACTION PANEL - Moved Bottom */}
+            <div className="flex flex-row md:flex-col items-center justify-start md:justify-end gap-0 w-full md:w-auto md:min-w-[180px] md:pb-6 relative flex-grow">
               <button
-                onClick={onDetailsClick}
-                className="flex-1 md:flex-none text-[13px] font-bold text-black hover:underline flex items-center justify-center gap-1 py-3 group"
+                onClick={handleApplyClick}
+                className="flex-1 md:flex-none font-bold text-[14px] transition-all flex items-center justify-center translate-y-[20px]"
+                style={{
+                  width: "155px",
+                  height: "33px",
+                  borderRadius: "10px",
+                  padding: "10px",
+                  background: "linear-gradient(90deg, #FFB300 0%, #FFFFFF 100%)",
+                  border: "1px solid #6C6962",
+                  boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)"
+                }}
               >
-                More details <i className="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+                Apply Now
               </button>
+
+              {/* More Details - Exact Absolute Positioning */}
+              <div
+                className="absolute"
+                style={{
+                  top: "58px",
+                  left: "42px",
+                  width: "90px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center"
+                }}
+              >
+                <button
+                  onClick={onDetailsClick}
+                  className="w-full text-[14px] font-medium text-black leading-none font-['Satoshi'] flex items-center justify-center gap-1"
+                >
+                  More details <i className="ri-arrow-right-line scale-90"></i>
+                </button>
+                <div
+                  className="border-t-[1px] border-[#D02520] mt-[2px]"
+                  style={{ width: "77px", height: "0px" }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -170,13 +188,13 @@ const JobCard = ({
       {/* ================= APPLY FORM POPUP ================= */}
       {showApplyForm && (
         <ApplyJobForm
-            jobId={id}
-            job={{ title, company, location }}
-            onCancel={() => setShowApplyForm(false)}
-            onSuccess={() => {
-              if (onApplySuccess) onApplySuccess();
-              setShowApplyForm(false);
-            }}
+          jobId={id}
+          job={{ title, company, location }}
+          onCancel={() => setShowApplyForm(false)}
+          onSuccess={() => {
+            if (onApplySuccess) onApplySuccess();
+            setShowApplyForm(false);
+          }}
         />
       )}
     </>

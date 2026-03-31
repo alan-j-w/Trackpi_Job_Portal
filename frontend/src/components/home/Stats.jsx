@@ -2,7 +2,7 @@ import React from "react";
 
 const Stats = () => {
   return (
-    <section className="w-full bg-white py-10 px-4 flex justify-center font-cabinet">
+    <section className="w-full bg-white pt-10 pb-0 px-4 flex justify-center font-cabinet">
       {/* Wrapper: clip-path only on md+, simple rounded on mobile */}
       <div
         className="

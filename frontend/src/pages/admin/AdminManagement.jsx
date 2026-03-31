@@ -3,6 +3,7 @@ import { Users, Shield, Edit, Trash2, Search, X, Copy } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "../../config";
 import { getUserRole } from "../../utils/auth";
+import Pagination from "../../components/admin/Pagination";
 
 const AdminManagement = () => {
     const [admins, setAdmins] = useState([]);
@@ -12,7 +13,8 @@ const AdminManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAdminId, setEditingAdminId] = useState(null);
     const [selectedAdmins, setSelectedAdmins] = useState([]);
-    const [itemsPerPage, setItemsPerPage] = useState(7);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -57,6 +59,10 @@ const AdminManagement = () => {
         fetchAdmins();
         // fetchRoles(); // No longer needed for Admin Management
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const fetchAdmins = async () => {
         try {
@@ -202,12 +208,15 @@ const AdminManagement = () => {
     };
 
     const filteredAdmins = admins.filter(admin =>
-        admin.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         admin.email?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Pagination logic (Mock for now, just slicing if needed or visual)
-    // For now showing all filteredAdmins but adhering to "7 items" selector visual
+    // Pagination logic
+    const totalPages = Math.ceil(filteredAdmins.length / ITEMS_PER_PAGE);
+    const paginatedAdmins = filteredAdmins.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -266,7 +275,7 @@ const AdminManagement = () => {
                         ) : filteredAdmins.length === 0 ? (
                             <tr><td colSpan="7" className="p-8 text-center text-gray-500">No admins found.</td></tr>
                         ) : (
-                            filteredAdmins.map((admin, index) => (
+                            paginatedAdmins.map((admin, index) => (
                                 <tr key={admin._id} className="hover:bg-gray-50 transition text-sm group">
                                     <td className="p-4 align-middle">
                                         <div className="flex items-center gap-3">
@@ -278,7 +287,7 @@ const AdminManagement = () => {
                                                     className="w-4 h-4 rounded border-gray-300 text-[#FFB300] focus:ring-[#FFB300]"
                                                 />
                                             )}
-                                            <span className="text-gray-900 font-medium">{index + 1}</span>
+                                            <span className="text-gray-900 font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</span>
                                         </div>
                                     </td>
                                     <td className="p-4 text-gray-900 font-medium align-middle">{admin.name}</td>
@@ -342,39 +351,13 @@ const AdminManagement = () => {
                 </table>
             </div>
 
-            {/* Footer with Bulk Actions and Pagination */}
-            <div className="flex justify-between items-center mt-4">
-                <div className="flex items-center gap-2">
-                    {isSuperAdmin && (
-                        <>
-                            <span className="text-sm text-gray-600">Selected <span className="font-bold text-[#FFB300]">{selectedAdmins.length}</span> items</span>
-                            {selectedAdmins.length > 0 && (
-                                <button
-                                    onClick={handleBulkDeleteClick}
-                                    className="text-[#FFB300] text-sm hover:underline flex items-center"
-                                >
-                                    Delete <span className="ml-1">→</span>
-                                </button>
-                            )}
-                        </>
-                    )}
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={itemsPerPage}
-                        onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                        className="appearance-none bg-white border border-gray-300 text-gray-700 py-1 pl-3 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm"
-                    >
-                        <option value={7}>7</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                    </div>
-                </div>
-            </div>
+            <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalResults={filteredAdmins.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+            />
 
             {/* Delete Modal */}
             {showDeleteModal && (

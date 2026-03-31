@@ -11,8 +11,7 @@ const storage = pkg({
     cloudinary: cloudinary,
     params: {
         folder: "trackpi/resume_candidates",
-        resource_type: "raw", // For PDF
-        format: "pdf",
+        resource_type: "auto",
     },
 });
 
@@ -31,6 +30,9 @@ router.post("/build", optionalAuth, (req, res, next) => {
         const { name, phone, email } = req.body;
         const file = req.file;
 
+        console.log("[ResumeBuild] Body:", req.body);
+        console.log("[ResumeBuild] File:", file);
+
         if (!file) {
             return res.status(400).json({ success: false, message: "No PDF file provided" });
         }
@@ -41,9 +43,16 @@ router.post("/build", optionalAuth, (req, res, next) => {
 
         const role = req.user ? "jobseeker" : "guest";
 
-        // file object from multer-storage-cloudinary contains the url and public_id
-        const secure_url = file.path;
-        const public_id = file.filename;
+        // file object from older multer-storage-cloudinary contains secure_url and public_id directly
+        // Some versions/configs might use path/filename, so we'll use fallbacks
+        const secure_url = file.secure_url || file.path;
+        const public_id = file.public_id || file.filename;
+
+        console.log("[ResumeBuild] Extracted:", { secure_url, public_id });
+
+        if (!secure_url || !public_id) {
+            throw new Error("Missing Cloudinary upload data (secure_url/public_id)");
+        }
 
         // Save DB record
         const candidate = await ResumeCandidate.create({
@@ -64,7 +73,7 @@ router.post("/build", optionalAuth, (req, res, next) => {
 
     } catch (error) {
         console.error("Error building resume:", error);
-        res.status(500).json({ success: false, message: "Server error during resume build" });
+        res.status(500).json({ success: false, message: "Server error during resume build", error: error.message });
     }
 });
 
