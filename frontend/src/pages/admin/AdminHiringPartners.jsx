@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, ExternalLink, Search } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import DeleteUserModal from "../../components/admin/DeleteUserModal";
+import Pagination from "../../components/admin/Pagination";
 
 const AdminHiringPartners = () => {
     const navigate = useNavigate();
@@ -17,6 +18,8 @@ const AdminHiringPartners = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const [isBulkDelete, setIsBulkDelete] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     /* FETCH */
     const fetchHiringPartners = async () => {
@@ -39,11 +42,21 @@ const AdminHiringPartners = () => {
         fetchHiringPartners();
     }, []);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search]);
+
     /* FILTER */
     const filteredHiringPartners = hiringPartners.filter(
         (t) =>
             t.organizationname.toLowerCase().includes(search.toLowerCase()) ||
             t.email.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredHiringPartners.length / ITEMS_PER_PAGE);
+    const paginatedPartners = filteredHiringPartners.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     );
 
     /* DELETE HANDLERS */
@@ -168,7 +181,7 @@ const AdminHiringPartners = () => {
                             ) : filteredHiringPartners.length === 0 ? (
                                 <tr><td colSpan="6" className="p-8 text-center text-gray-500">No hiring partners found.</td></tr>
                             ) : (
-                                filteredHiringPartners.map((t) => (
+                                paginatedPartners.map((t) => (
                                     <tr key={t._id} className="hover:bg-yellow-50/10 transition-colors">
                                         <td className="p-4 pl-6">
                                             {hasPermission(PERMISSIONS.PARTNERS_DELETE) && (
@@ -230,13 +243,13 @@ const AdminHiringPartners = () => {
                         </tbody>
                     </table>
                 </div>
-                {/* Pagination (Static) */}
-                <div className="flex justify-end p-4">
-                    <button className="flex items-center gap-1 border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
-                        6
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                    </button>
-                </div>
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalResults={filteredHiringPartners.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                />
             </div>
 
             {/* Footer Selection Status */}

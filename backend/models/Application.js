@@ -15,6 +15,10 @@ const applicationSchema = new mongoose.Schema(
             type: String,
             default: "applied",
         },
+        isChecked: {
+            type: Boolean,
+            default: false,
+        },
         name: {
             type: String,
             required: true,

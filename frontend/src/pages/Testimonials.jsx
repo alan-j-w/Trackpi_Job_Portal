@@ -72,10 +72,16 @@ function TestimonialRow({
           )}
         </div>
 
-        <div className="mt-6 text-left">
-          <h3 className="font-bold text-2xl text-gray-900">{name}</h3>
-          <p className="text-yellow-600 font-medium text-sm mb-3 uppercase tracking-wide">{jobTitle}</p>
-          <p className="text-gray-600 leading-relaxed text-lg">{about}</p>
+        <div className="mt-3 text-left">
+          <div className="flex items-center gap-3 mb-1">
+            <h3 className="font-['Lato'] font-[800] text-[28px] leading-[1.6] text-black">
+              {name}
+            </h3>
+            <span className="font-['Lato'] font-[600] text-[14px] leading-[1.6] text-black">
+               {jobTitle}
+            </span>
+          </div>
+          <div className="font-['Lato'] font-[700] text-[14px] leading-[1.6] text-black max-w-[843px]">{about}</div>
         </div>
       </div>
     </div>
