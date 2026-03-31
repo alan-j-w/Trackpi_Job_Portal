@@ -112,6 +112,9 @@ const Profile = () => {
                 localStorage.removeItem("user");
                 navigate("/login");
                 setError("Failed to load profile");
+            } else if (err.response?.status === 404 && err.response?.data?.message === "Profile not found") {
+                toast("Please complete your profile first.");
+                navigate("/create-profile");
             } else {
                 setError(err.response?.data?.message || "Failed to connect to the server. Please try again later.");
                 toast.error("Failed to connect to the server.");

@@ -291,7 +291,7 @@ export const sendOtp = async (req, res) => {
 
         // 🔥 SEND WHATSAPP MESSAGE
         await axios.post(
-            "https://bot.wabis.in/webhook/whatsapp-workflow/144262.154414.342799.1774688387",
+            "https://bot.wabis.in/webhook/whatsapp-workflow/144262.154414.344372.1774953295",
             {
                 number: cleanPhone,
                 otp: otp,
