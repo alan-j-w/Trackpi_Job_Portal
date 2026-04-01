@@ -342,6 +342,47 @@ const Profile = () => {
         }
     };
 
+    const handleToggleSkillStar = async (skillName) => {
+        const oldSkills = profile.skills || [];
+        const updatedSkills = oldSkills.map(skill => {
+            const name = typeof skill === 'object' ? skill.name : skill;
+            if (name === skillName) {
+                const isCurrentlyStarred = typeof skill === 'object' ? !!skill.isStarred : false;
+                
+                // If starring, check limit
+                if (!isCurrentlyStarred) {
+                    const starredCount = oldSkills.filter(s => typeof s === 'object' && s.isStarred).length;
+                    if (starredCount >= 4) {
+                        toast.error("Maximum 4 skills can be starred.");
+                        return skill;
+                    }
+                }
+                
+                return { 
+                    name: name, 
+                    isStarred: !isCurrentlyStarred 
+                };
+            }
+            return skill;
+        });
+
+        // Check if any change actually happened (e.g. limit wasn't reached)
+        const isChanged = JSON.stringify(oldSkills) !== JSON.stringify(updatedSkills);
+        if (!isChanged) return;
+
+        setProfile(prev => ({ ...prev, skills: updatedSkills }));
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(`${skillName} ${updatedSkills.find(s => s.name === skillName).isStarred ? 'starred' : 'unstarred'}`);
+        } catch (err) {
+            setProfile(prev => ({ ...prev, skills: oldSkills }));
+            toast.error("Failed to update skill");
+        }
+    };
+
     const handleSaveEducation = async (newEducation) => {
         const oldEducation = [...(profile.education || [])];
         let list = [...oldEducation];
@@ -562,7 +603,16 @@ const Profile = () => {
         <div className="bg-white min-h-screen font-sans pb-20 overflow-x-hidden">
             <Toaster position="top-center" />
             <Navbar />
-            <ProfileHeader profile={profile} onEdit={() => setIsEditModalOpen(true)} onCoverUpload={(e) => handleUpload(e, "cover")} onDeleteCover={handleDeleteCoverImage} onProfileImageUpload={(e) => handleUpload(e, "profile")} onDeleteProfileImage={handleDeleteProfileImage} onShare={handleShareProfile} />
+            <ProfileHeader 
+                profile={profile} 
+                onEdit={() => setIsEditModalOpen(true)} 
+                onCoverUpload={(e) => handleUpload(e, "cover")} 
+                onDeleteCover={handleDeleteCoverImage} 
+                onProfileImageUpload={(e) => handleUpload(e, "profile")} 
+                onDeleteProfileImage={handleDeleteProfileImage} 
+                onShare={handleShareProfile} 
+                onToggleSkillStar={handleToggleSkillStar}
+            />
             <div className="max-w-[1440px] mx-auto px-4 md:px-12 relative">
                 <div className="flex flex-col lg:flex-row gap-[24px] lg:justify-between">
                     <div className="flex-1 lg:max-w-[822px]">

@@ -21,13 +21,17 @@ const VerifiedIcon = () => (
     </div>
 );
 
-const Tag = ({ label, deletable }) => (
-    <span className="border border-[#FFB300] px-4 py-1.5 rounded-lg bg-white text-black text-xs font-bold flex items-center gap-2 shadow-sm whitespace-nowrap">
+const Tag = ({ label, deletable, onClick }) => (
+    <span 
+        onClick={onClick}
+        className={`border border-[#FFB300] px-4 py-1.5 rounded-lg bg-white text-black text-xs font-bold flex items-center gap-2 shadow-sm whitespace-nowrap transition-all ${onClick ? 'cursor-pointer hover:bg-yellow-50 hover:scale-105 active:scale-95' : ''}`}
+        title={onClick ? `Click to unstar ${label}` : ""}
+    >
         <span className="text-[#FFB300] text-lg leading-none">★</span> {label} {deletable && <span className="text-gray-400 cursor-pointer ml-1 hover:text-red-500 text-lg leading-none">×</span>}
     </span>
 );
 
-const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, onDeleteCover, onDeleteProfileImage, onShare }) => {
+const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, onDeleteCover, onDeleteProfileImage, onShare, onToggleSkillStar }) => {
     const navigate = useNavigate();
     const coverInputRef = React.useRef(null);
     const profileInputRef = React.useRef(null);
@@ -185,8 +189,13 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                     {profile.skills && profile.skills.some(s => s && typeof s === 'object' ? s.isStarred : false) ? (
                                         profile.skills
                                             .filter(skill => skill && typeof skill === 'object' && skill.isStarred)
+                                            .slice(0, 4)
                                             .map((skill, index) => (
-                                                <Tag key={index} label={skill.name} />
+                                                <Tag 
+                                                    key={index} 
+                                                    label={skill.name} 
+                                                    onClick={() => onToggleSkillStar && onToggleSkillStar(skill.name)} 
+                                                />
                                             ))
                                     ) : (
                                         <span
