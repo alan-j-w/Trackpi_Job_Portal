@@ -1,4 +1,5 @@
 import meetingImg from "../../assets/about images/meeting.png";
+import brochurePdf from "../../assets/Trackpi Brochure.pdf";
 import { LuDownload } from "react-icons/lu";
 
 const AboutHero = () => {
@@ -17,9 +18,9 @@ const AboutHero = () => {
                     its organic and boundless freelance community.
                 </p>
 
-                <div className="flex justify-start">
+                <div className="flex justify-start pt-4">
                     <button
-                        onClick={() => window.open('/brochure.pdf', '_blank')}
+                        onClick={() => window.open(brochurePdf, '_blank')}
                         className="bg-[#FFB300] px-8 py-3 rounded-[8px] font-bold text-white flex items-center gap-2 hover:bg-[#e6a100] transition-all shadow-[0_4px_14px_rgba(255,179,0,0.39)] active:scale-95"
                     >
                         Company Brochure

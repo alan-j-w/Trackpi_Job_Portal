@@ -60,39 +60,56 @@ const AddTestimonial = () => {
 
   /* ================= UI ================= */
   return (
-    <div className="p-8 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Testimonials</h1>
+    <div className="bg-white rounded-lg shadow-sm w-full max-w-[1100px] mx-auto flex flex-col p-8 gap-5">
+      <h1 className="text-2xl font-bold text-gray-900 leading-none mb-4">Testimonials</h1>
 
-      {/* NAME */}
-      <div className="mb-6">
-        <label className="block text-sm mb-1">Name</label>
-        <input
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="border-b py-2 w-full outline-none"
-        />
+      <div
+        style={{
+          width: "971.26px",
+          height: "145px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px"
+        }}
+      >
+        {/* NAME */}
+        <div>
+          <label className="block text-[13px] mb-1 font-semibold text-gray-700">Name</label>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="border-b border-gray-200 py-1 w-full outline-none text-gray-800"
+          />
+        </div>
+ 
+        {/* JOB TITLE */}
+        <div>
+          <label className="block text-[13px] mb-1 pt-2 font-semibold text-gray-700">Job title</label>
+          <input
+            name="jobTitle"
+            value={formData.jobTitle}
+            onChange={handleChange}
+            className="border-b border-gray-200 py-1 w-full outline-none text-gray-800"
+          />
+        </div>
       </div>
 
-      {/* JOB TITLE */}
-      <div className="mb-6">
-        <label className="block text-sm mb-1">Job title</label>
-        <input
-          name="jobTitle"
-          value={formData.jobTitle}
-          onChange={handleChange}
-          className="border-b py-2 w-full outline-none"
-        />
-      </div>
-
-      {/* ABOUT */}
-      <div className="mb-8">
-        <label className="block text-sm mb-2">About your experience</label>
+      <div 
+        style={{
+          width: "971.26px",
+          height: "167px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "21px"
+        }}
+      >
+        <label className="text-[13px] font-semibold pt-4 text-gray-700">About your experience</label>
         <textarea
           name="about"
           value={formData.about}
           onChange={handleChange}
-          className="border rounded-lg p-4 w-full h-32"
+          className="border border-gray-200 rounded-lg p-3 w-full h-full text-gray-800"
         />
       </div>
 
@@ -122,41 +139,62 @@ const AddTestimonial = () => {
       </div>
 
       {/* FOOTER */}
-      <div className="flex justify-end pt-10 gap-4">
+      <div className="flex justify-between items-center pt-10">
         <button
           type="button"
           onClick={() => navigate("/admin/testimonials")}
-          className="px-10 py-3 rounded-lg border font-medium"
+          className="text-[#FFBD3D] font-medium flex items-center gap-2 hover:underline"
         >
-          Cancel
+          View Profile
+          <span className="text-lg">→</span>
         </button>
 
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="bg-gradient-to-r from-yellow-300 to-yellow-500
-                     text-black px-10 py-3 rounded-lg font-medium shadow"
-        >
-          Save
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="bg-gradient-to-b from-[#FFF0CA] to-[#FFB300] text-black px-12 py-2 rounded-[6px] font-medium shadow-sm hover:opacity-90 transition-opacity border border-[#FFD067]"
+            style={{ width: "167.6px", height: "35.3px", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            Save
+          </button>
+ 
+          <button
+            type="button"
+            onClick={() => navigate("/admin/testimonials")}
+            className="bg-white text-gray-700 px-12 py-2 rounded-[6px] font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+            style={{ width: "167.6px", height: "35.3px", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-/* ================= MEDIA BOX ================= */
 const MediaBox = ({ preview, label, name, onChange, isVideo }) => (
-  <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-800">
-    {preview &&
-      (isVideo ? (
-        <video src={preview} controls className="w-full h-full object-cover" />
+  <div className="relative rounded-[30px] overflow-hidden w-full h-56 bg-[#2D2D2D] group">
+    {preview ? (
+      isVideo ? (
+        <video src={preview} controls className="w-full h-full object-cover block" />
       ) : (
-        <img src={preview} className="w-full h-full object-cover" />
-      ))}
-
-    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-      <label className="cursor-pointer text-yellow-400 font-medium flex items-center gap-2">
-        {label} ⬆
+        <img src={preview} className="w-full h-full object-cover block" alt="Preview" />
+      )
+    ) : (
+      <div className="w-full h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-700 rounded-[30px]">
+        No Media
+      </div>
+    )}
+ 
+    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+      <label className="cursor-pointer flex items-center gap-2 group-hover:scale-105 transition-transform">
+        <span className="text-[#FFB300] font-normal text-[13px] font-lato">
+          {label}
+        </span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 16V4M12 4L8 8M12 4L16 8M4 20H20" stroke="#FFB300" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
         <input
           type="file"
           name={name}

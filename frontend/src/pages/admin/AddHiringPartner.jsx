@@ -25,6 +25,11 @@ const AddHiringPartner = () => {
         const file = e.target.files[0];
         if (!file) return;
 
+        if (file.size > 500 * 1024) {
+            toast.error("Image size must be less than 500KB");
+            return;
+        }
+
         setFiles({ ...files, [e.target.name]: file });
         setPreviews({
             ...previews,
@@ -106,13 +111,12 @@ const AddHiringPartner = () => {
                 <div className="w-1/3">
                     <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-100 border border-gray-300 group">
                         {previews.logo ? (
-                            <img src={previews.logo} className="w-full h-full object-contain p-4" alt="Preview" />
+                            <img src={previews.logo} className="w-full h-full object-cover block" alt="Preview" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
                                 No Image
                             </div>
                         )}
-
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <label className="cursor-pointer text-white font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full hover:bg-black/70 transition-colors">
                                 Upload Logo ⬆
@@ -125,21 +129,8 @@ const AddHiringPartner = () => {
                                 />
                             </label>
                         </div>
-                        {!previews.logo && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <label className="cursor-pointer text-gray-500 font-medium flex items-center gap-2 pointer-events-auto">
-                                    Upload Logo ⬆
-                                    <input
-                                        type="file"
-                                        name="logo"
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                        accept="image/*"
-                                    />
-                                </label>
-                            </div>
-                        )}
                     </div>
+                    <p className="text-[12px] text-red-500 mt-2 font-medium text-center">Maximum file size: 500KB.</p>
                 </div>
             </div>
 
