@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const EditIcon = ({ className, onClick, children }) => (
     <div onClick={(e) => { e.stopPropagation(); onClick(e); }} className={`cursor-pointer transition flex items-center justify-center ${className}`}>
@@ -26,13 +28,20 @@ const Tag = ({ label, deletable }) => (
 );
 
 const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, onDeleteCover, onDeleteProfileImage, onShare }) => {
+    const navigate = useNavigate();
     const coverInputRef = React.useRef(null);
     const profileInputRef = React.useRef(null);
-    const [showCoverMenu, setShowCoverMenu] = useState(false);
-    const menuRef = useRef(null);
+    const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
+    const editMenuRef = useRef(null);
 
-    const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const profileMenuRef = useRef(null);
+    const profileUrl = `${window.location.origin}/u/${profile._id || profile.id}`;
+
+    const handleCopyLink = (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(profileUrl)
+            .then(() => toast.success("Link copied to clipboard!"))
+            .catch(() => toast.error("Failed to copy link"));
+    };
 
     const locationString = profile.location
         ? `${profile.location.city || ''}, ${profile.location.state || ''}, ${profile.location.country || ''}`.replace(/^, |, $/g, '')
@@ -41,21 +50,18 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setShowCoverMenu(false);
-            }
-            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-                setShowProfileMenu(false);
+            if (editMenuRef.current && !editMenuRef.current.contains(event.target)) {
+                setIsEditMenuOpen(false);
             }
         };
-
-        if (showCoverMenu || showProfileMenu) {
+ 
+        if (isEditMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showCoverMenu, showProfileMenu]);
+    }, [isEditMenuOpen]);
 
     return (
         <div className="relative pt-[64px]">
@@ -78,52 +84,61 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
             {/* --- Banner --- */}
             <div className="relative w-full h-[266px] bg-gray-100 group">
                 {profile.coverImage ? (
-                    <>
-                        <div
-                            className="w-full h-full bg-cover bg-center"
-                            style={{ backgroundImage: `url('${profile.coverImage}')` }}
-                        >
-                            <div className="w-full h-full bg-black/5"></div>
-                        </div>
-                    </>
+                    <div
+                        className="w-full h-full bg-cover bg-center"
+                        style={{ backgroundImage: `url('${profile.coverImage}')` }}
+                    >
+                        <div className="w-full h-full bg-black/5"></div>
+                    </div>
                 ) : (
                     <div className="w-full h-full flex items-end justify-center">
                         <img src="/cover-placeholder.png" alt="Add cover" className="h-[200px] object-contain cursor-pointer opacity-90 hover:opacity-100 transition" onClick={() => coverInputRef.current?.click()} />
                     </div>
                 )}
 
-                <div className="absolute inset-0 max-w-[1440px] mx-auto px-4 md:px-12 pointer-events-none">
-                    <div className="absolute top-6 right-4 md:right-12 pointer-events-auto z-30" ref={menuRef}>
-                        <EditIcon
-                            onClick={() => setShowCoverMenu(!showCoverMenu)}
-                            className="bg-white border border-gray-300 shadow-md hover:bg-gray-50 w-[41px] h-[41px] rounded-full p-2.5 text-black relative"
-                        />
+                <div className="absolute inset-0 w-full flex justify-center pointer-events-none">
+                    <div className="relative w-full max-w-[1440px] px-4 md:px-12 h-full">
+                        {/* Unified Edit Menu */}
+                        <div className="absolute top-6 right-4 md:right-12 pointer-events-auto z-50" ref={editMenuRef}>
+                            {/* pencil Button */}
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditMenuOpen(!isEditMenuOpen); }}
+                                className="bg-white hover:bg-gray-50 w-[45px] h-[45px] rounded-full shadow-lg flex items-center justify-center transition-all transform hover:scale-105"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </button>
 
-                        {/* Dropdown Menu */}
-                        {showCoverMenu && (
-                            <div className="absolute top-12 right-0 bg-white rounded-lg shadow-xl border border-gray-100 min-w-[200px] z-50 overflow-hidden animate-fadeIn">
-                                <button
-                                    onClick={() => {
-                                        coverInputRef.current?.click();
-                                        setShowCoverMenu(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                    Update cover image
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (onDeleteCover) onDeleteCover();
-                                        setShowCoverMenu(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    Delete cover image
-                                </button>
-                            </div>
-                        )}
+                            {/* Redesigned Dropdown Menu */}
+                            {isEditMenuOpen && (
+                                <div className="absolute top-[60px] right-2 bg-white/20 backdrop-blur-lg rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.15)] p-5 min-w-[280px] z-50 animate-fadeIn border border-white/10">
+                                    {/* Triangle Notch */}
+                                    <div className="absolute -top-2 right-4 w-4 h-4 bg-white/20 backdrop-blur-lg rotate-45 border-l border-t border-white/10"></div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={() => {
+                                                coverInputRef.current?.click();
+                                                setIsEditMenuOpen(false);
+                                            }}
+                                            className="w-full bg-[#FFB300] hover:bg-[#ffaa00] text-white font-bold py-3 px-6 rounded-full transition-all shadow-md active:scale-95"
+                                        >
+                                            Edit cover image
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                profileInputRef.current?.click();
+                                                setIsEditMenuOpen(false);
+                                            }}
+                                            className="w-full bg-[#FFB300] hover:bg-[#ffaa00] text-white font-bold py-3 px-6 rounded-full transition-all shadow-md active:scale-95"
+                                        >
+                                            Edit profile image
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -132,10 +147,9 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                 <div className="flex flex-col md:flex-row gap-8 relative -mt-[100px] mb-8">
 
                     {/* Profile Picture */}
-                    <div className="flex-shrink-0 relative group cursor-pointer" ref={profileMenuRef}>
+                    <div className="flex-shrink-0 relative group">
                         <div
                             className="w-[220px] h-[220px] rounded-full bg-white p-1 shadow-sm relative"
-                            onClick={() => setShowProfileMenu(!showProfileMenu)}
                         >
                             <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden relative">
                                 {profile.profileImage ? (
@@ -147,45 +161,8 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                         </svg>
                                     </div>
                                 )}
-
-                                {/* Overlay for upload hint */}
-                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                                    <div className="bg-white/90 p-2 rounded-full shadow-lg">
-                                        <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </div>
-                                </div>
                             </div>
                         </div>
-
-                        {/* Profile Picture Dropdown */}
-                        {showProfileMenu && (
-                            <div className="absolute top-[200px] left-[150px] bg-white rounded-lg shadow-xl border border-gray-100 min-w-[200px] z-50 overflow-hidden animate-fadeIn">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        profileInputRef.current?.click();
-                                        setShowProfileMenu(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                    Update profile picture
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onDeleteProfileImage) onDeleteProfileImage();
-                                        setShowProfileMenu(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    Delete profile picture
-                                </button>
-                            </div>
-                        )}
                     </div>
 
                     {/* Name & Basic Info */}
@@ -205,16 +182,20 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
 
 
                                 <div className="flex flex-wrap gap-3 mb-4">
-                                    {profile.skills && profile.skills.length > 0 ? (
-                                        profile.skills.map((skill, index) => (
-                                            <Tag key={index} label={skill} />
-                                        ))
+                                    {profile.skills && profile.skills.some(s => s && typeof s === 'object' ? s.isStarred : false) ? (
+                                        profile.skills
+                                            .filter(skill => skill && typeof skill === 'object' && skill.isStarred)
+                                            .map((skill, index) => (
+                                                <Tag key={index} label={skill.name} />
+                                            ))
                                     ) : (
                                         <span
                                             className="text-gray-400 text-sm italic cursor-pointer hover:text-[#FFB300] transition-colors"
                                             onClick={onEdit}
                                         >
-                                            Add skills to showcase your expertise
+                                            {profile.skills && profile.skills.length > 0 
+                                                ? "Star your top skills to showcase them here" 
+                                                : "Add skills to showcase your expertise"}
                                         </span>
                                     )}
                                 </div>
@@ -245,22 +226,30 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                     <div className="absolute top-[80%] right-0 pt-2 w-[280px] hidden group-hover:block z-50">
                                         <div className="bg-white rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
                                             {/* Create ATS Friendly CV */}
-                                            <div className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition text-center">
+                                            <div 
+                                                onClick={() => navigate("/resume-gen", { state: { from: "/profile" } })}
+                                                className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition text-center"
+                                            >
                                                 <span className="text-sm font-bold text-black">Create ATS Friendly CV</span>
                                             </div>
 
                                             {/* Profile Link Section */}
-                                            <div className="px-3 py-3 bg-white flex items-center justify-between gap-2">
-                                                <span className="text-[#FFB300] text-xs truncate flex-1 hover:underline cursor-pointer">
-                                                    {`www.trackpi.in/u/${profile._id || 'user123'}`}
-                                                </span>
+                                            <div className="px-3 py-3 bg-white flex items-center justify-between gap-2 overflow-hidden">
+                                                <a 
+                                                    href={profileUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[#FFB300] text-xs truncate flex-1 hover:underline font-medium"
+                                                >
+                                                    {profileUrl.replace(/^https?:\/\//, '')}
+                                                </a>
                                                 <div className="flex items-center gap-2">
                                                     {/* Send Icon */}
                                                     <button onClick={onShare} className="text-[#FFB300] hover:scale-110 transition p-0.5">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
                                                     </button>
                                                     {/* Copy Icon */}
-                                                    <button onClick={onShare} className="text-[#FFB300] hover:scale-110 transition p-0.5">
+                                                    <button onClick={handleCopyLink} className="text-[#FFB300] hover:scale-110 transition p-0.5" title="Copy profile link">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                                     </button>
                                                 </div>

@@ -3,14 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getJobById } from "../../jobService";
 import trackpiLogo from "../../assets/badges/trackpi-striped.png";
 import LoginRequiredModal from "../LoginRequiredModal";
+import ApplyJobForm from "./ApplyJobForm";
 
-const JobDetailsModal = ({ jobId, onClose }) => {
+const JobDetailsModal = ({ jobId, onClose, isApplied = false, onApplySuccess }) => {
     // const { id } = useParams(); // URL routing disabled for overlay mode
     // const navigate = useNavigate();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Overview");
     const [showLoginPopup, setShowLoginPopup] = useState(false);
+    const [showApplyForm, setShowApplyForm] = useState(false);
 
     // Fetch job details
     useEffect(() => {
@@ -216,9 +218,14 @@ const JobDetailsModal = ({ jobId, onClose }) => {
 
     return (
         // Backdrop / Page Wrapper
-        <div className="fixed inset-0 z-[60] w-full h-full bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-hidden">
+        <div 
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-backgroundFade"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}
+        >
             {/* Modal Container */}
-            <div className={`bg-white backdrop-blur-md w-full max-w-5xl rounded-[40px] shadow-2xl border border-white relative max-h-[90vh] flex flex-col animate-fadeInUp overflow-hidden transition-all duration-300`}>
+            <div className="bg-white rounded-[32px] w-full max-w-[1000px] h-full max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn shadow-2xl border border-gray-100">
 
                 {/* Decorative Shaded Circles */}
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-white via-gray-100 to-gray-300 rounded-full shadow-[inset_-10px_-10px_20px_rgba(0,0,0,0.1),10px_10px_20px_rgba(0,0,0,0.1)] z-0 pointer-events-none opacity-80"></div>
@@ -236,12 +243,7 @@ const JobDetailsModal = ({ jobId, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex gap-3 text-xl">
-                            <i className="ri-instagram-fill cursor-pointer text-black hover:text-gray-700"></i>
-                            <i className="ri-twitter-fill cursor-pointer text-black hover:text-gray-700"></i>
-                            <i className="ri-youtube-fill cursor-pointer text-black hover:text-gray-700"></i>
-                        </div>
+                    <div className="flex items-center gap-4 relative z-10">
                         <button onClick={onClose} className="text-2xl text-gray-600 hover:text-black transition-colors">
                             <i className="ri-close-line"></i>
                         </button>
@@ -266,7 +268,7 @@ const JobDetailsModal = ({ jobId, onClose }) => {
 
                 {/* Content Body */}
                 <div className={`px-8 pb-8 pt-2 flex-grow overflow-y-auto ${activeTab === "Compensation & Benefits" ? "[&::-webkit-scrollbar]:hidden" : ""}`} style={activeTab === "Compensation & Benefits" ? { scrollbarWidth: 'none', msOverflowStyle: 'none' } : {}}>
-                    <div className="h-full relative">
+                    <div className="h-full relative animate-fadeIn" key={activeTab}>
                         {renderContent()}
                     </div>
                 </div>
@@ -274,10 +276,23 @@ const JobDetailsModal = ({ jobId, onClose }) => {
                 {/* Footer / Apply Button */}
                 <div className="p-6 flex justify-center border-t border-gray-200/50 bg-white/30 backdrop-blur-sm">
                     <button
-                        onClick={() => setShowLoginPopup(true)} // Shows login popup on click
-                        className="bg-[#FFB800] text-black w-[400px] py-3 rounded-full font-bold text-lg shadow-lg hover:bg-[#FFC933] transition-all transform hover:scale-105"
+                        onClick={() => {
+                            if (isApplied) return;
+                            const token = localStorage.getItem("token");
+                            if (token) {
+                                setShowApplyForm(true);
+                            } else {
+                                setShowLoginPopup(true);
+                            }
+                        }}
+                        disabled={isApplied}
+                        className={`w-[400px] py-3 rounded-full font-bold text-lg shadow-lg transition-all transform ${isApplied ? 'bg-green-500 text-white cursor-not-allowed' : 'bg-[#FFB800] text-black hover:bg-[#FFC933] hover:scale-105'}`}
                     >
-                        Apply now
+                        {isApplied ? (
+                            <>Applied <i className="ri-check-line ml-1"></i></>
+                        ) : (
+                            "Apply now"
+                        )}
                     </button>
                 </div>
 
@@ -291,6 +306,19 @@ const JobDetailsModal = ({ jobId, onClose }) => {
                 <div className="absolute z-[70]">
                     <LoginRequiredModal onClose={() => setShowLoginPopup(false)} />
                 </div>
+            )}
+
+            {/* ================= APPLY FORM POPUP ================= */}
+            {showApplyForm && (
+                <ApplyJobForm
+                    jobId={jobId}
+                    job={job}
+                    onCancel={() => setShowApplyForm(false)}
+                    onSuccess={() => {
+                        setShowApplyForm(false);
+                        if (onApplySuccess) onApplySuccess();
+                    }}
+                />
             )}
 
         </div>

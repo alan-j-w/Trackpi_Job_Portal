@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import PERMISSIONS from "../config/permissions.js";
+import Otp from "../models/Otp.js";
 
 const DEFAULT_REPAIR_PERMISSIONS = [
     PERMISSIONS.DASHBOARD_VIEW,
@@ -260,40 +261,53 @@ export const loginUser = async (req, res) => {
 };
 
 // ============================
-// OTP SYSTEM (DEV MODE)
+// WHATSAPP OTP SYSTEM (PRODUCTION)
 // ============================
-
-// { "9999999999": { otp: "1234", expires: 123456789 } }
-const otpStore = {};
 
 // SEND OTP
 export const sendOtp = async (req, res) => {
     try {
         const { phone } = req.body;
+
         if (!phone) {
-            return res.status(400).json({ success: false, message: "Phone number is required" });
+            return res.status(400).json({ success: false, message: "Phone required" });
         }
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        const hashedOtp = await bcrypt.hash(otp, 10);
 
-        otpStore[phone] = {
-            otp,
-            expires: Date.now() + 5 * 60 * 1000 // 5 minutes
-        };
+        // Remove old OTP
+        await Otp.deleteMany({ phone });
 
-        // TODO: Integrate SMS gateway here
+        // Save new OTP
+        await Otp.create({
+            phone,
+            otpHash: hashedOtp,
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 min
+        });
+
+        // Format phone number for WhatsApp API (remove + or any non-digits)
+        const cleanPhone = phone.replace(/\D/g, '');
+
+        // 🔥 SEND WHATSAPP MESSAGE
+        await axios.post(
+            "https://bot.wabis.in/webhook/whatsapp-workflow/144262.154414.344372.1774953295",
+            {
+                number: cleanPhone,
+                otp: otp,
+                type: "text",
+                message: `TrackPi Verification - Your OTP is: ${otp} - Valid for 5 minutes. Do not share this code.`
+            }
+        );
 
         res.status(200).json({
             success: true,
-            message: "OTP sent successfully",
-            otp: otp // Added for development purposes since SMS is missing
+            message: "OTP sent via WhatsApp"
         });
+
     } catch (error) {
         console.error("Send OTP Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to send OTP"
-        });
+        res.status(500).json({ success: false, message: "Failed to send OTP" });
     }
 };
 
@@ -308,24 +322,35 @@ export const verifyOtp = async (req, res) => {
             });
         }
 
-        const record = otpStore[phone];
+        const record = await Otp.findOne({ phone });
 
         if (!record) {
             return res.status(400).json({
                 success: false,
-                message: "OTP expired or not found"
+                message: "OTP not found"
             });
         }
 
-        if (Date.now() > record.expires) {
-            delete otpStore[phone];
+        if (record.expiresAt < new Date()) {
+            await Otp.deleteOne({ phone });
             return res.status(400).json({
                 success: false,
                 message: "OTP expired"
             });
         }
 
-        if (record.otp !== otp) {
+        if (record.attempts >= 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Too many attempts. Request a new OTP."
+            });
+        }
+
+        const isMatch = await bcrypt.compare(otp, record.otpHash);
+
+        if (!isMatch) {
+            record.attempts += 1;
+            await record.save();
             return res.status(400).json({
                 success: false,
                 message: "Invalid OTP"
@@ -333,9 +358,9 @@ export const verifyOtp = async (req, res) => {
         }
 
         // OTP Verified Success
-        delete otpStore[phone];
+        await Otp.deleteOne({ phone });
 
-        // CHECK IF USER EXISTS
+        // CHECK IF USER EXISTS FOR LOGIN FLOW
         let user = await User.findOne({ phone });
 
         if (user) {
@@ -367,7 +392,6 @@ export const verifyOtp = async (req, res) => {
             });
         } else {
             // NEW USER -> PROMPT REGISTRATION
-            // We cannot create a full user yet because we need Name/Email/Password(maybe)
             return res.status(200).json({
                 success: true,
                 message: "OTP verified. Please complete registration.",

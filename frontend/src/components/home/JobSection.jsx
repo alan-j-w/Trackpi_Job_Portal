@@ -17,6 +17,7 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedJobId, setSelectedJobId] = useState(null);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
 
   // Filter & Search State
   const initialSearch = initialKeyword || initialLocation ? `${initialKeyword} ${initialLocation}`.trim() : "";
@@ -62,7 +63,7 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
 
   /* -------------------- Data Fetching -------------------- */
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchJobsAndApplications = async () => {
       try {
         const res = await fetch(`${API_URL}/api/jobs`);
         const data = await res.json();
@@ -74,8 +75,19 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
             createdAt: job.createdAt || new Date(Date.now() - index * 86400000).toISOString()
           })) : [];
         setJobs(enrichedData);
+
+        const token = localStorage.getItem('token');
+        if (token) {
+          const appsRes = await fetch(`${API_URL}/api/applications/my-applications`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const appsData = await appsRes.json();
+          if (appsData.success) {
+            setAppliedJobIds(appsData.applications.map(app => app.jobId?._id || app.jobId || app.job?._id || app.job));
+          }
+        }
       } catch (error) {
-        console.error("Failed to fetch jobs", error);
+        console.error("Failed to fetch jobs or applications", error);
         setJobs([]);
       } finally {
         setLoading(false);
@@ -84,9 +96,9 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
 
     // Defer fetch until browser is idle so it doesn't block initial paint
     if (typeof requestIdleCallback !== "undefined") {
-      requestIdleCallback(() => fetchJobs(), { timeout: 2000 });
+      requestIdleCallback(() => fetchJobsAndApplications(), { timeout: 2000 });
     } else {
-      setTimeout(fetchJobs, 100);
+      setTimeout(fetchJobsAndApplications, 100);
     }
   }, []);
 
@@ -469,7 +481,9 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
                 experience={job.experience}
                 workMode={job.workMode}
                 gender={job.gender || "Any"}
+                hasApplied={appliedJobIds.includes(job._id)}
                 onDetailsClick={() => setSelectedJobId(job._id)}
+                onApplySuccess={() => setAppliedJobIds(prev => [...prev, job._id])}
               />
             ))}
         </div>
@@ -478,6 +492,11 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
         {selectedJobId && (
           <JobDetailsModal
             jobId={selectedJobId}
+            isApplied={appliedJobIds.includes(selectedJobId)}
+            onApplySuccess={() => {
+              setAppliedJobIds(prev => [...prev, selectedJobId]);
+              setSelectedJobId(null);
+            }}
             onClose={() => setSelectedJobId(null)}
           />
         )}

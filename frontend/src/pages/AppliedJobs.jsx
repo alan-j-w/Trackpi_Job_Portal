@@ -233,6 +233,7 @@ const AppliedJobs = () => {
             {selectedJobId && (
                 <JobDetailsModal
                     jobId={selectedJobId}
+                    isApplied={true}
                     onClose={() => setSelectedJobId(null)}
                 />
             )}

@@ -1,5 +1,7 @@
 import SearchableDropdown, { CustomDatePicker } from "../../pages/create-profile/components/SearchableDropdown";
-
+import react, { useEffect, useState } from "react";
+import axios from "axios";
+import config from "../../config";
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
     "Idukki", "Ernakulam", "Thrissur", "Palakkad", "Malappuram",
@@ -55,6 +57,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
     const [errors, setErrors] = useState({});
     const [skillInput, setSkillInput] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
     const [showDatePicker, setShowDatePicker] = useState(false);
 
     const getDobMax = () => {
@@ -74,10 +77,16 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     // Initialize form with profile data
     useEffect(() => {
         if (profileData) {
+            // Normalize skills to objects
+            const normalizedSkills = (profileData.skills || []).map(skill => {
+                if (typeof skill === 'string') return { name: skill, isStarred: false };
+                return { name: skill.name, isStarred: !!skill.isStarred };
+            });
+
             setFormData({
                 fullName: profileData.fullName || "",
                 jobTitle: profileData.jobTitle || "",
-                skills: profileData.skills || [],
+                skills: normalizedSkills,
                 workStatus: profileData.workStatus || "",
                 gender: profileData.gender || "",
                 phone: profileData.phone?.replace(/^\+91/, '') || "",
@@ -97,6 +106,30 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
             setErrors({});
         }
     }, [profileData]);
+
+    // ─── Debounce Search for Skills ──────────────────────────────────────────
+    useEffect(() => {
+        const fetchSkills = async () => {
+            if (skillInput.length < 1) {
+                setSuggestions([]);
+                return;
+            }
+
+            try {
+                const res = await axios.get(`${config.API_URL}/api/skills/search?query=${skillInput}`);
+                // Filter out already selected skills
+                const availableSuggestions = res.data.filter(s =>
+                    !formData.skills.some(existing => existing.name.toLowerCase() === s.toLowerCase())
+                );
+                setSuggestions(availableSuggestions);
+            } catch (err) {
+                console.error("Failed to fetch skills", err);
+            }
+        };
+
+        const timeoutId = setTimeout(fetchSkills, 300);
+        return () => clearTimeout(timeoutId);
+    }, [skillInput, formData.skills]);
 
     // ─── Validation helpers ─────────────────────────────────────────────────────
     const validateField = (name, value, currentErrors = { ...errors }) => {
@@ -176,17 +209,29 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     const handleSkillAdd = (e) => {
         if (e.key === "Enter" && skillInput.trim()) {
             e.preventDefault();
-            if (/\d/.test(skillInput)) return;
-            if (!formData.skills.includes(skillInput.trim())) {
-                setFormData(prev => ({ ...prev, skills: [...prev.skills, skillInput.trim()] }));
-            }
-            setSkillInput("");
-            setErrors(prev => { const n = { ...prev }; delete n.skillInput; return n; });
+            addSkill(skillInput.trim());
         }
     };
 
-    const removeSkill = (skill) => {
-        setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }));
+    const addSkill = (skillName) => {
+        if (/\d/.test(skillName)) return;
+        const trimmed = skillName.trim();
+        if (!formData.skills.some(s => s.name.toLowerCase() === trimmed.toLowerCase())) {
+            setFormData(prev => ({ ...prev, skills: [...prev.skills, { name: trimmed, isStarred: false }] }));
+        }
+        setSkillInput("");
+        setSuggestions([]);
+        setErrors(prev => { const n = { ...prev }; delete n.skillInput; return n; });
+    };
+
+    const toggleSkillStar = (index) => {
+        const updatedSkills = [...formData.skills];
+        updatedSkills[index] = { ...updatedSkills[index], isStarred: !updatedSkills[index].isStarred };
+        setFormData(prev => ({ ...prev, skills: updatedSkills }));
+    };
+
+    const removeSkill = (index) => {
+        setFormData(prev => ({ ...prev, skills: prev.skills.filter((_, i) => i !== index) }));
     };
 
     // DOB: reject today and future dates directly
@@ -222,10 +267,10 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
         const finalData = { ...formData };
 
         // Auto-add pending skill
-        if (skillInput.trim() && !/\d/.test(skillInput)) {
-            const newSkill = skillInput.trim();
-            if (!finalData.skills.includes(newSkill)) {
-                finalData.skills = [...finalData.skills, newSkill];
+        const trimmedSkill = skillInput.trim();
+        if (trimmedSkill && !/\d/.test(trimmedSkill)) {
+            if (!finalData.skills.some(s => s.name.toLowerCase() === trimmedSkill.toLowerCase())) {
+                finalData.skills = [...finalData.skills, { name: trimmedSkill, isStarred: false }];
             }
         }
 
@@ -268,7 +313,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                             value={formData.fullName}
                             onChange={handleChange}
                             className={inputClass(errors.fullName)}
-                            placeholder="e.g. Alan Joy Wilson"
+                            placeholder="e.g. John Doe"
                         />
                         <ErrorMsg msg={errors.fullName} />
                     </div>
@@ -288,22 +333,53 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
                     {/* Skills */}
                     <div>
-                        <label className="block text-sm font-bold text-black mb-3">Skills</label>
+                        <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Click ★ to highlight on profile)</label>
                         <div className="flex flex-wrap gap-3 mb-2">
                             {formData.skills.map((skill, idx) => (
-                                <span key={idx} className="border border-[#FFB300] px-3 py-1.5 rounded-lg bg-white text-gray-700 text-xs font-bold flex items-center gap-2">
-                                    <span className="text-[#FFB300]">★</span> {skill}
-                                    <button onClick={() => removeSkill(skill)} className="text-black hover:text-red-500 font-bold ml-1">×</button>
+                                <span key={idx} className="border border-[#FFB300] px-3 py-1.5 rounded-lg bg-white text-gray-700 text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
+                                    <span
+                                        onClick={() => toggleSkillStar(idx)}
+                                        className={`cursor-pointer text-lg leading-none transition-colors ${skill.isStarred ? 'text-[#FFB300]' : 'text-gray-300 hover:text-yellow-400'}`}
+                                        title={skill.isStarred ? "Unstar skill" : "Star skill"}
+                                    >
+                                        ★
+                                    </span>
+                                    {skill.name}
+                                    <button
+                                        onClick={() => removeSkill(idx)}
+                                        className="text-gray-400 hover:text-red-500 font-bold ml-1 text-lg leading-none"
+                                    >
+                                        ×
+                                    </button>
                                 </span>
                             ))}
                         </div>
-                        <input
-                            value={skillInput}
-                            onChange={handleSkillInputChange}
-                            onKeyDown={handleSkillAdd}
-                            className={`w-full border-b py-2 outline-none text-sm placeholder-gray-400 transition-colors ${errors.skillInput ? "border-red-500" : "border-gray-300 focus:border-[#FFB300]"}`}
-                            placeholder="Type and press Enter to add skills..."
-                        />
+                        <div className="relative">
+                            <input
+                                value={skillInput}
+                                onChange={handleSkillInputChange}
+                                onKeyDown={handleSkillAdd}
+                                className={`w-full border-b py-2 outline-none text-sm placeholder-gray-400 transition-colors ${errors.skillInput ? "border-red-500" : "border-gray-300 focus:border-[#FFB300]"}`}
+                                placeholder="Type and press Enter to add skills..."
+                                autoComplete="off"
+                            />
+
+                            {/* Auto-suggestions Dropdown */}
+                            {suggestions.length > 0 && (
+                                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-50 max-h-[180px] overflow-y-auto border border-gray-200">
+                                    {suggestions.map((s, idx) => (
+                                        <div
+                                            key={idx}
+                                            onClick={() => addSkill(s)}
+                                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm font-medium text-gray-700 border-b border-gray-50 last:border-0 flex items-center justify-between group transition-colors"
+                                        >
+                                            <span>{s}</span>
+                                            <i className="ri-add-line text-lg text-[#FFB300] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <ErrorMsg msg={errors.skillInput} />
                     </div>
 

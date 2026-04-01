@@ -20,17 +20,13 @@ export const calculateProfileStrength = (profile) => {
     if (profile.skills && profile.skills.length > 0) strength += 10;
     if (profile.languages && profile.languages.length > 0) strength += 5;
 
-    // Expected Salary (Step 3) - Only add if numeric and exists
-    const rawSalary = profile.expectedSalary ? String(profile.expectedSalary).replace(/[,₹\s]/g, '') : "";
-    if (rawSalary && /^\d+$/.test(rawSalary)) strength += 5;
-
     // 4. History (20%)
     if (profile.education && profile.education.length > 0) strength += 10;
     if (profile.workExperience && profile.workExperience.length > 0) strength += 10;
 
     // 5. Assets & Social (20%)
-    if (profile.profileImage) strength += 5;
-    if (profile.resume || profile.resumeUrl) strength += 10;
+    if (profile.profileImage) strength += 10;
+    if (profile.resumeUrl && profile.resumeUrl.trim() !== "") strength += 10;
 
     // Social Links (Check if any exist and are valid)
     const hasValidSocial = profile.socialLinks && Object.values(profile.socialLinks).some(link =>
