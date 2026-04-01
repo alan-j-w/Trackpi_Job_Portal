@@ -2,6 +2,7 @@ import SearchableDropdown, { CustomDatePicker } from "../../pages/create-profile
 import react, { useEffect, useState } from "react";
 import axios from "axios";
 import config from "../../config";
+import { toast } from "react-hot-toast";
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
     "Idukki", "Ernakulam", "Thrissur", "Palakkad", "Malappuram",
@@ -229,7 +230,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
         const starredCount = formData.skills.filter(s => s.isStarred).length;
 
         if (!isCurrentlyStarred && starredCount >= 4) {
-            setErrors(prev => ({ ...prev, skillInput: "Maximum 4 skills can be starred." }));
+            toast.error("Maximum 4 skills can be starred.");
             return;
         }
 
@@ -270,6 +271,9 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
         if (Object.keys(allErrors).length > 0) {
             setErrors(allErrors);
+            const firstErrorField = Object.keys(allErrors)[0];
+            const errorMsg = allErrors[firstErrorField];
+            toast.error(`Please fix: ${errorMsg}`);
             return;
         }
 
@@ -554,11 +558,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                 <div className="flex justify-center gap-4 pt-4">
                     <button
                         onClick={handleSubmit}
-                        disabled={Object.keys(errors).length > 0}
-                        className={`font-bold py-3 px-12 rounded-lg shadow-md transition-all ${Object.keys(errors).length > 0
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black hover:shadow-lg hover:scale-105 transform"
-                            }`}
+                        className="font-bold py-3 px-12 rounded-lg shadow-md transition-all bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black hover:shadow-lg hover:scale-105 transform active:scale-95"
                     >
                         Submit
                     </button>

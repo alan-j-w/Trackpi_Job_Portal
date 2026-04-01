@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import config from "../../config";
+import { toast } from "react-hot-toast";
 
 const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
     const [skills, setSkills] = useState([]);
@@ -72,7 +73,7 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
         const starredCount = skills.filter(s => s.isStarred).length;
 
         if (!isCurrentlyStarred && starredCount >= 4) {
-            setError("Maximum 4 skills can be starred.");
+            toast.error("Maximum 4 skills can be starred.");
             return;
         }
 
