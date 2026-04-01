@@ -225,9 +225,18 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     };
 
     const toggleSkillStar = (index) => {
+        const isCurrentlyStarred = formData.skills[index].isStarred;
+        const starredCount = formData.skills.filter(s => s.isStarred).length;
+
+        if (!isCurrentlyStarred && starredCount >= 4) {
+            setErrors(prev => ({ ...prev, skillInput: "Maximum 4 skills can be starred." }));
+            return;
+        }
+
         const updatedSkills = [...formData.skills];
-        updatedSkills[index] = { ...updatedSkills[index], isStarred: !updatedSkills[index].isStarred };
+        updatedSkills[index] = { ...updatedSkills[index], isStarred: !isCurrentlyStarred };
         setFormData(prev => ({ ...prev, skills: updatedSkills }));
+        setErrors(prev => { const n = { ...prev }; delete n.skillInput; return n; });
     };
 
     const removeSkill = (index) => {
@@ -333,7 +342,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
                     {/* Skills */}
                     <div>
-                        <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Click ★ to highlight on profile)</label>
+                        <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Select up to 4 to highlight on profile)</label>
                         <div className="flex flex-wrap gap-3 mb-2">
                             {formData.skills.map((skill, idx) => (
                                 <span key={idx} className="border border-[#FFB300] px-3 py-1.5 rounded-lg bg-white text-gray-700 text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
