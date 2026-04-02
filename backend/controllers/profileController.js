@@ -60,6 +60,16 @@ export const createOrUpdateProfile = async (req, res) => {
             delete safeUpdates.city;
             delete safeUpdates.pincode;
         }
+        
+        // 1.1 Support backward compatibility for skills (String array -> Object array)
+        if (safeUpdates.skills && Array.isArray(safeUpdates.skills)) {
+            safeUpdates.skills = safeUpdates.skills.map(skill => {
+                if (typeof skill === 'string') {
+                    return { name: skill, isStarred: false };
+                }
+                return skill;
+            });
+        }
 
         const profileFields = {
             user: userId,
@@ -135,6 +145,7 @@ export const getMyProfile = async (req, res) => {
             });
         }
 
+        // Normalization is now handled by Profile schema transforms (toJSON/toObject)
         res.status(200).json({
             success: true,
             profile,
@@ -255,7 +266,7 @@ export const deleteResume = async (req, res) => {
     try {
         const profile = await Profile.findOneAndUpdate(
             { user: req.user._id },
-            { $set: { resumeUrl: "" } },
+            { $set: { resumeUrl: "" }, $unset: { resume: 1 } },
             { new: true }
         );
 

@@ -22,6 +22,8 @@ const JobCard = ({
   gender = "Any",
   status = "New",
   statusColor = "green",
+  hasApplied = false,
+  onApplySuccess,
   onDetailsClick,
 }) => {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ const JobCard = ({
   const [showApplyForm, setShowApplyForm] = useState(false);
 
   const handleApplyClick = () => {
+    if (hasApplied) return;
     const token = localStorage.getItem("token");
     if (token) {
       setShowApplyForm(true);
@@ -184,16 +187,15 @@ const JobCard = ({
 
       {/* ================= APPLY FORM POPUP ================= */}
       {showApplyForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-[80vh] overflow-hidden flex flex-col">
-            <ApplyJobForm
-              jobId={id}
-              job={{ title, company, location }}
-              onCancel={() => setShowApplyForm(false)}
-              onSuccess={() => setShowApplyForm(false)}
-            />
-          </div>
-        </div>
+        <ApplyJobForm
+          jobId={id}
+          job={{ title, company, location }}
+          onCancel={() => setShowApplyForm(false)}
+          onSuccess={() => {
+            if (onApplySuccess) onApplySuccess();
+            setShowApplyForm(false);
+          }}
+        />
       )}
     </>
   );

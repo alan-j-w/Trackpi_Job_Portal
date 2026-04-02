@@ -236,10 +236,9 @@ const Step1BasicInfo = ({
                 phone: `${primaryPhoneCode}${formData.phone}`
             });
 
-            // Log the OTP for development purposes
-            if (res.data.otp) {
-                console.log(`\n%c=== DEMO OTP RECEIVED: ${res.data.otp} ===\n`, "color: #FFB300; font-size: 16px; font-weight: bold;");
-                toast?.success(`Demo OTP is: ${res.data.otp}`, { duration: 5000 }); // Optional UI toast if toast is available
+            // Success response
+            if (res.data.success) {
+                toast.success("OTP sent securely via WhatsApp!", { duration: 5000 });
             }
 
             setOtpSent(true);
@@ -972,7 +971,7 @@ const Step1BasicInfo = ({
                                 localStorage.setItem("profileCreationCache", JSON.stringify(cacheData));
 
                                 // Navigate to resume-gen
-                                navigate('/resume-gen', { state: { fromProfile: true } });
+                                navigate('/resume-gen', { state: { from: "/create-profile", fromProfile: true } });
                             }}
                             className="flex-1 bg-[#FFB300] hover:bg-[#ffaa00] text-black font-bold py-3 px-4 rounded-lg shadow-sm transition text-sm"
                         >

@@ -82,7 +82,7 @@ const Navbar = ({ mode = "auto" }) => {
                                 >
                                     Home
                                 </Link>
-                                <a href="https://chat.whatsapp.com/sample-group-invite" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFB300] flex items-center gap-1 text-[#2F80ED] border-b border-[#2F80ED] pb-0.5">
+                                <a href="https://chat.whatsapp.com/E4DcrDNZ3YQBpt8n01Fifv?mode=gi_t" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFB300] flex items-center gap-1 text-[#2F80ED] border-b border-[#2F80ED] pb-0.5">
                                     Join our community <i className="ri-external-link-line"></i>
                                 </a>
                                 <Link
@@ -192,7 +192,7 @@ const Navbar = ({ mode = "auto" }) => {
                             // 🟢 Authenticated Mobile Menu
                             <>
                                 <Link to="/profile" onClick={() => setOpen(false)}>Home</Link>
-                                <a href="https://chat.whatsapp.com/sample-group-invite" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>Join our community</a>
+                                <a href="https://chat.whatsapp.com/E4DcrDNZ3YQBpt8n01Fifv?mode=gi_t" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>Join our community</a>
                                 <Link to="/testimonials" onClick={() => setOpen(false)}>Testimonial</Link>
                                 <Link to="/browse-jobs" onClick={() => setOpen(false)}>Browse Jobs</Link>
                                 <Link to="/applied-jobs" onClick={() => setOpen(false)}>Applied vacancies</Link>
