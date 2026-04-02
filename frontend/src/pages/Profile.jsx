@@ -76,6 +76,12 @@ const Profile = () => {
     const [showDeleteEducationModal, setShowDeleteEducationModal] = useState(false);
     const [educationIndexToDelete, setEducationIndexToDelete] = useState(null);
 
+    const [showDeleteExperienceModal, setShowDeleteExperienceModal] = useState(false);
+    const [experienceIndexToDelete, setExperienceIndexToDelete] = useState(null);
+
+    const [showDeleteLanguageModal, setShowDeleteLanguageModal] = useState(false);
+    const [languageIndexToDelete, setLanguageIndexToDelete] = useState(null);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -106,6 +112,9 @@ const Profile = () => {
                 localStorage.removeItem("user");
                 navigate("/login");
                 setError("Failed to load profile");
+            } else if (err.response?.status === 404 && err.response?.data?.message === "Profile not found") {
+                toast("Please complete your profile first.");
+                navigate("/create-profile");
             } else {
                 setError(err.response?.data?.message || "Failed to connect to the server. Please try again later.");
                 toast.error("Failed to connect to the server.");
@@ -157,9 +166,10 @@ const Profile = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`${config.API_URL}/api/profile/resume`, {
+            const res = await axios.delete(`${config.API_URL}/api/profile/resume`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            if (res.data) setProfile(res.data);
             toast.success("Resume deleted");
         } catch (err) {
             setProfile(prev => ({ ...prev, resumeUrl: oldResume }));
@@ -187,9 +197,20 @@ const Profile = () => {
     };
 
     const handleShareProfile = () => {
-        const url = `www.trackpi.in/u/${profile._id}`;
-        navigator.clipboard.writeText(url);
-        toast.success("Profile link copied!");
+        const url = `${window.location.origin}/u/${profile._id || profile.id}`;
+        if (navigator.share) {
+            navigator.share({
+                title: `${profile.fullName}'s Profile | Trackpi`,
+                text: `Check out ${profile.fullName}'s professional profile on Trackpi.`,
+                url: url
+            }).catch(() => {
+                navigator.clipboard.writeText(url);
+                toast.success("Profile link copied!");
+            });
+        } else {
+            navigator.clipboard.writeText(url);
+            toast.success("Profile link copied!");
+        }
     };
 
     const handleDeleteDirectSkill = (skill) => {
@@ -200,7 +221,8 @@ const Profile = () => {
     const confirmDeleteDirectSkill = async () => {
         if (!skillToDelete) return;
         const oldSkills = profile.skills || [];
-        const updatedSkills = oldSkills.filter(s => s !== skillToDelete);
+        const skillName = typeof skillToDelete === 'object' ? skillToDelete.name : skillToDelete;
+        const updatedSkills = oldSkills.filter(s => (typeof s === 'object' ? s.name : s) !== skillName);
         setProfile(prev => ({ ...prev, skills: updatedSkills }));
         setShowDeleteSkillModal(false);
         try {
@@ -320,6 +342,47 @@ const Profile = () => {
         }
     };
 
+    const handleToggleSkillStar = async (skillName) => {
+        const oldSkills = profile.skills || [];
+        const updatedSkills = oldSkills.map(skill => {
+            const name = typeof skill === 'object' ? skill.name : skill;
+            if (name === skillName) {
+                const isCurrentlyStarred = typeof skill === 'object' ? !!skill.isStarred : false;
+                
+                // If starring, check limit
+                if (!isCurrentlyStarred) {
+                    const starredCount = oldSkills.filter(s => typeof s === 'object' && s.isStarred).length;
+                    if (starredCount >= 4) {
+                        toast.error("Maximum 4 skills can be starred.");
+                        return skill;
+                    }
+                }
+                
+                return { 
+                    name: name, 
+                    isStarred: !isCurrentlyStarred 
+                };
+            }
+            return skill;
+        });
+
+        // Check if any change actually happened (e.g. limit wasn't reached)
+        const isChanged = JSON.stringify(oldSkills) !== JSON.stringify(updatedSkills);
+        if (!isChanged) return;
+
+        setProfile(prev => ({ ...prev, skills: updatedSkills }));
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post(`${config.API_URL}/api/profile`, { skills: updatedSkills }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(`${skillName} ${updatedSkills.find(s => s.name === skillName).isStarred ? 'starred' : 'unstarred'}`);
+        } catch (err) {
+            setProfile(prev => ({ ...prev, skills: oldSkills }));
+            toast.error("Failed to update skill");
+        }
+    };
+
     const handleSaveEducation = async (newEducation) => {
         const oldEducation = [...(profile.education || [])];
         let list = [...oldEducation];
@@ -379,6 +442,30 @@ const Profile = () => {
         } catch (err) { setProfile(prev => ({ ...prev, languages: old })); toast.error("Failed to update languages"); }
     };
 
+    const handleDeleteLanguage = (indexToDelete) => {
+        setIsLanguageModalOpen(false);
+        setLanguageIndexToDelete(indexToDelete);
+        setShowDeleteLanguageModal(true);
+    };
+
+    const confirmDeleteLanguage = async () => {
+        if (languageIndexToDelete === null) return;
+        const old = [...(profile.languages || [])];
+        const list = old.filter((_, i) => i !== languageIndexToDelete);
+        setProfile(prev => ({ ...prev, languages: list }));
+        setShowDeleteLanguageModal(false);
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post(`${config.API_URL}/api/profile`, { languages: list }, { headers: { Authorization: `Bearer ${token}` } });
+            toast.success("Language deleted");
+        } catch (err) {
+            setProfile(prev => ({ ...prev, languages: old }));
+            toast.error("Failed to delete language");
+        } finally {
+            setLanguageIndexToDelete(null);
+        }
+    };
+
     const handleAddLanguage = () => { setCurrentLanguage(null); setLanguageEditIndex(null); setIsLanguageEditing(false); setIsLanguageModalOpen(true); };
     const handleEditLanguage = (lang, index) => { setCurrentLanguage(lang); setLanguageEditIndex(index); setIsLanguageEditing(true); setIsLanguageModalOpen(true); };
 
@@ -397,6 +484,30 @@ const Profile = () => {
             await axios.post(`${config.API_URL}/api/profile`, { workExperience: list }, { headers: { Authorization: `Bearer ${token}` } });
             toast.success("Experience updated");
         } catch (err) { setProfile(prev => ({ ...prev, workExperience: old })); toast.error("Failed to update experience"); }
+    };
+
+    const handleDeleteExperience = (indexToDelete) => {
+        setIsExpModalOpen(false);
+        setExperienceIndexToDelete(indexToDelete);
+        setShowDeleteExperienceModal(true);
+    };
+
+    const confirmDeleteExperience = async () => {
+        if (experienceIndexToDelete === null) return;
+        const old = [...(profile.workExperience || [])];
+        const list = old.filter((_, i) => i !== experienceIndexToDelete);
+        setProfile(prev => ({ ...prev, workExperience: list }));
+        setShowDeleteExperienceModal(false);
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post(`${config.API_URL}/api/profile`, { workExperience: list }, { headers: { Authorization: `Bearer ${token}` } });
+            toast.success("Experience deleted");
+        } catch (err) {
+            setProfile(prev => ({ ...prev, workExperience: old }));
+            toast.error("Failed to delete experience");
+        } finally {
+            setExperienceIndexToDelete(null);
+        }
     };
 
     const handleSaveAllExperiences = async (list) => {
@@ -492,9 +603,18 @@ const Profile = () => {
         <div className="bg-white min-h-screen font-sans pb-20 overflow-x-hidden">
             <Toaster position="top-center" />
             <Navbar />
-            <ProfileHeader profile={profile} onEdit={() => setIsEditModalOpen(true)} onCoverUpload={(e) => handleUpload(e, "cover")} onDeleteCover={handleDeleteCoverImage} onProfileImageUpload={(e) => handleUpload(e, "profile")} onDeleteProfileImage={handleDeleteProfileImage} onShare={handleShareProfile} />
+            <ProfileHeader 
+                profile={profile} 
+                onEdit={() => setIsEditModalOpen(true)} 
+                onCoverUpload={(e) => handleUpload(e, "cover")} 
+                onDeleteCover={handleDeleteCoverImage} 
+                onProfileImageUpload={(e) => handleUpload(e, "profile")} 
+                onDeleteProfileImage={handleDeleteProfileImage} 
+                onShare={handleShareProfile} 
+                onToggleSkillStar={handleToggleSkillStar}
+            />
             <div className="max-w-[1440px] mx-auto px-4 md:px-12 relative">
-                <div className="flex flex-col lg:flex-row gap-[24px]">
+                <div className="flex flex-col lg:flex-row gap-[24px] lg:justify-between">
                     <div className="flex-1 lg:max-w-[822px]">
                         <div id="summary-section"><ProfileSummary summary={profile.summary} onEdit={() => { setIsSummaryEditing(true); setIsSummaryModalOpen(true); }} onAdd={() => { setIsSummaryEditing(false); setIsSummaryModalOpen(true); }} /></div>
                         <div id="experience-section"><ExperienceSection workExperience={profile.workExperience} onAddExperience={handleAddExperience} onManage={() => setIsExpListOpen(true)} /></div>
@@ -512,10 +632,10 @@ const Profile = () => {
             <BulkEditExperienceModal isOpen={isExpListOpen} onClose={() => setIsExpListOpen(false)} initialExperiences={profile.workExperience} onSave={handleSaveAllExperiences} dob={profile.dateOfBirth} />
             <SectionListModal isOpen={isEduListOpen} onClose={() => setIsEduListOpen(false)} title="Education" onAdd={handleAddEducation}>{profile.education?.map((edu, idx) => <EducationCard key={idx} education={edu} showEdit={true} onEdit={() => handleEditEducation(edu, idx)} onDelete={() => handleDeleteEducation(idx)} />)}</SectionListModal>
             <SectionListModal isOpen={isLangListOpen} onClose={() => setIsLangListOpen(false)} title="Language" onAdd={handleAddLanguage}>{profile.languages?.map((lang, idx) => <LanguageRow key={idx} language={{ ...lang, language: lang.name }} showEdit={true} onEdit={() => handleEditLanguage(lang, idx)} />)}</SectionListModal>
-            <EditExperienceModal isOpen={isExpModalOpen} onClose={() => setIsExpModalOpen(false)} experienceData={currentExperience} onSave={handleSaveExperience} isEditing={isExperienceEditing} dob={profile.dateOfBirth} />
+            <EditExperienceModal isOpen={isExpModalOpen} onClose={() => setIsExpModalOpen(false)} experienceData={currentExperience} onSave={handleSaveExperience} isEditing={isExperienceEditing} dob={profile.dateOfBirth} onDelete={() => handleDeleteExperience(experienceEditIndex)} />
             <EditSkillsModal isOpen={isSkillsModalOpen} onClose={() => setIsSkillsModalOpen(false)} currentSkills={profile.skills || []} onSave={handleSaveSkills} />
-            <EditEducationModal isOpen={isEducationModalOpen} onClose={() => setIsEducationModalOpen(false)} educationData={currentEducation} onSave={handleSaveEducation} isEditing={isEducationEditing} />
-            <EditLanguageModal isOpen={isLanguageModalOpen} onClose={() => setIsLanguageModalOpen(false)} languageData={currentLanguage} onSave={handleSaveLanguage} isEditing={isLanguageEditing} />
+            <EditEducationModal isOpen={isEducationModalOpen} onClose={() => setIsEducationModalOpen(false)} educationData={currentEducation} onSave={handleSaveEducation} isEditing={isEducationEditing} onDelete={() => handleDeleteEducation(educationEditIndex)} />
+            <EditLanguageModal isOpen={isLanguageModalOpen} onClose={() => setIsLanguageModalOpen(false)} languageData={currentLanguage} onSave={handleSaveLanguage} isEditing={isLanguageEditing} onDelete={() => handleDeleteLanguage(languageEditIndex)} />
             <EditResumeModal isOpen={isResumeModalOpen} onClose={() => setIsResumeModalOpen(false)} onSave={handleSaveResume} currentResumeUrl={profile.resumeUrl} isEditing={isResumeEditing} />
             <DeleteConfirmationModal isOpen={showDeleteResumeModal} onClose={() => setShowDeleteResumeModal(false)} onConfirm={confirmDeleteResume} title="Are you sure you want to delete the resume?" />
             <DeleteConfirmationModal isOpen={showDeleteCoverModal} onClose={() => setShowDeleteCoverModal(false)} onConfirm={confirmDeleteCoverImage} title="Are you sure you want to delete the cover photo?" />
@@ -524,13 +644,25 @@ const Profile = () => {
                 isOpen={showDeleteSkillModal}
                 onClose={() => { setShowDeleteSkillModal(false); setSkillToDelete(null); }}
                 onConfirm={confirmDeleteDirectSkill}
-                title={`Are you sure you want to delete "${skillToDelete}"?`}
+                title={`Are you sure you want to delete "${skillToDelete?.name || skillToDelete || ""}"?`}
             />
             <DeleteConfirmationModal
                 isOpen={showDeleteEducationModal}
                 onClose={() => { setShowDeleteEducationModal(false); setEducationIndexToDelete(null); }}
                 onConfirm={confirmDeleteEducation}
                 title={educationIndexToDelete !== null && profile.education[educationIndexToDelete] ? `Are you sure you want to delete ${profile.education[educationIndexToDelete].degree}?` : "Are you sure you want to delete this education?"}
+            />
+            <DeleteConfirmationModal
+                isOpen={showDeleteExperienceModal}
+                onClose={() => { setShowDeleteExperienceModal(false); setExperienceIndexToDelete(null); }}
+                onConfirm={confirmDeleteExperience}
+                title={experienceIndexToDelete !== null && profile.workExperience[experienceIndexToDelete] ? `Are you sure you want to delete ${profile.workExperience[experienceIndexToDelete].jobTitle} at ${profile.workExperience[experienceIndexToDelete].company}?` : "Are you sure you want to delete this experience?"}
+            />
+            <DeleteConfirmationModal
+                isOpen={showDeleteLanguageModal}
+                onClose={() => { setShowDeleteLanguageModal(false); setLanguageIndexToDelete(null); }}
+                onConfirm={confirmDeleteLanguage}
+                title={languageIndexToDelete !== null && profile.languages[languageIndexToDelete] ? `Are you sure you want to delete the language ${profile.languages[languageIndexToDelete].name}?` : "Are you sure you want to delete this language?"}
             />
             <EditAdditionalDetailsModal isOpen={isAdditionalDetailsModalOpen} onClose={() => setIsAdditionalDetailsModalOpen(false)} details={profile} onSave={handleSaveAdditionalDetails} />
             <EditSocialLinksModal isOpen={isSocialModalOpen} onClose={() => setIsSocialModalOpen(false)} socialLinks={profile.socialLinks} onSave={handleSaveSocialLinks} />

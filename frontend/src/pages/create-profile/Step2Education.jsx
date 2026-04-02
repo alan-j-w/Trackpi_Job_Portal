@@ -71,19 +71,17 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
         return () => clearTimeout(timeoutId);
     }, [skillInput, formData.skills]);
 
-    const addSkill = (skill) => {
-        // Validate skill is not purely numeric or purely special characters
-        // It must contain at least one alphabet character
-        if (!/[a-zA-Z]/.test(skill)) {
+    const addSkill = (skillName) => {
+        if (!/[a-zA-Z]/.test(skillName)) {
             setSkillError("Skill must contain valid text.");
             return;
         }
 
         const currentSkills = Array.isArray(formData.skills) ? formData.skills : [];
-        if (!currentSkills.some(s => s.toLowerCase() === skill.toLowerCase())) {
+        if (!currentSkills.some(s => (s && typeof s === 'object' ? s.name : s || "").toLowerCase() === skillName.toLowerCase())) {
             setFormData(prev => ({
                 ...prev,
-                skills: [...currentSkills, skill]
+                skills: [...currentSkills, { name: skillName, isStarred: false }]
             }));
             setSkillInput("");
             setSkillError("");
@@ -105,7 +103,21 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
     const removeSkill = (skillToRemove) => {
         setFormData(prev => ({
             ...prev,
-            skills: (prev.skills || []).filter(s => s !== skillToRemove)
+            skills: (prev.skills || []).filter(s => 
+                (s && typeof s === 'object' ? s.name : s) !== (skillToRemove && typeof skillToRemove === 'object' ? skillToRemove.name : skillToRemove)
+            )
+        }));
+    };
+
+    const toggleSkillStar = (skillName) => {
+        setFormData(prev => ({
+            ...prev,
+            skills: (prev.skills || []).map(s => {
+                if (s && typeof s === 'object') {
+                    return s.name === skillName ? { ...s, isStarred: !s.isStarred } : s;
+                }
+                return s === skillName ? { name: s, isStarred: true } : s;
+            })
         }));
     };
 
@@ -562,18 +574,28 @@ const Step2Education = ({ formData, setFormData, handleChange, onNext, onBack })
                         <div className="flex flex-col gap-3">
                             {/* Create Tags for Selected Skills */}
                             <div className="flex flex-wrap gap-2">
-                                {(Array.isArray(formData.skills) ? formData.skills : []).map(skill => (
-                                    <div key={skill} className="bg-white border border-[#FFB300] text-sm px-3 py-1 rounded-full flex items-center gap-2 transform transition hover:scale-105">
-                                        <span className="text-yellow-600">⭐</span>
-                                        <span className="font-medium text-black">{skill}</span>
-                                        <button
-                                            onClick={() => removeSkill(skill)}
-                                            className="text-black/50 hover:text-red-500 font-bold ml-1 transition-colors"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                ))}
+                                {(Array.isArray(formData.skills) ? formData.skills : []).map((skill, idx) => {
+                                    const skillName = typeof skill === 'object' ? skill.name : skill;
+                                    const isStarred = typeof skill === 'object' ? !!skill.isStarred : false;
+                                    return (
+                                        <div key={idx} className="bg-white border border-[#FFB300] text-sm px-3 py-1 rounded-full flex items-center gap-2 transform transition hover:scale-105">
+                                            <span 
+                                                onClick={() => toggleSkillStar(skillName)}
+                                                className={`cursor-pointer transition-colors ${isStarred ? 'text-yellow-600' : 'text-gray-300 hover:text-yellow-400'}`}
+                                                title={isStarred ? "Unstar skill" : "Star skill"}
+                                            >
+                                                ⭐
+                                            </span>
+                                            <span className="font-medium text-black">{skillName}</span>
+                                            <button
+                                                onClick={() => removeSkill(skill)}
+                                                className="text-black/50 hover:text-red-500 font-bold ml-1 transition-colors"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             {/* Input Field */}

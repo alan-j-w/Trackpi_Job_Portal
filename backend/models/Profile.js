@@ -133,7 +133,10 @@ const profileSchema = new mongoose.Schema(
 
         // Legacy fields kept for safety, but Step 2 uses the above now
         jobTitle: { type: String, default: "" },
-        skills: { type: [String], default: [] },
+        skills: [{
+            name: { type: String, required: true },
+            isStarred: { type: Boolean, default: false }
+        }],
 
         // ================= ASSETS =================
         resumeUrl: {
@@ -176,7 +179,32 @@ const profileSchema = new mongoose.Schema(
             default: false
         }
     },
-    { timestamps: true }
+    { 
+        timestamps: true,
+        // Normalization is now handled by Profile schema transforms (toJSON/toObject)
+        toJSON: {
+            transform: function(doc, ret) {
+                if (ret.skills && Array.isArray(ret.skills)) {
+                    ret.skills = ret.skills.map(skill => {
+                        if (typeof skill === 'string') return { name: skill, isStarred: false };
+                        return skill;
+                    });
+                }
+                return ret;
+            }
+        },
+        toObject: {
+            transform: function(doc, ret) {
+                if (ret.skills && Array.isArray(ret.skills)) {
+                    ret.skills = ret.skills.map(skill => {
+                        if (typeof skill === 'string') return { name: skill, isStarred: false };
+                        return skill;
+                    });
+                }
+                return ret;
+            }
+        }
+    }
 );
 
 export default mongoose.model("Profile", profileSchema);
