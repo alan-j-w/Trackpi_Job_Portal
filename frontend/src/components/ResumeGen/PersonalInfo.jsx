@@ -7,6 +7,17 @@ const PersonalInfo = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        // Only allow alphabets and spaces for full name
+        if (name === 'fullName') {
+            if (value && !/^[A-Za-z\s]*$/.test(value)) return;
+        }
+
+        // Only allow numbers for phone
+        if (name === 'phone') {
+            if (value && !/^\d*$/.test(value)) return;
+        }
+
         updatePersonalInfo({ [name]: value });
     };
 
@@ -33,8 +44,6 @@ const PersonalInfo = () => {
                 <div className="flex border-b border-gray-300 focus-within:border-[#FFB300] transition items-center">
                     <select className="bg-transparent text-gray-600 outline-none py-2 text-sm cursor-pointer appearance-none pr-4 relative">
                         <option value="+91">+91 ▾</option>
-                        <option value="+1">+1 ▾</option>
-                        <option value="+44">+44 ▾</option>
                     </select>
                     <input
                         type="text"
