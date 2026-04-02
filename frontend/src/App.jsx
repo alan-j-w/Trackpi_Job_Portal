@@ -27,6 +27,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
 import FormManagement from "./pages/admin/FormManagement";
 import FormDetails from "./pages/admin/FormDetails";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 
 import ContactUs from "./pages/ContactUs";
@@ -164,6 +165,7 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
+          <Route path="settings" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SETTINGS_MANAGE}><AdminSettings /></ProtectedAdminRoute>} />
         </Route>
 
         {/* Catch all for main app if needed, or 404 */}

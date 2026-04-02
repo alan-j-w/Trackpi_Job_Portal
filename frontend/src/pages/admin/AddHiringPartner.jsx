@@ -140,6 +140,7 @@ const AddHiringPartner = () => {
                             </div>
                         )}
                     </div>
+                    <p className="mt-2 text-xs text-gray-500 font-medium">Recommended: 1:1 square ratio, max size 2MB (PNG or JPG).</p>
                 </div>
             </div>
 

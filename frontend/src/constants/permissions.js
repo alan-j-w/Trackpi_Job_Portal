@@ -85,5 +85,8 @@ export const PERMISSIONS = {
     WINNERS_VIEW: "previous_winners.view",
     WINNERS_ADD: "previous_winners.add",
     WINNERS_EDIT: "previous_winners.edit",
-    WINNERS_DELETE: "previous_winners.delete"
+    WINNERS_DELETE: "previous_winners.delete",
+
+    // System Settings
+    SETTINGS_MANAGE: "settings.manage"
 };
