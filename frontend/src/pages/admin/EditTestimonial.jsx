@@ -63,11 +63,54 @@ const EditTestimonial = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setFiles({ ...files, [e.target.name]: file });
-    setPreviews({
-      ...previews,
+    // Validate video if it's the video field
+    if (e.target.name === "video") {
+      // 1. Check file size (< 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error("Video size must be under 50MB");
+        e.target.value = ""; // Reset input
+        return;
+      }
+
+      // 2. Check resolution (1080p: 1920x1080)
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = function () {
+        window.URL.revokeObjectURL(this.src);
+        if (this.videoWidth !== 1920 || this.videoHeight !== 1080) {
+          toast.error("Video must be 1080p (1920x1080)");
+          e.target.value = ""; // Reset input
+          return;
+        }
+        // If resolution is correct, set the file
+        setFiles((prev) => ({ ...prev, [e.target.name]: file }));
+        setPreviews((prev) => ({
+          ...prev,
+          [e.target.name]: URL.createObjectURL(file)
+        }));
+      };
+      video.src = URL.createObjectURL(file);
+      return; // Handled in onloadedmetadata
+    }
+
+    // Validate image if it's an image field
+    if (e.target.name === "coverImage" || e.target.name === "thumbnailImage") {
+      const maxImgSize = 200 * 1024; // 200KB
+      if (file.size > maxImgSize) {
+        toast.error("Image size must be under 200KB", {
+          style: { background: "#ff4b4b", color: "#fff" }
+        });
+        e.target.value = ""; // Reset input
+        return;
+      }
+    }
+
+    setFiles((prev) => ({ ...prev, [e.target.name]: file }));
+    setPreviews((prev) => ({
+      ...prev,
       [e.target.name]: URL.createObjectURL(file)
-    });
+    }));
   };
 
   /* ================= SAVE ================= */
@@ -171,30 +214,39 @@ const EditTestimonial = () => {
         }}
       >
         <div className="flex gap-[15px] h-full">
-          <MediaBox
-            preview={previews.coverImage}
-            label="Upload cover image"
-            name="coverImage"
-            onChange={handleFileChange}
-            style={{ width: "208px", height: "189px" }}
-          />
+          <div className="flex flex-col gap-1">
+            <MediaBox
+              preview={previews.coverImage}
+              label="Upload cover image"
+              name="coverImage"
+              onChange={handleFileChange}
+              style={{ width: "208px", height: "189px" }}
+            />
+            <p className="text-[11px] text-red-500 text-center font-medium">Max 200KB</p>
+          </div>
 
-          <MediaBox
-            preview={previews.thumbnailImage}
-            label="Thumbnail cover image"
-            name="thumbnailImage"
-            onChange={handleFileChange}
-            style={{ width: "208px", height: "189px" }}
-          />
+          <div className="flex flex-col gap-1">
+            <MediaBox
+              preview={previews.thumbnailImage}
+              label="Thumbnail cover image"
+              name="thumbnailImage"
+              onChange={handleFileChange}
+              style={{ width: "208px", height: "189px" }}
+            />
+            <p className="text-[11px] text-red-500 text-center font-medium">Max 200KB</p>
+          </div>
 
-          <MediaBox
-            preview={previews.video}
-            label="Change video"
-            name="video"
-            onChange={handleFileChange}
-            isVideo
-            style={{ width: "496px", height: "189px" }}
-          />
+          <div className="flex flex-col gap-1">
+            <MediaBox
+              preview={previews.video}
+              label="Change video"
+              name="video"
+              onChange={handleFileChange}
+              isVideo
+              style={{ width: "496px", height: "189px" }}
+            />
+            <p className="text-[11px] text-red-500 font-medium text-center">1080p (1920x1080) • Max 50MB</p>
+          </div>
         </div>
       </div>
 
@@ -240,9 +292,9 @@ const MediaBox = ({ preview, label, name, onChange, isVideo, style }) => (
   <div className="relative rounded-[30px] overflow-hidden bg-[#2D2D2D] group" style={style}>
     {preview ? (
       isVideo ? (
-        <video src={preview} controls className="w-full h-full object-cover block" />
+        <video src={preview} controls className="w-full h-full object-contain block" />
       ) : (
-        <img src={preview} className="w-full h-full object-cover block" alt="Preview" />
+        <img src={preview} className="w-full h-full object-contain block" alt="Preview" />
       )
     ) : (
       <div className="w-full h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-700 rounded-[30px]">

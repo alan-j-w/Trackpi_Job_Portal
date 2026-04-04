@@ -27,11 +27,54 @@ const AddTestimonial = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setFiles({ ...files, [e.target.name]: file });
-    setPreviews({
-      ...previews,
+    // Validate video if it's the video field
+    if (e.target.name === "video") {
+      // 1. Check file size (< 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error("Video size must be under 50MB");
+        e.target.value = ""; // Reset input
+        return;
+      }
+
+      // 2. Check resolution (1080p: 1920x1080)
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = function () {
+        window.URL.revokeObjectURL(video.src);
+        if (video.videoWidth !== 1920 || video.videoHeight !== 1080) {
+          toast.error("Video must be 1080p (1920x1080)");
+          e.target.value = ""; // Reset input
+          return;
+        }
+        // If resolution is correct, set the file
+        setFiles((prev) => ({ ...prev, [e.target.name]: file }));
+        setPreviews((prev) => ({
+          ...prev,
+          [e.target.name]: URL.createObjectURL(file)
+        }));
+      };
+      video.src = URL.createObjectURL(file);
+      return; // Handled in onloadedmetadata
+    }
+
+    // Validate image if it's an image field
+    if (e.target.name === "coverImage" || e.target.name === "thumbnailImage") {
+      const maxImgSize = 200 * 1024; // 200KB
+      if (file.size > maxImgSize) {
+        toast.error("Image size must be under 200KB", {
+          style: { background: "#ff4b4b", color: "#fff" }
+        });
+        e.target.value = ""; // Reset input
+        return;
+      }
+    }
+
+    setFiles((prev) => ({ ...prev, [e.target.name]: file }));
+    setPreviews((prev) => ({
+      ...prev,
       [e.target.name]: URL.createObjectURL(file)
-    });
+    }));
   };
 
   /* ================= SAVE ================= */
@@ -82,7 +125,7 @@ const AddTestimonial = () => {
             className="border-b border-gray-200 py-1 w-full outline-none text-gray-800"
           />
         </div>
- 
+
         {/* JOB TITLE */}
         <div>
           <label className="block text-[13px] mb-1 pt-2 font-semibold text-gray-700">Job title</label>
@@ -95,7 +138,7 @@ const AddTestimonial = () => {
         </div>
       </div>
 
-      <div 
+      <div
         style={{
           width: "971.26px",
           height: "167px",
@@ -115,27 +158,36 @@ const AddTestimonial = () => {
 
       {/* MEDIA */}
       <div className="grid grid-cols-3 gap-6">
-        <MediaBox
-          preview={previews.coverImage}
-          label="Upload cover image"
-          name="coverImage"
-          onChange={handleFileChange}
-        />
+        <div className="flex flex-col gap-1">
+          <MediaBox
+            preview={previews.coverImage}
+            label="Upload cover image"
+            name="coverImage"
+            onChange={handleFileChange}
+          />
+          <p className="text-[11px] text-red-500 text-center font-medium">Max 200KB</p>
+        </div>
 
-        <MediaBox
-          preview={previews.thumbnailImage}
-          label="Thumbnail cover image"
-          name="thumbnailImage"
-          onChange={handleFileChange}
-        />
+        <div className="flex flex-col gap-1">
+          <MediaBox
+            preview={previews.thumbnailImage}
+            label="Thumbnail cover image"
+            name="thumbnailImage"
+            onChange={handleFileChange}
+          />
+          <p className="text-[11px] text-red-500 text-center font-medium">Max 200KB</p>
+        </div>
 
-        <MediaBox
-          preview={previews.video}
-          label="Upload video"
-          name="video"
-          onChange={handleFileChange}
-          isVideo
-        />
+        <div className="flex flex-col gap-1">
+          <MediaBox
+            preview={previews.video}
+            label="Upload video"
+            name="video"
+            onChange={handleFileChange}
+            isVideo
+          />
+          <p className="text-[11px] text-gray-500 text-center">1080p (1920x1080) • Max 50MB</p>
+        </div>
       </div>
 
       {/* FOOTER */}
@@ -158,7 +210,7 @@ const AddTestimonial = () => {
           >
             Save
           </button>
- 
+
           <button
             type="button"
             onClick={() => navigate("/admin/testimonials")}
@@ -177,23 +229,23 @@ const MediaBox = ({ preview, label, name, onChange, isVideo }) => (
   <div className="relative rounded-[30px] overflow-hidden w-full h-56 bg-[#2D2D2D] group">
     {preview ? (
       isVideo ? (
-        <video src={preview} controls className="w-full h-full object-cover block" />
+        <video src={preview} controls className="w-full h-full object-contain block" />
       ) : (
-        <img src={preview} className="w-full h-full object-cover block" alt="Preview" />
+        <img src={preview} className="w-full h-full object-contain block" alt="Preview" />
       )
     ) : (
       <div className="w-full h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-700 rounded-[30px]">
         No Media
       </div>
     )}
- 
+
     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
       <label className="cursor-pointer flex items-center gap-2 group-hover:scale-105 transition-transform">
         <span className="text-[#FFB300] font-normal text-[13px] font-lato">
           {label}
         </span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 16V4M12 4L8 8M12 4L16 8M4 20H20" stroke="#FFB300" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 16V4M12 4L8 8M12 4L16 8M4 20H20" stroke="#FFB300" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <input
           type="file"

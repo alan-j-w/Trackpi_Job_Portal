@@ -115,7 +115,10 @@ const testimonialStorage = pkg({
     },
 });
 
-export const uploadTestimonial = multer({ storage: testimonialStorage });
+export const uploadTestimonial = multer({ 
+    storage: testimonialStorage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
 
 // ─── Generic upload (memory) ──────────────────────────────────────────────────
 export const upload = multer({ storage: multer.memoryStorage() });

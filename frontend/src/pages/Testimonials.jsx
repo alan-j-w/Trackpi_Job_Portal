@@ -78,7 +78,7 @@ function TestimonialRow({
               {name}
             </h3>
             <span className="font-['Lato'] font-[600] text-[14px] leading-[1.6] text-black">
-               {jobTitle}
+              {jobTitle}
             </span>
           </div>
           <div className="font-['Lato'] font-[700] text-[14px] leading-[1.6] text-black max-w-[843px]">{about}</div>
@@ -164,7 +164,9 @@ export default function Testimonials() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-30 disabled:hover:border-gray-300 disabled:hover:text-gray-400 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full border 
+            border-gray-300 hover:border-yellow-500 hover:text-yellow-500 text-3xl 
+            font-bold disabled:opacity-30 disabled:hover:border-gray-300 disabled:hover:text-black transition-colors"
           >
             ‹
           </button>
@@ -186,7 +188,9 @@ export default function Testimonials() {
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-30 disabled:hover:border-gray-300 disabled:hover:text-gray-400 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:border-yellow-500
+             hover:text-yellow-500 text-3xl disabled:opacity-30 font-bold
+            disabled:hover:border-gray-300 disabled:hover:text-gray-400 transition-colors"
           >
             ›
           </button>

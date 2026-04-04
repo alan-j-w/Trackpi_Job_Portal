@@ -111,7 +111,7 @@ const AddHiringPartner = () => {
                 <div className="w-1/3">
                     <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-100 border border-gray-300 group">
                         {previews.logo ? (
-                            <img src={previews.logo} className="w-full h-full object-cover block" alt="Preview" />
+                            <img src={previews.logo} className="w-full h-full object-contain block" alt="Preview" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
                                 No Image
