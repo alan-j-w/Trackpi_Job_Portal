@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import config from "../../config";
+import { toast } from "react-hot-toast";
 
 const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
     const [skills, setSkills] = useState([]);
@@ -68,9 +69,18 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
     };
 
     const toggleStar = (index) => {
+        const isCurrentlyStarred = skills[index].isStarred;
+        const starredCount = skills.filter(s => s.isStarred).length;
+
+        if (!isCurrentlyStarred && starredCount >= 4) {
+            toast.error("Maximum 4 skills can be starred.");
+            return;
+        }
+
         const updated = [...skills];
-        updated[index] = { ...updated[index], isStarred: !updated[index].isStarred };
+        updated[index] = { ...updated[index], isStarred: !isCurrentlyStarred };
         setSkills(updated);
+        setError(null);
     };
 
     const handleSave = () => {
@@ -91,7 +101,7 @@ const EditSkillsModal = ({ isOpen, onClose, currentSkills, onSave }) => {
                 <h2 className="text-2xl font-bold mb-8 text-black">Manage Skills</h2>
 
                 <div className="mb-10">
-                    <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Click ★ to highlight on profile)</label>
+                    <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Select up to 4 to highlight on profile)</label>
                     <div className="flex flex-wrap gap-3 mb-4">
                         {skills.map((skill, idx) => (
                             <span key={idx} className="border border-[#FFB300] px-4 py-2 rounded-lg bg-white text-gray-800 text-sm font-bold flex items-center gap-2 shadow-sm transition-all">

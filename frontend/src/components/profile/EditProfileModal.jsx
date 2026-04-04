@@ -2,6 +2,7 @@ import SearchableDropdown, { CustomDatePicker } from "../../pages/create-profile
 import react, { useEffect, useState } from "react";
 import axios from "axios";
 import config from "../../config";
+import { toast } from "react-hot-toast";
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
     "Idukki", "Ernakulam", "Thrissur", "Palakkad", "Malappuram",
@@ -225,9 +226,18 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
     };
 
     const toggleSkillStar = (index) => {
+        const isCurrentlyStarred = formData.skills[index].isStarred;
+        const starredCount = formData.skills.filter(s => s.isStarred).length;
+
+        if (!isCurrentlyStarred && starredCount >= 4) {
+            toast.error("Maximum 4 skills can be starred.");
+            return;
+        }
+
         const updatedSkills = [...formData.skills];
-        updatedSkills[index] = { ...updatedSkills[index], isStarred: !updatedSkills[index].isStarred };
+        updatedSkills[index] = { ...updatedSkills[index], isStarred: !isCurrentlyStarred };
         setFormData(prev => ({ ...prev, skills: updatedSkills }));
+        setErrors(prev => { const n = { ...prev }; delete n.skillInput; return n; });
     };
 
     const removeSkill = (index) => {
@@ -261,6 +271,9 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
         if (Object.keys(allErrors).length > 0) {
             setErrors(allErrors);
+            const firstErrorField = Object.keys(allErrors)[0];
+            const errorMsg = allErrors[firstErrorField];
+            toast.error(`Please fix: ${errorMsg}`);
             return;
         }
 
@@ -333,7 +346,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
 
                     {/* Skills */}
                     <div>
-                        <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Click ★ to highlight on profile)</label>
+                        <label className="block text-sm font-bold text-black mb-3 text-gray-500">Skills (Select up to 4 to highlight on profile)</label>
                         <div className="flex flex-wrap gap-3 mb-2">
                             {formData.skills.map((skill, idx) => (
                                 <span key={idx} className="border border-[#FFB300] px-3 py-1.5 rounded-lg bg-white text-gray-700 text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
@@ -545,11 +558,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
                 <div className="flex justify-center gap-4 pt-4">
                     <button
                         onClick={handleSubmit}
-                        disabled={Object.keys(errors).length > 0}
-                        className={`font-bold py-3 px-12 rounded-lg shadow-md transition-all ${Object.keys(errors).length > 0
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black hover:shadow-lg hover:scale-105 transform"
-                            }`}
+                        className="font-bold py-3 px-12 rounded-lg shadow-md transition-all bg-gradient-to-b from-[#FFF5CC] to-[#FFB300] text-black hover:shadow-lg hover:scale-105 transform active:scale-95"
                     >
                         Submit
                     </button>

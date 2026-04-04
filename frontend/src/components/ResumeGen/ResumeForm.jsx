@@ -182,7 +182,20 @@ const ResumeForm = () => {
                 toast.error("Please enter a valid phone number.");
                 return;
             }
+        } else if (step === 2) {
+            // Validate Education
+            if (!resumeData.education || resumeData.education.length === 0) {
+                toast.error("Please add at least one education entry.");
+                return;
+            }
+        } else if (step === 4) {
+            // Validate Skills
+            if (!resumeData.skills || !resumeData.skills.hard || resumeData.skills.hard.length === 0) {
+                toast.error("Please add at least one hard skill.");
+                return;
+            }
         }
+        
         if (step < steps.length) setStep(step + 1);
     };
 
