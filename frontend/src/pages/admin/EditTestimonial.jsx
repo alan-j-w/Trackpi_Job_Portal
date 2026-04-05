@@ -192,6 +192,7 @@ const EditTestimonial = () => {
             name="coverImage"
             onChange={handleFileChange}
             style={{ width: "208px", height: "189px" }}
+            disclaimer="Recommended: 16:9 ratio, max 5MB (PNG, JPG)"
           />
 
           <MediaBox
@@ -200,6 +201,7 @@ const EditTestimonial = () => {
             name="thumbnailImage"
             onChange={handleFileChange}
             style={{ width: "207px", height: "189px" }}
+            disclaimer="Recommended: 1:1 square ratio, max 2MB (PNG, JPG)"
           />
 
           <MediaBox
@@ -209,6 +211,7 @@ const EditTestimonial = () => {
             onChange={handleFileChange}
             isVideo
             style={{ width: "496px", height: "189px" }}
+            disclaimer="Recommended: 16:9 ratio, max 50MB (MP4)"
           />
         </div>
       </div>
@@ -250,26 +253,29 @@ const EditTestimonial = () => {
 };
 
 /* ================= MEDIA BOX ================= */
-const MediaBox = ({ preview, label, name, onChange, isVideo, style }) => (
-  <div className="relative rounded-2xl overflow-hidden bg-gray-800" style={style}>
-    {preview &&
-      (isVideo ? (
-        <video src={preview} controls className="w-full h-full object-cover" />
-      ) : (
-        <img src={preview} className="w-full h-full object-cover" />
-      ))}
+const MediaBox = ({ preview, label, name, onChange, isVideo, style, disclaimer }) => (
+  <div style={{ ...style, display: "flex", flexDirection: "column" }}>
+    <div className="relative rounded-2xl overflow-hidden bg-gray-800" style={{ width: "100%", height: "100%", flexGrow: 1 }}>
+      {preview &&
+        (isVideo ? (
+          <video src={preview} controls className="w-full h-full object-cover" />
+        ) : (
+          <img src={preview} className="w-full h-full object-cover" />
+        ))}
 
-    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-      <label className="cursor-pointer text-yellow-400 font-medium flex items-center gap-2">
-        {label} ⬆
-        <input
-          type="file"
-          name={name}
-          onChange={onChange}
-          className="hidden"
-        />
-      </label>
+      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+        <label className="cursor-pointer text-yellow-400 font-medium flex items-center gap-2">
+          {label} ⬆
+          <input
+            type="file"
+            name={name}
+            onChange={onChange}
+            className="hidden"
+          />
+        </label>
+      </div>
     </div>
+    {disclaimer && <p className="mt-[6px] text-xs text-gray-500 font-medium text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{disclaimer}</p>}
   </div>
 );
 

@@ -103,6 +103,7 @@ const AddTestimonial = () => {
           label="Upload cover image"
           name="coverImage"
           onChange={handleFileChange}
+          disclaimer="Recommended: 16:9 ratio, max 5MB (PNG, JPG)"
         />
 
         <MediaBox
@@ -110,6 +111,7 @@ const AddTestimonial = () => {
           label="Thumbnail cover image"
           name="thumbnailImage"
           onChange={handleFileChange}
+          disclaimer="Recommended: 1:1 square ratio, max 2MB (PNG, JPG)"
         />
 
         <MediaBox
@@ -118,6 +120,7 @@ const AddTestimonial = () => {
           name="video"
           onChange={handleFileChange}
           isVideo
+          disclaimer="Recommended: 16:9 ratio, max 50MB (MP4)"
         />
       </div>
 
@@ -145,26 +148,29 @@ const AddTestimonial = () => {
 };
 
 /* ================= MEDIA BOX ================= */
-const MediaBox = ({ preview, label, name, onChange, isVideo }) => (
-  <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-800">
-    {preview &&
-      (isVideo ? (
-        <video src={preview} controls className="w-full h-full object-cover" />
-      ) : (
-        <img src={preview} className="w-full h-full object-cover" />
-      ))}
+const MediaBox = ({ preview, label, name, onChange, isVideo, disclaimer }) => (
+  <div className="w-full">
+    <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-800">
+      {preview &&
+        (isVideo ? (
+          <video src={preview} controls className="w-full h-full object-cover" />
+        ) : (
+          <img src={preview} className="w-full h-full object-cover" />
+        ))}
 
-    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-      <label className="cursor-pointer text-yellow-400 font-medium flex items-center gap-2">
-        {label} ⬆
-        <input
-          type="file"
-          name={name}
-          onChange={onChange}
-          className="hidden"
-        />
-      </label>
+      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+        <label className="cursor-pointer text-yellow-400 font-medium flex items-center gap-2">
+          {label} ⬆
+          <input
+            type="file"
+            name={name}
+            onChange={onChange}
+            className="hidden"
+          />
+        </label>
+      </div>
     </div>
+    {disclaimer && <p className="mt-2 text-xs text-gray-500 font-medium text-center">{disclaimer}</p>}
   </div>
 );
 

@@ -6,6 +6,7 @@ import { PERMISSIONS } from "../../constants/permissions";
 import { API_URL } from "../../config";
 import DeleteUserModal from "../../components/admin/DeleteUserModal";
 import Pagination from "../../components/admin/Pagination";
+import { calculateProfileStrength } from "../../utils/profileUtils";
 
 
 const Toggle = ({ checked, onChange, disabled }) => {
@@ -328,22 +329,6 @@ const AdminApplicants = () => {
     const PERM_VIEW_DETAILS = isSignupPage ? PERMISSIONS.SIGNUP_VIEW_DETAILS : PERMISSIONS.APPLICANTS_VIEW_DETAILS;
 
 
-    // Calculate profile completion percentage
-    const calculateProgress = (user, profile) => {
-        if (!profile) return 0;
-        const fields = [
-            profile.fullName,
-            profile.phone,
-            profile.email,
-            profile.location?.city,
-            profile.gender,
-            profile.resumeUrl,
-            profile.profileImage
-        ];
-        const filledFields = fields.filter(f => f && f.length > 0).length;
-        // Basic logic: 7 fields = 100%
-        return Math.round((filledFields / 7) * 100);
-    };
 
     // Reset pagination when filters or route change
     useEffect(() => {
@@ -388,7 +373,7 @@ const AdminApplicants = () => {
                     isChecked: user.isChecked,
                     applicationId: user.applicationId,
                     appliedAt: user.appliedAt || user.createdAt,
-                    progress: user.progress || calculateProgress(user, user.profile),
+                    progress: user.progress || (user.profile ? calculateProfileStrength(user.profile).strength : 0),
                     education: user.profile?.education || (user.education?.[0]?.degree) || "N/A",
                     experienceLevel: user.profile?.experienceLevel || (parseInt(user.experience) > 5 ? "senior" : parseInt(user.experience) > 3 ? "mid" : "entry")
                 }));

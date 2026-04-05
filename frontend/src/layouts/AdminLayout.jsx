@@ -19,6 +19,7 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronDown,
+    Settings,
 } from "lucide-react";
 import logo from "../assets/logo.png";
 import { PERMISSIONS } from "../constants/permissions";
@@ -65,9 +66,15 @@ const AdminLayout = () => {
 
     const menuItems = [
         { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_VIEW },
-        { name: "Jobs", path: "/admin/jobs", icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
+        {
+            name: "Jobs",
+            icon: Briefcase,
+            children: [
+                { name: "Job Posts", path: "/admin/jobs", icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
+                { name: "Job applicants", path: "/admin/candidates/applicants", icon: Users, permission: PERMISSIONS.APPLICANTS_VIEW },
+            ]
+        },
         { name: "Signup candidates", path: "/admin/candidates/signup", icon: UserPlus, permission: PERMISSIONS.SIGNUP_VIEW },
-        { name: "Job applicants", path: "/admin/candidates/applicants", icon: Users, permission: PERMISSIONS.APPLICANTS_VIEW },
         { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_VIEW },
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
@@ -81,6 +88,7 @@ const AdminLayout = () => {
             ]
         },
         { name: "Form management", path: "/admin/forms", icon: FileInput, permission: PERMISSIONS.FORMS_MANAGE },
+        { name: "System Settings", path: "/admin/settings", icon: Settings, permission: PERMISSIONS.SETTINGS_MANAGE },
         {
             name: "Talent League",
             icon: Trophy,
