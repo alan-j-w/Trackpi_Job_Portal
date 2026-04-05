@@ -37,6 +37,8 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
     const profileInputRef = React.useRef(null);
     const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
     const editMenuRef = useRef(null);
+    const [isProfilePicMenuOpen, setIsProfilePicMenuOpen] = useState(false);
+    const profilePicMenuRef = useRef(null);
 
     const profileUrl = `${window.location.origin}/u/${profile._id || profile.id}`;
 
@@ -57,15 +59,18 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
             if (editMenuRef.current && !editMenuRef.current.contains(event.target)) {
                 setIsEditMenuOpen(false);
             }
+            if (profilePicMenuRef.current && !profilePicMenuRef.current.contains(event.target)) {
+                setIsProfilePicMenuOpen(false);
+            }
         };
  
-        if (isEditMenuOpen) {
+        if (isEditMenuOpen || isProfilePicMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isEditMenuOpen]);
+    }, [isEditMenuOpen, isProfilePicMenuOpen]);
 
     return (
         <div className="relative pt-[64px]">
@@ -130,15 +135,7 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                                         >
                                             Edit cover image
                                         </button>
-                                        <button
-                                            onClick={() => {
-                                                profileInputRef.current?.click();
-                                                setIsEditMenuOpen(false);
-                                            }}
-                                            className="w-full bg-[#FFB300] hover:bg-[#ffaa00] text-white font-bold py-3 px-6 rounded-full transition-all shadow-md active:scale-95"
-                                        >
-                                            Edit profile image
-                                        </button>
+                                        {/* "Edit profile image" moved to profile picture on-click */}
                                     </div>
                                 </div>
                             )}
@@ -151,22 +148,77 @@ const ProfileHeader = ({ profile, onEdit, onCoverUpload, onProfileImageUpload, o
                 <div className="flex flex-col md:flex-row gap-8 relative -mt-[100px] mb-8">
 
                     {/* Profile Picture */}
-                    <div className="flex-shrink-0 relative group">
+                    <div className="flex-shrink-0 relative group" ref={profilePicMenuRef}>
                         <div
-                            className="w-[220px] h-[220px] rounded-full bg-white p-1 shadow-sm relative"
+                            className="w-[220px] h-[220px] rounded-full bg-white p-1 shadow-sm relative cursor-pointer"
+                            onClick={(e) => { e.stopPropagation(); setIsProfilePicMenuOpen(!isProfilePicMenuOpen); }}
                         >
                             <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden relative">
                                 {profile.profileImage ? (
-                                    <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                    <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover transition duration-300 group-hover:brightness-90" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
-                                        <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                    <div className="w-full h-full flex items-center justify-center bg-[#F1F1F1] text-[#1E1E1E] transition duration-300 group-hover:brightness-90">
+                                        <svg className="opacity-90" width="88" height="66" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <defs>
+                                                <mask id="profile-image-mask">
+                                                    <rect width="120" height="90" fill="white" />
+                                                    <circle cx="94" cy="28" r="10" fill="black" />
+                                                    <path d="M 54 78 L 86 44 L 112 78 Z" fill="black" />
+                                                    <path d="M 12 78 L 52 34 L 92 78 Z" fill="black" />
+                                                    <path d="M 52 34 L 92 78" stroke="white" strokeWidth="8" strokeLinecap="round" />
+                                                </mask>
+                                            </defs>
+                                            <rect width="120" height="90" rx="12" fill="currentColor" mask="url(#profile-image-mask)" />
                                         </svg>
                                     </div>
                                 )}
+                                
+                                {/* Overlay hover effect */}
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white pointer-events-none">
+                                    <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <span className="text-sm font-medium">Edit Photo</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Profile Picture Menu */}
+                        {isProfilePicMenuOpen && (
+                            <div className="absolute top-[230px] left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-xl rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.15)] p-4 min-w-[220px] z-50 animate-fadeIn border border-white/30">
+                                {/* Triangle Notch */}
+                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/80 backdrop-blur-xl rotate-45 border-l border-t border-white/30"></div>
+
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            profileInputRef.current?.click();
+                                            setIsProfilePicMenuOpen(false);
+                                        }}
+                                        className="w-full bg-[#FFB300] hover:bg-[#e6a200] text-white font-bold py-2.5 px-4 rounded-full transition-all shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                        Upload New
+                                    </button>
+                                    
+                                    {profile.profileImage && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if(onDeleteProfileImage) onDeleteProfileImage();
+                                                setIsProfilePicMenuOpen(false);
+                                            }}
+                                            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-full transition-all shadow-sm flex items-center justify-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            Delete
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Name & Basic Info */}
