@@ -23,8 +23,10 @@ export const CustomDatePicker = ({ value, onChange, onClose, minDate, maxDate })
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     const years = [];
-    const minYear = min ? min.getFullYear() : 1950;
-    const maxYear = max ? max.getFullYear() : new Date().getFullYear() + 10;
+    // Ensure we provide a wide range of years dynamically
+    const currentYear = new Date().getFullYear();
+    const minYear = min ? Math.min(min.getFullYear(), currentYear - 50) : currentYear - 50;
+    const maxYear = max ? Math.max(max.getFullYear(), currentYear + 10) : currentYear + 10;
 
     for (let i = maxYear; i >= minYear; i--) {
         years.push(i);
@@ -57,7 +59,13 @@ export const CustomDatePicker = ({ value, onChange, onClose, minDate, maxDate })
         const newDate = new Date(viewingYear, viewingMonth, day);
         if (min && newDate < min) return;
         if (max && newDate > max) return;
-        const formattedDate = newDate.toISOString().split('T')[0];
+        
+        // Fix timezone offset issue by formatting in local time
+        const yy = newDate.getFullYear();
+        const mm = String(newDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(newDate.getDate()).padStart(2, '0');
+        const formattedDate = `${yy}-${mm}-${dd}`;
+        
         onChange(formattedDate);
         onClose();
     };
