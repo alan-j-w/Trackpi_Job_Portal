@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Trophy, Calendar, Award, Users, CheckCircle, ArrowRight, X } from "lucide-react";
+import { Trophy, Calendar, Award, Users, CheckCircle, X } from "lucide-react";
 import toast from "react-hot-toast";
 import Footer from "../components/Footer";
 
@@ -112,7 +112,7 @@ const UiUxCompetition = () => {
                         </button>
                     </div>
                     <button className="flex items-center gap-2 text-white/80 font-medium hover:text-white transition group">
-                        Watch now <ArrowRight size={18} className="group-hover:translate-x-1 transition" />
+                        Watch now
                     </button>
                 </div>
             </section>

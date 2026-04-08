@@ -179,6 +179,16 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
+
+          {/* Talent League Pages */}
+          <Route path="competition" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_VIEW}><AdminCompetition /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AdminCompetitionTestimonials /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AddCompetitionTestimonial /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><EditCompetitionTestimonial /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><CompetitionTestimonialDetails /></ProtectedAdminRoute>} />
+          <Route path="competition/candidates" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_CANDIDATES_VIEW}><AdminCompetitionCandidates /></ProtectedAdminRoute>} />
+          <Route path="competition/videos" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIDEO_VIEW}><AdminVideos /></ProtectedAdminRoute>} />
+          <Route path="winners" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.WINNERS_VIEW}><AdminPreviousWinners /></ProtectedAdminRoute>} />
         </Route>
 
 
