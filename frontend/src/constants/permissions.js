@@ -92,7 +92,7 @@ export const PERMISSIONS = {
     TEAM_ADD: "team.add",
     TEAM_VIEW_DETAILS: "team.view_details",
     TEAM_EDIT: "team.edit",
-    TEAM_DELETE: "team.delete"
+    TEAM_DELETE: "team.delete",
     // System Settings
     SETTINGS_MANAGE: "settings.manage"
 };
