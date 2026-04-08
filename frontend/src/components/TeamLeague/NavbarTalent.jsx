@@ -15,7 +15,8 @@ const NavbarTalent = () => {
                         className="object-contain"
                         style={{
                             width: '68.29px',
-                            height: '40.17px'
+                            height: '40.17px',
+                            mixBlendMode: 'screen'
                         }}
                     />
                 </Link>

@@ -1,4 +1,4 @@
-﻿import "dotenv/config"; // Load env vars BEFORE other imports
+import "dotenv/config"; // Load env vars BEFORE other imports
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -21,6 +21,11 @@ import educationRoutes from "./routes/educationRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import hiringpartnersRoutes from "./routes/hiringpartnersRoutes.js";
+import competitionRoutes from "./routes/competitionRoutes.js";
+import competitionTestimonialsRoutes from "./routes/competitionTestimonialsRoutes.js";
+import videoRoutes from "./routes/videoRoutes.js";
+import competitionWinnerRoutes from "./routes/competitionWinnerRoutes.js";
+
 
 const app = express();
 
@@ -71,6 +76,11 @@ app.use("/api/skills", skillRoutes);
 app.use("/api/languages", languageRoutes);
 app.use("/api/education", educationRoutes);
 app.use("/api", hiringpartnersRoutes);
+app.use("/api/competitions", competitionRoutes);
+app.use("/api/competition-testimonials", competitionTestimonialsRoutes);
+app.use("/api/videos", videoRoutes);
+app.use("/api/competition-winners", competitionWinnerRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("≡ƒÜÇ Backend Running");

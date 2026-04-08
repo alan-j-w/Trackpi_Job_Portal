@@ -86,9 +86,9 @@ const AdminLayout = () => {
             icon: Trophy,
             children: [
                 { name: "Ad competition", path: "/admin/competition", icon: Megaphone, permission: PERMISSIONS.COMPETITION_VIEW },
-                { name: "Comp. Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW },
-                { name: "Comp. candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES_VIEW },
-                { name: "Video management", path: "/admin/videos", icon: Video, permission: PERMISSIONS.VIDEO_VIEW },
+                { name: "competition Testimonials", path: "/admin/competition/testimonials", icon: MessageSquare, permission: PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW },
+                { name: "competition candidates", path: "/admin/competition/candidates", icon: Trophy, permission: PERMISSIONS.COMPETITION_CANDIDATES_VIEW },
+                { name: "Video management", path: "/admin/competition/videos", icon: Video, permission: PERMISSIONS.VIDEO_VIEW },
                 { name: "Previous Winners", path: "/admin/winners", icon: Award, permission: PERMISSIONS.WINNERS_VIEW },
             ]
         },

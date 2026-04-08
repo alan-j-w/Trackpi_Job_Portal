@@ -64,6 +64,7 @@ const Navbar = ({ mode = "auto" }) => {
                             src={logo}
                             alt="TrackPi Logo"
                             className="h-12 w-auto object-contain"
+                            style={{ mixBlendMode: 'screen' }}
                         />
                     )}
                 </Link>

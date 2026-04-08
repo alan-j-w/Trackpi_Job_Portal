@@ -27,6 +27,17 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
 import FormManagement from "./pages/admin/FormManagement";
 import FormDetails from "./pages/admin/FormDetails";
+import AdminCompetition from "./pages/admin/AdminCompetition";
+import AdminCompetitionTestimonials from "./pages/admin/AdminCompetitionTestimonials";
+import AddCompetitionTestimonial from "./pages/admin/AddCompetitionTestimonial";
+import EditCompetitionTestimonial from "./pages/admin/EditCompetitionTestimonial";
+import CompetitionTestimonialDetails from "./pages/admin/CompetitionTestimonialDetails";
+import AdminVideos from "./pages/admin/AdminVideos";
+import AdminPreviousWinners from "./pages/admin/AdminPreviousWinners";
+import AdminCompetitionCandidates from "./pages/admin/AdminCompetitionCandidates";
+
+// Removed placeholder implementations
+
 
 
 import ContactUs from "./pages/ContactUs";
@@ -164,7 +175,18 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
+
+          {/* Talent League Routes */}
+          <Route path="competition" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_VIEW}><AdminCompetition /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AdminCompetitionTestimonials /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_ADD}><AddCompetitionTestimonial /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_EDIT}><EditCompetitionTestimonial /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW_DETAILS}><CompetitionTestimonialDetails /></ProtectedAdminRoute>} />
+          <Route path="competition/candidates" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_CANDIDATES_VIEW}><AdminCompetitionCandidates /></ProtectedAdminRoute>} />
+          <Route path="competition/videos" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIDEO_VIEW}><AdminVideos /></ProtectedAdminRoute>} />
+          <Route path="winners" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.WINNERS_VIEW}><AdminPreviousWinners /></ProtectedAdminRoute>} />
         </Route>
+
 
         {/* Catch all for main app if needed, or 404 */}
       </Routes>

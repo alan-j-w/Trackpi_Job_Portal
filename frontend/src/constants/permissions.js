@@ -69,11 +69,15 @@ export const PERMISSIONS = {
 
     // Competition Testimonials
     COMPETITION_TESTIMONIALS_VIEW: "competition_testimonials.view",
+    COMPETITION_TESTIMONIALS_ADD: "competition_testimonials.add",
+    COMPETITION_TESTIMONIALS_VIEW_DETAILS: "competition_testimonials.view_details",
     COMPETITION_TESTIMONIALS_EDIT: "competition_testimonials.edit",
     COMPETITION_TESTIMONIALS_DELETE: "competition_testimonials.delete",
 
     // Competition Candidates
     COMPETITION_CANDIDATES_VIEW: "competition_candidates.view",
+    COMPETITION_CANDIDATES_EDIT: "competition_candidates.edit",
+    COMPETITION_CANDIDATES_DELETE: "competition_candidates.delete",
 
     // Video Management
     VIDEO_VIEW: "video_management.view",
