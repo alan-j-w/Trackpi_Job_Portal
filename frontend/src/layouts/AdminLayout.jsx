@@ -26,6 +26,15 @@ import { PERMISSIONS } from "../constants/permissions";
 import { getUserRole, getDecodedToken } from "../utils/auth";
 
 const AdminLayout = () => {
+    // Add scrollbar-hide CSS
+    const scrollbarHideStyle = {
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': {
+            display: 'none'
+        }
+    };
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [openDropdowns, setOpenDropdowns] = useState({});
     const location = useLocation();
@@ -78,6 +87,7 @@ const AdminLayout = () => {
         { name: "Resume candidates", path: "/admin/candidates/resume", icon: FileText, permission: PERMISSIONS.RESUME_VIEW },
         { name: "Our hiring partners", path: "/admin/partners", icon: Handshake, permission: PERMISSIONS.PARTNERS_VIEW },
         { name: "Testimonials", path: "/admin/testimonials", icon: MessageSquare, permission: PERMISSIONS.TESTIMONIALS_VIEW },
+        { name: "Our team", path: "/admin/team", icon: Users, permission: PERMISSIONS.TEAM_VIEW },
         {
             name: "Role Management",
             icon: ShieldCheck,
@@ -103,11 +113,15 @@ const AdminLayout = () => {
     ];
 
     return (
-        <div className="flex h-screen bg-gray-100 font-sans">
+        <div className="flex h-screen bg-white font-sans">
             {/* Sidebar */}
             <aside
-                className={`${isSidebarOpen ? "w-64" : "w-20"
-                    } bg-white shadow-xl transition-all duration-300 flex flex-col fixed h-full z-20`}
+                className={`${isSidebarOpen ? "w-[326px]" : "w-20"
+                    } transition-all duration-300 flex flex-col fixed h-full z-20`}
+                style={{
+                    background: "linear-gradient(85.95deg, #FBFAF8 6.86%, #D9D9D9 80.11%)",
+                    border: "1px solid #827E7E"
+                }}
             >
                 {/* Toggle Button */}
                 <button
@@ -118,17 +132,30 @@ const AdminLayout = () => {
                 </button>
 
                 {/* Logo */}
-                <div className="h-20 flex items-center justify-center border-b border-gray-100">
+                <div className="h-20 flex items-center justify-center">
                     {isSidebarOpen ? (
-                        <img src={logo} alt="TrackPi" className="h-10" />
+                        <img src={logo} alt="TrackPi" className="h-10 mt-4" />
                     ) : (
-                        <span className="text-xl font-bold text-yellow-500">TP</span>
+                        <span className="text-xl font-bold text-yellow-500 mt-4">TP</span>
                     )}
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-                    <ul className="space-y-1 px-2">
+                <nav 
+                    className="flex-1 overflow-y-auto pt-[20px] pb-4"
+                    style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+                >
+                    <style>
+                        {`
+                          nav::-webkit-scrollbar {
+                            display: none;
+                          }
+                          main::-webkit-scrollbar {
+                            display: none;
+                          }
+                        `}
+                    </style>
+                    <ul className="space-y-[4px] px-0">
                         {menuItems.map((item, index) => {
                             // Filter Logic
                             if (role !== "superadmin" && role !== "admin") {
@@ -152,19 +179,19 @@ const AdminLayout = () => {
                                 const isOpen = openDropdowns[item.name];
 
                                 return (
-                                    <li key={index} className="space-y-1">
+                                    <li key={index} className="space-y-1 ml-[11px]">
                                         <button
                                             onClick={() => toggleDropdown(item.name)}
                                             className={`
-                                                w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200
+                                                w-[314px] h-[51px] flex items-center justify-between px-4 transition-all duration-200 rounded-[5px]
                                                 ${isActive || isOpen
-                                                    ? "bg-yellow-50 text-yellow-600"
-                                                    : "text-gray-600 hover:bg-yellow-50 hover:text-yellow-600"
+                                                    ? "bg-[#FFA500] text-white"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
                                                 }
                                             `}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <item.icon size={20} />
+                                                <item.icon size={20} className={isActive || isOpen ? "text-white" : "text-gray-500"} />
                                                 {isSidebarOpen && (
                                                     <span className="font-medium text-sm whitespace-nowrap">
                                                         {item.name}
@@ -172,7 +199,7 @@ const AdminLayout = () => {
                                                 )}
                                             </div>
                                             {isSidebarOpen && (
-                                                <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                                                <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${isActive || isOpen ? "text-white" : "text-gray-400"}`} />
                                             )}
                                         </button>
 
@@ -183,18 +210,18 @@ const AdminLayout = () => {
 
                                                     const isChildActive = location.pathname === child.path;
                                                     return (
-                                                        <li key={childIdx}>
+                                                        <li key={childIdx} className="mt-1">
                                                             <Link
                                                                 to={child.path}
                                                                 className={`
-                                                                    flex items-center gap-3 px-4 pl-11 py-2 rounded-lg transition-all duration-200
+                                                                    flex items-center gap-3 w-[314px] h-[40px] px-4 pl-11 transition-all duration-200 rounded-[5px]
                                                                     ${isChildActive
-                                                                        ? "bg-yellow-400 text-white shadow-md transform scale-105"
-                                                                        : "text-gray-500 hover:bg-yellow-50 hover:text-yellow-600"
+                                                                        ? "bg-[#FFA500] text-white shadow-md font-bold"
+                                                                        : "bg-white text-gray-600 hover:bg-gray-50 border-t border-gray-50"
                                                                     }
                                                                 `}
                                                             >
-                                                                <child.icon size={16} />
+                                                                <child.icon size={16} className={isChildActive ? "text-white" : "text-gray-400"} />
                                                                 <span className="font-medium text-sm whitespace-nowrap">
                                                                     {child.name}
                                                                 </span>
@@ -211,12 +238,12 @@ const AdminLayout = () => {
                             // Standard Nav Item
                             const isActive = location.pathname === item.path;
                             return (
-                                <li key={index}>
+                                <li key={index} className="ml-[11px]">
                                     <Link
                                         to={item.path}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive ? "bg-yellow-400 text-white shadow-md transform scale-105" : "text-gray-600 hover:bg-yellow-50 hover:text-yellow-600"}`}
+                                        className={`flex items-center gap-3 w-[314px] h-[51px] px-4 transition-all duration-200 rounded-[5px] ${isActive ? "bg-[#FFA500] text-white shadow-md font-bold" : "bg-white text-gray-700 hover:bg-gray-50 shadow-sm"}`}
                                     >
-                                        <item.icon size={20} />
+                                        <item.icon size={20} className={isActive ? "text-white" : "text-gray-500"} />
                                         {isSidebarOpen && (
                                             <span className="font-medium text-sm whitespace-nowrap">
                                                 {item.name}
@@ -229,13 +256,13 @@ const AdminLayout = () => {
                     </ul>
                 </nav>
 
-                {/* Logout */}
-                <div className="p-4 border-t border-gray-100">
+                <div className="p-4">
                     <button
                         onClick={handleLogout}
                         className={`
-              flex items-center gap-3 w-full px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition-all
-              ${!isSidebarOpen && "justify-center"}
+              flex items-center gap-2 w-[314px] h-[51px] px-6 transition-all rounded-[5px] ml-[11px]
+              ${!isSidebarOpen ? "justify-center" : "justify-start"}
+              text-[#FFA500] bg-white hover:bg-gray-50 shadow-sm
             `}
                     >
                         <LogOut size={20} />
@@ -251,8 +278,9 @@ const AdminLayout = () => {
 
             {/* Main Content */}
             <main
-                className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-20"
+                className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "ml-[326px]" : "ml-20"
                     } p-8 overflow-y-auto`}
+                style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
             >
                 <Outlet />
             </main>

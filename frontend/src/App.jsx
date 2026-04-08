@@ -41,6 +41,9 @@ import BrowseJobs from "./pages/BrowseJobs";
 import AddTestimonial from "./pages/admin/AddTestimonial";
 import TestimonialDetails from "./pages/admin/TestimonialDetails";
 import EditTestimonial from "./pages/admin/EditTestimonial";
+import AdminTeam from "./pages/admin/AdminTeam";
+import AddTeamMember from "./pages/admin/AddTeamMember";
+import EditTeamMember from "./pages/admin/EditTeamMember";
 /* Route Protection */
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -165,6 +168,12 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
+
+          {/* Team Management */}
+          <Route path="team" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><AdminTeam /></ProtectedAdminRoute>} />
+          <Route path="team/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_ADD}><AddTeamMember /></ProtectedAdminRoute>} />
+          <Route path="team/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_EDIT}><EditTeamMember /></ProtectedAdminRoute>} />
+
           <Route path="settings" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SETTINGS_MANAGE}><AdminSettings /></ProtectedAdminRoute>} />
         </Route>
 

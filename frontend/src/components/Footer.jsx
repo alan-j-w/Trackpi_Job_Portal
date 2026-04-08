@@ -148,10 +148,9 @@ const Footer = () => {
         </div>
       </footer>
 
-      {/* ---------------- FLOATING WHATSAPP BUTTON (RIGHT) — Landing & About only ---------------- */}
       {showWhatsapp && (
         <a
-          href="https://wa.me/919538610745"
+          href="https://chat.whatsapp.com/E4DcrDNZ3YQBpt8n01Fifv?mode=gi_t"
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-4 right-4 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 hover:shadow-xl transition-all duration-300 animate-bounce-slow"

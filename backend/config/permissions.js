@@ -87,8 +87,12 @@ const PERMISSIONS = {
     WINNERS_EDIT: "previous_winners.edit",
     WINNERS_DELETE: "previous_winners.delete",
 
-    // System Settings
-    SETTINGS_MANAGE: "settings.manage"
+    // Team
+    TEAM_VIEW: "team.view",
+    TEAM_ADD: "team.add",
+    TEAM_VIEW_DETAILS: "team.view_details",
+    TEAM_EDIT: "team.edit",
+    TEAM_DELETE: "team.delete"
 };
 
 export default PERMISSIONS;

@@ -40,55 +40,125 @@ const TestimonialDetails = () => {
 
   /* ================= UI ================= */
   return (
-    <div className="p-8 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Testimonials</h1>
+    <div
+      className="bg-white rounded-lg shadow-sm"
+      style={{
+        width: "1100px",
+        height: "715.9392700195312px",
+        position: "absolute",
+        top: "53px",
+        left: "247px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        padding: "32px 40px",
+        gap: "20px",
+        opacity: "1",
+        transform: "rotate(0deg)",
+        overflow: "hidden"
+      }}
+    >
+      <h1 className="text-3xl font-bold text-gray-900 leading-none">
+        Testimonials
+      </h1>
 
-      {/* NAME */}
-      <div className="mb-6">
-        <label className="block text-sm mb-1">Name</label>
-        <div className="border-b py-2">{testimonial.name}</div>
+      {/* NAME & JOB TITLE WRAPPER */}
+      <div
+        style={{
+          width: "971.2646484375px",
+          height: "145px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "33px",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        {/* NAME */}
+        <div>
+          <label className="block text-sm mb-1 font-medium">Name</label>
+          <div className="border-b py-2 w-full">{testimonial.name}</div>
+        </div>
+
+        {/* JOB TITLE */}
+        <div>
+          <label className="block text-sm mb-1 font-medium">Job title</label>
+          <div className="border-b py-2 w-full">{testimonial.jobTitle}</div>
+        </div>
       </div>
 
-      {/* JOB TITLE */}
-      <div className="mb-6">
-        <label className="block text-sm mb-1">Job title</label>
-        <div className="border-b py-2">{testimonial.jobTitle}</div>
-      </div>
-
-      {/* ABOUT */}
-      <div className="mb-8">
-        <label className="block text-sm mb-2">About your experience</label>
-        <div className="border rounded-lg p-4 text-gray-600">
+      {/* ABOUT WRAPPER */}
+      <div
+        style={{
+          width: "964px",
+          height: "150px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        <label className="text-sm pt-2 font-medium">About your experience</label>
+        <div
+          className="border p-4 w-full h-full text-gray-600 whitespace-pre-wrap overflow-y-auto"
+          style={{ borderRadius: "10px", borderWidth: "1px" }}
+        >
           {testimonial.about}
         </div>
       </div>
 
-      {/* MEDIA */}
-      <div className="grid grid-cols-3 gap-6">
-        <MediaBox
-          preview={testimonial.coverImage?.url}
-          label="Upload cover image"
-        />
+      {/* MEDIA WRAPPER */}
+      <div
+        style={{
+          width: "964px",
+          height: "189px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "30px",
+          opacity: "1",
+          transform: "rotate(0deg)"
+        }}
+      >
+        <div className="flex gap-[15px] h-full">
+          <MediaBox
+            preview={testimonial.coverImage?.url}
+            label="Cover image"
+            style={{ width: "208px", height: "189px" }}
+          />
 
-        <MediaBox
-          preview={testimonial.thumbnailImage?.url}
-          label="Thumbnail cover image"
-        />
+          <MediaBox
+            preview={testimonial.thumbnailImage?.url}
+            label="Thumbnail cover image"
+            style={{ width: "208px", height: "189px" }}
+          />
 
-        <MediaBox
-          preview={testimonial.video?.url}
-          label="Change video"
-          isVideo
-        />
+          <MediaBox
+            preview={testimonial.video?.url}
+            label="Video Testimonial"
+            isVideo
+            style={{ width: "496px", height: "189px" }}
+          />
+        </div>
       </div>
 
       {/* FOOTER */}
-      <div className="flex justify-end pt-8">
+      <div
+        className="flex items-center justify-between pt-4"
+        style={{ width: "964px" }}
+      >
         <button
-          onClick={() =>
-            navigate(`/admin/testimonials/edit/${testimonial._id}`)
-          }
-          className="bg-yellow-500 text-white px-8 py-3 rounded-lg font-medium"
+          type="button"
+          onClick={() => navigate("/admin/testimonials")}
+          className="text-orange-500 hover:text-black font-medium"
+        >
+          &larr; Back to list
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate(`/admin/testimonials/edit/${id}`)}
+          className="bg-yellow-500 text-white px-10 py-3 rounded-lg font-medium"
         >
           Edit
         </button>
@@ -98,24 +168,18 @@ const TestimonialDetails = () => {
 };
 
 /* ================= MEDIA BOX ================= */
-const MediaBox = ({ preview, label, isVideo }) => (
-  <div className="relative rounded-2xl overflow-hidden w-full h-56 bg-gray-800">
+const MediaBox = ({ preview, label, isVideo, style }) => (
+  <div
+    className="relative rounded-2xl overflow-hidden bg-gray-800"
+    style={style}
+  >
     {preview &&
       (isVideo ? (
-        <video
-          src={preview}
-          controls
-          className="w-full h-full object-cover"
-        />
+        <video src={preview} controls className="w-full h-full object-cover" />
       ) : (
-        <img
-          src={preview}
-          alt={label}
-          className="w-full h-full object-cover"
-        />
+        <img src={preview} alt={label} className="w-full h-full object-fill" />
       ))}
 
-    {/* OVERLAY TEXT */}
     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
       <span className="text-yellow-400 font-medium flex items-center gap-2">
         {label}

@@ -193,7 +193,7 @@ const AdminTestimonials = () => {
                     <td className="p-4 font-semibold text-gray-800">{t.name}</td>
                     <td className="p-4 text-gray-700 font-medium">{t.jobTitle}</td>
                     <td className="p-4 text-center">
-                      <div className="w-[100px] h-[40px] bg-gray-50 flex items-center justify-center rounded border border-gray-200 mx-auto">
+                      <div className="w-[100px] h-[40px] bg-gray-300 flex items-center justify-center rounded border border-gray-200 mx-auto">
                         <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow">
                           <Play className="w-4 h-4 fill-[#FFB300] text-[#FFB300] ml-0.5" />
                         </div>
