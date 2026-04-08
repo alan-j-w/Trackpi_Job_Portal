@@ -22,6 +22,7 @@ import contactRoutes from "./routes/contactRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import hiringpartnersRoutes from "./routes/hiringpartnersRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js";
 
 const app = express();
 
@@ -73,6 +74,7 @@ app.use("/api/languages", languageRoutes);
 app.use("/api/education", educationRoutes);
 app.use("/api", hiringpartnersRoutes);
 app.use("/api", teamRoutes);
+app.use("/api/settings", settingRoutes);
 
 app.get("/", (req, res) => {
   res.send("≡ƒÜÇ Backend Running");

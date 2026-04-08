@@ -152,7 +152,7 @@ const EditHiringPartner = () => {
                             </label>
                         </div>
                     </div>
-                    <p className="text-[12px] text-red-500 mt-2 font-medium text-center">Maximum file size: 500KB.</p>
+                    <p className="mt-2 text-xs text-gray-500 font-medium">Recommended: 1:1 square ratio, max size 2MB (PNG or JPG).</p>
                 </div>
             </div>
 

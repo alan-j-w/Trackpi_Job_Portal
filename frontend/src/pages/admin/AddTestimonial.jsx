@@ -255,6 +255,7 @@ const MediaBox = ({ preview, label, name, onChange, isVideo }) => (
         />
       </label>
     </div>
+    {disclaimer && <p className="mt-2 text-xs text-gray-500 font-medium text-center">{disclaimer}</p>}
   </div>
 );
 

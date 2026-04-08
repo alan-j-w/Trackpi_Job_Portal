@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import PERMISSIONS from "../config/permissions.js";
 import Otp from "../models/Otp.js";
+import Setting from "../models/Setting.js";
 
 const DEFAULT_REPAIR_PERMISSIONS = [
     PERMISSIONS.DASHBOARD_VIEW,
@@ -289,9 +290,15 @@ export const sendOtp = async (req, res) => {
         // Format phone number for WhatsApp API (remove + or any non-digits)
         const cleanPhone = phone.replace(/\D/g, '');
 
+        let webhookUrl = "https://bot.wabis.in/webhook/whatsapp-workflow/144262.154414.344372.1774953295";
+        const webhookSetting = await Setting.findOne({ key: "whatsapp_webhook_url" });
+        if (webhookSetting && webhookSetting.value) {
+            webhookUrl = webhookSetting.value;
+        }
+
         // 🔥 SEND WHATSAPP MESSAGE
         await axios.post(
-            "https://bot.wabis.in/webhook/whatsapp-workflow/144262.154414.344372.1774953295",
+            webhookUrl,
             {
                 number: cleanPhone,
                 otp: otp,

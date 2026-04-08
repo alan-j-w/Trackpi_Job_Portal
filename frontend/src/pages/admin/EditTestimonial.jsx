@@ -318,6 +318,7 @@ const MediaBox = ({ preview, label, name, onChange, isVideo, style }) => (
         />
       </label>
     </div>
+    {disclaimer && <p className="mt-[6px] text-xs text-gray-500 font-medium text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{disclaimer}</p>}
   </div>
 );
 

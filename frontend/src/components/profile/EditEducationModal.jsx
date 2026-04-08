@@ -213,13 +213,19 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
             finalUniversity = customUniversity;
         }
 
-        const submitErrors = { ...errors };
+        const submitErrors = {};
         if (!formData.degree) submitErrors.degree = "Please select an education level.";
+        
         if (!finalUniversity || !finalUniversity.trim()) submitErrors.institution = "University/Institute is required.";
+        else if (/^\d+$/.test(finalUniversity.trim()) || /^[^a-zA-Z0-9]+$/.test(finalUniversity.trim())) submitErrors.institution = "Institution name must contain valid text";
+        
         if (!finalCourse || !finalCourse.trim()) submitErrors.course = "Course is required.";
+        else if (/^\d+$/.test(finalCourse.trim()) || /^[^a-zA-Z0-9]+$/.test(finalCourse.trim())) submitErrors.course = "Course name must contain valid text";
+
         if (!formData.startYear) submitErrors.startYear = "Start year is required.";
+        
         if (!formData.endYear) submitErrors.endYear = "End year is required.";
-        if (formData.startYear && formData.endYear && parseInt(formData.endYear) < parseInt(formData.startYear)) {
+        else if (formData.startYear && formData.endYear && parseInt(formData.endYear) < parseInt(formData.startYear)) {
             submitErrors.endYear = "Ending year must be greater than or equal to the starting year.";
         }
 
@@ -571,6 +577,13 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                                         newData.endYear = year;
                                                     }
                                                     setFormData(newData);
+                                                    
+                                                    // Clear any UI errors
+                                                    const currentErrors = { ...errors };
+                                                    delete currentErrors.startYear;
+                                                    if (newData.endYear !== formData.endYear) delete currentErrors.endYear;
+                                                    setErrors(currentErrors);
+
                                                     setOpenDropdown(null);
                                                 }}
                                             >
@@ -607,6 +620,12 @@ const EditEducationModal = ({ isOpen, onClose, educationData, onSave, isEditing 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleChange({ target: { name: 'endYear', value: year } });
+                                                    
+                                                    // Clear error
+                                                    const currentErrors = { ...errors };
+                                                    delete currentErrors.endYear;
+                                                    setErrors(currentErrors);
+
                                                     setOpenDropdown(null);
                                                 }}
                                             >

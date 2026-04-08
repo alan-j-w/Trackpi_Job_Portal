@@ -128,6 +128,13 @@ const MODULES_CONFIG = [
             { label: "Edit", value: PERMISSIONS.WINNERS_EDIT },
             { label: "Delete", value: PERMISSIONS.WINNERS_DELETE },
         ]
+    },
+    {
+        label: "System Settings",
+        key: "system_settings",
+        permissions: [
+            { label: "View & Manage Settings", value: PERMISSIONS.SETTINGS_MANAGE, isView: true },
+        ]
     }
 ];
 
