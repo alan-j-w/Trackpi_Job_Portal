@@ -180,6 +180,15 @@ function App() {
             }
           />
 
+
+          {/* System Settings */}
+          <Route path="settings" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SETTINGS_MANAGE}><AdminSettings /></ProtectedAdminRoute>} />
+
+          {/* Our Team */}
+          <Route path="team" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><AdminTeam /></ProtectedAdminRoute>} />
+          <Route path="team/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><AddTeamMember /></ProtectedAdminRoute>} />
+          <Route path="team/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><EditTeamMember /></ProtectedAdminRoute>} />
+
           {/* Talent League Pages */}
           <Route path="competition" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_VIEW}><AdminCompetition /></ProtectedAdminRoute>} />
           <Route path="competition/testimonials" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AdminCompetitionTestimonials /></ProtectedAdminRoute>} />
