@@ -14,27 +14,23 @@ export const calculateProfileStrength = (profile) => {
     if (profile.dateOfBirth) strength += 5;
     if (profile.maritalStatus) strength += 5;
 
-    // 3. Professional Essentials (35%)
-    if (profile.jobTitle) strength += 5;
-    if (profile.summary && profile.summary.trim()) strength += 10;
+    // 3. Professional Essentials (30%)
+    if (profile.jobTitle && profile.jobTitle.trim() !== "") strength += 5;
+    if (profile.summary && profile.summary.trim() !== "") strength += 10;
     if (profile.skills && profile.skills.length > 0) strength += 10;
     if (profile.languages && profile.languages.length > 0) strength += 5;
 
-    // Expected Salary (Step 3) - Only add if numeric and exists
-    const rawSalary = profile.expectedSalary ? String(profile.expectedSalary).replace(/[,₹\s]/g, '') : "";
-    if (rawSalary && /^\d+$/.test(rawSalary)) strength += 5;
-
-    // 4. History (20%)
+    // 4. History (25%)
     if (profile.education && profile.education.length > 0) strength += 10;
-    if (profile.workExperience && profile.workExperience.length > 0) strength += 10;
+    if (profile.workExperience && profile.workExperience.length > 0) strength += 15; // Increased weight
 
     // 5. Assets & Social (20%)
-    if (profile.profileImage) strength += 5;
-    if (profile.resume || profile.resumeUrl) strength += 10;
+    if (profile.profileImage && profile.profileImage.trim() !== "" && profile.profileImage !== "null") strength += 10;
+    if (profile.resumeUrl && profile.resumeUrl.trim() !== "" && profile.resumeUrl !== "null") strength += 5; // Reduced to 5 as requested
 
     // Social Links (Check if any exist and are valid)
     const hasValidSocial = profile.socialLinks && Object.values(profile.socialLinks).some(link =>
-        link && link.trim() !== "" && urlPattern.test(link.trim())
+        link && typeof link === 'string' && link.trim() !== "" && link !== "null" && urlPattern.test(link.trim())
     );
     if (hasValidSocial) strength += 5;
 

@@ -21,11 +21,6 @@ import educationRoutes from "./routes/educationRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import hiringpartnersRoutes from "./routes/hiringpartnersRoutes.js";
-import competitionRoutes from "./routes/competitionRoutes.js";
-import competitionTestimonialsRoutes from "./routes/competitionTestimonialsRoutes.js";
-import videoRoutes from "./routes/videoRoutes.js";
-import competitionWinnerRoutes from "./routes/competitionWinnerRoutes.js";
-
 
 const app = express();
 
@@ -76,6 +71,8 @@ app.use("/api/skills", skillRoutes);
 app.use("/api/languages", languageRoutes);
 app.use("/api/education", educationRoutes);
 app.use("/api", hiringpartnersRoutes);
+app.use("/api", teamRoutes);
+app.use("/api/settings", settingRoutes);
 app.use("/api/competitions", competitionRoutes);
 app.use("/api/competition-testimonials", competitionTestimonialsRoutes);
 app.use("/api/videos", videoRoutes);

@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { CustomDatePicker } from '../../pages/create-profile/components/SearchableDropdown';
 
 
-/* ─── Validation helpers ─── */
+const formatToMMMYYYY = (dateStr) => {
+    if (!dateStr || dateStr.toLowerCase() === 'present') return dateStr;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[d.getMonth()]} ${d.getFullYear()}`;
+};
+
 const DATE_REGEX = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}$/i;
 
 const validateField = (field, value, exp) => {
@@ -21,6 +28,7 @@ const validateField = (field, value, exp) => {
         case 'startDate':
             if (!value.trim()) return 'Start date is required';
             if (!DATE_REGEX.test(value.trim())) return 'Use format: MMM YYYY (e.g. Jan 2022)';
+            if (new Date(value.trim()) > new Date()) return 'Start date cannot be in the future';
             return '';
 
         case 'endDate': {
@@ -184,7 +192,7 @@ const BulkEditExperienceModal = ({ isOpen, onClose, initialExperiences, onSave, 
                                             value={exp.jobTitle}
                                             onChange={(e) => handleChange(index, 'jobTitle', e.target.value)}
                                             className={inputCls(err.jobTitle)}
-                                            placeholder="Ex: Full Stack Developer"
+                                            placeholder="Ex: Sales Manager"
                                         />
                                         {err.jobTitle && (
                                             <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -202,7 +210,7 @@ const BulkEditExperienceModal = ({ isOpen, onClose, initialExperiences, onSave, 
                                             value={exp.company}
                                             onChange={(e) => handleChange(index, 'company', e.target.value)}
                                             className={inputCls(err.company)}
-                                            placeholder="Ex: Microsoft"
+                                            placeholder="Ex: trackpi private limited"
                                         />
                                         {err.company && (
                                             <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -237,7 +245,7 @@ const BulkEditExperienceModal = ({ isOpen, onClose, initialExperiences, onSave, 
                                             onClick={() => setShowPicker({ index, field: 'startDate' })}
                                         >
                                             <span className={exp.startDate ? 'text-black' : 'text-gray-400'}>
-                                                {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-GB') : "Select Date"}
+                                                {exp.startDate ? exp.startDate : "Select Date"}
                                             </span>
                                             <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -252,7 +260,7 @@ const BulkEditExperienceModal = ({ isOpen, onClose, initialExperiences, onSave, 
                                                     return d.toISOString().split('T')[0];
                                                 })() : "1900-01-01"}
                                                 maxDate={getTodayStr()}
-                                                onChange={(val) => handleChange(index, 'startDate', val)}
+                                                onChange={(val) => handleChange(index, 'startDate', formatToMMMYYYY(val))}
                                                 onClose={() => setShowPicker({ index: null, field: null })}
                                             />
                                         )}
@@ -272,7 +280,7 @@ const BulkEditExperienceModal = ({ isOpen, onClose, initialExperiences, onSave, 
                                             onClick={() => setShowPicker({ index, field: 'endDate' })}
                                         >
                                             <span className={exp.endDate && exp.endDate !== 'Present' ? 'text-black' : 'text-gray-400'}>
-                                                {exp.endDate && exp.endDate !== 'Present' ? new Date(exp.endDate).toLocaleDateString('en-GB') : (exp.endDate === 'Present' ? 'Present' : "Select Date")}
+                                                {exp.endDate && exp.endDate !== 'Present' ? exp.endDate : (exp.endDate === 'Present' ? 'Present' : "Select Date")}
                                             </span>
                                             <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -282,8 +290,7 @@ const BulkEditExperienceModal = ({ isOpen, onClose, initialExperiences, onSave, 
                                             <CustomDatePicker
                                                 value={exp.endDate === 'Present' ? '' : exp.endDate}
                                                 minDate={exp.startDate}
-                                                maxDate={getTodayStr()}
-                                                onChange={(val) => handleChange(index, 'endDate', val)}
+                                                onChange={(val) => handleChange(index, 'endDate', formatToMMMYYYY(val))}
                                                 onClose={() => setShowPicker({ index: null, field: null })}
                                             />
                                         )}

@@ -1,7 +1,7 @@
 import peopleImg from "../../assets/about images/people.png";
 
 const OurPeople = () => {
-  const whatsappUrl = "https://wa.me/91XXXXXXXXXX?text=Hi%20Trackpi,%20I%20am%20interested%20in%20joining%20the%20team.";
+  const whatsappUrl = "https://chat.whatsapp.com/E4DcrDNZ3YQBpt8n01Fifv?mode=gi_t";
   return (
     <section className="max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-12 items-center">
       <img

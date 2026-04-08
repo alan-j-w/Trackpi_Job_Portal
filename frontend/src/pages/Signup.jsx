@@ -87,7 +87,7 @@ const Signup = () => {
 
                     {/* GOOGLE */}
                     <button
-                        onClick={handleGoogleSignup}
+                        onClick={() => handleGoogleSignup()}
                         className="w-full py-2 flex justify-center gap-3 font-semibold"
                     >
                         <img

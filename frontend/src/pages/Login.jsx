@@ -114,7 +114,7 @@ const Login = () => {
 
                     {/* GOOGLE */}
                     <button
-                        onClick={handleGoogleLogin}
+                        onClick={() => handleGoogleLogin()}
                         disabled={loading}
                         className="w-full py-2 flex justify-center gap-3 font-semibold disabled:opacity-50"
                     >

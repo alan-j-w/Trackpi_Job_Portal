@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import { CustomDatePicker } from "../../pages/create-profile/components/SearchableDropdown";
 
 
-const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditing, dob }) => {
+const formatToMMMYYYY = (dateStr) => {
+    if (!dateStr || dateStr.toLowerCase() === 'present') return dateStr;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[d.getMonth()]} ${d.getFullYear()}`;
+};
+
+const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditing, dob, onDelete }) => {
     const [formData, setFormData] = useState({
         jobTitle: "",
         employmentType: "",
@@ -84,12 +92,13 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
         }
         if (name === 'startDate') {
             if (!value) newErrors.startDate = "Start date is required";
+            else if (new Date(value) > new Date()) newErrors.startDate = "Start date cannot be in the future";
             else delete newErrors.startDate;
         }
         if (name === 'endDate') {
             const data = currentData || formData;
             if (!data.currentlyWorking && !value) newErrors.endDate = "End date is required";
-            else if (value && data.startDate && value < data.startDate) newErrors.endDate = "End date must be after start date";
+            else if (value && data.startDate && new Date(value) < new Date(data.startDate)) newErrors.endDate = "End date must be after start date";
             else delete newErrors.endDate;
         }
         if (name === 'description') {
@@ -117,7 +126,7 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
         if (formData.company.trim() && /^[^a-zA-Z0-9]+$/.test(formData.company.trim())) currentErrors.company = "Company name must contain valid text";
         if (!formData.startDate) currentErrors.startDate = "Start date is required";
         if (!formData.currentlyWorking && (!formData.endDate || formData.endDate === '')) currentErrors.endDate = "End date is required";
-        if (!formData.currentlyWorking && formData.endDate && formData.startDate && formData.endDate < formData.startDate) currentErrors.endDate = "End date must be after start date";
+        if (!formData.currentlyWorking && formData.endDate && formData.startDate && new Date(formData.endDate) < new Date(formData.startDate)) currentErrors.endDate = "End date must be after start date";
         if (formData.description && formData.description.length > 500) currentErrors.description = "Description must be under 500 characters";
 
         const allErrors = { ...errors, ...currentErrors };
@@ -247,7 +256,7 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                                 className={`w-full border rounded-full px-4 py-2 bg-[#F9F9F9] cursor-pointer flex items-center justify-between ${errors.startDate ? 'border-red-400' : 'border-gray-400'}`}
                                 onClick={() => setShowStartPicker(true)}
                             >
-                                <span className="text-sm text-black">{formData.startDate ? new Date(formData.startDate).toLocaleDateString('en-GB') : "Select Date"}</span>
+                                <span className="text-sm text-black">{formData.startDate ? formData.startDate : "Select Date"}</span>
                                 <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -258,8 +267,9 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                                     minDate={getExpStartMin()}
                                     maxDate={getTodayStr()}
                                     onChange={(val) => {
-                                        setFormData(prev => ({ ...prev, startDate: val }));
-                                        setErrors(validateField("startDate", val));
+                                        const formatted = formatToMMMYYYY(val);
+                                        setFormData(prev => ({ ...prev, startDate: formatted }));
+                                        setErrors(validateField("startDate", formatted));
                                     }}
                                     onClose={() => setShowStartPicker(false)}
                                 />
@@ -278,7 +288,7 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                                         className={`w-full border rounded-full px-4 py-2 bg-[#F9F9F9] cursor-pointer flex items-center justify-between ${errors.endDate ? 'border-red-400' : 'border-gray-400'}`}
                                         onClick={() => setShowEndPicker(true)}
                                     >
-                                        <span className="text-sm text-black">{formData.endDate && formData.endDate !== 'Present' ? (formData.endDate.includes('-') ? new Date(formData.endDate).toLocaleDateString('en-GB') : formData.endDate) : "Select Date"}</span>
+                                        <span className="text-sm text-black">{formData.endDate && formData.endDate !== 'Present' ? formData.endDate : "Select Date"}</span>
                                         <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -287,10 +297,10 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                                         <CustomDatePicker
                                             value={formData.endDate === 'Present' ? '' : formData.endDate}
                                             minDate={formData.startDate}
-                                            maxDate={getTodayStr()}
                                             onChange={(val) => {
-                                                setFormData(prev => ({ ...prev, endDate: val }));
-                                                setErrors(validateField("endDate", val));
+                                                const formatted = formatToMMMYYYY(val);
+                                                setFormData(prev => ({ ...prev, endDate: formatted }));
+                                                setErrors(validateField("endDate", formatted));
                                             }}
                                             onClose={() => setShowEndPicker(false)}
                                         />
@@ -318,7 +328,7 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-center gap-6 pt-8">
+                    <div className="flex justify-center items-center gap-6 pt-8 relative">
                         <button
                             onClick={handleSubmit}
                             className="bg-gradient-to-b from-[#FFE587] to-[#FFB300] text-black font-bold py-2.5 px-12 rounded-lg shadow-sm hover:shadow-md transition w-40 border border-[#FFB300]/50"
@@ -331,6 +341,17 @@ const EditExperienceModal = ({ isOpen, onClose, experienceData, onSave, isEditin
                         >
                             Cancel
                         </button>
+                        {isEditing && onDelete && (
+                            <button
+                                onClick={onDelete}
+                                className="absolute right-0 text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                                title="Delete experience"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
 
                 </div>

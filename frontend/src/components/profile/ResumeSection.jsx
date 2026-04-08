@@ -19,15 +19,57 @@ const DownloadIcon = ({ className }) => (
     </svg>
 );
 
+const getDownloadUrl = (url) => {
+    if (!url) return '';
+    try {
+        if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+            let filename = decodeURIComponent(url.split('/').pop());
+            if (!filename.toLowerCase().endsWith('.pdf')) {
+                filename += '.pdf';
+            }
+            return url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(filename)}/`);
+        }
+    } catch(e) {
+        // Fallback
+    }
+    return url;
+};
+
 const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, readOnly = false }) => {
     const navigate = useNavigate();
 
-    const handleATSClick = () => {
-        if (readOnly) return;
-        navigate("/resume-gen");
+    const handleDownload = async (e) => {
+        e.preventDefault();
+        try {
+            // Attempt to fetch and create a blob to force explicit local download with the correct extension
+            const response = await fetch(resumeUrl);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            let filename = decodeURIComponent(resumeUrl.split('/').pop());
+            if (!filename.toLowerCase().endsWith('.pdf')) {
+                filename += '.pdf';
+            }
+            
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
+        } catch (err) {
+            // Fallback to opening in new tab if CORS prevents fetching
+            window.open(resumeUrl, '_blank');
+        }
     };
 
-    const isATSUnlocked = resumeUrl && isGlobalComplete;
+    const handleATSClick = () => {
+        if (readOnly) return;
+        navigate("/resume-gen", { state: { from: "/profile" } });
+    };
 
     return (
         <div className="pt-5 pb-0">
@@ -36,7 +78,7 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, r
                 <div className="flex gap-4 items-center">
                     {/* Import/Download Icon */}
                     {resumeUrl && (
-                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition" title="Download Resume" download>
+                        <a href="#" onClick={handleDownload} className="text-black hover:text-gray-600 transition" title="Download Resume">
                             <DownloadIcon className="w-[18px] h-[18px]" />
                         </a>
                     )}
@@ -60,7 +102,7 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, r
                             </div>
                             <div className="flex-1 overflow-hidden">
                                 <p className="text-sm font-medium text-gray-900 truncate" title={resumeUrl.split('/').pop()}>{decodeURIComponent(resumeUrl.split('/').pop())}</p>
-                                <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FFB300] hover:underline" download>Download Resume</a>
+                                <a href="#" onClick={handleDownload} className="text-xs text-[#FFB300] hover:underline">Download Resume</a>
                             </div>
                         </>
                     ) : (
@@ -85,7 +127,6 @@ const ResumeSection = ({ resumeUrl, onAdd, onEdit, onDelete, isGlobalComplete, r
                     className={`mt-4 font-bold text-sm shadow-sm flex items-center justify-center text-black hover:shadow-md transition`}
                 >
                     Create ATS friendly CV
-                    {!isATSUnlocked && <span className="ml-2 text-xs opacity-75">🔒</span>}
                 </button>
             )}
         </div>

@@ -6,9 +6,14 @@ const LoginRequiredModal = ({ onClose }) => {
     const navigate = useNavigate();
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-backgroundFade"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}
+        >
             {/* Modal Container */}
-            <div className="relative bg-gradient-to-tr from-[#FFF5D1] via-white via-40% to-white rounded-[35px] w-[460px] p-8 pb-10 shadow-2xl text-center flex flex-col items-center animate-fadeIn overflow-hidden">
+            <div className="relative bg-gradient-to-tr from-[#FFF5D1] via-white via-40% to-white rounded-[35px] w-[460px] p-8 pb-10 shadow-2xl text-center flex flex-col items-center animate-fadeIn overflow-hidden border border-gray-200">
 
                 {/* Close Button */}
                 <button

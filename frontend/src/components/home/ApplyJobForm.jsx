@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { applyForJob } from "../../jobService";
 import trackpiLogo from "../../assets/badges/trackpi-striped.png";
@@ -68,6 +68,13 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
     const [fileError, setFileError] = useState(null);
+    const formRef = useRef(null);
+
+    useEffect(() => {
+        if (error && formRef.current) {
+            formRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, [error]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -134,23 +141,39 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
 
-        if (Object.keys(errors).length > 0) return;
-
+        // Instead of merging, we validate everything fresh
         const currentErrors = {};
-        if (!formData.name.trim()) currentErrors.name = "Name is required";
-        if (!formData.email.trim()) currentErrors.email = "Email is required";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) currentErrors.email = "Please enter a valid email address";
-        if (!formData.phone.trim()) currentErrors.phone = "Phone number is required";
-        else if (formData.phone.length < 5) currentErrors.phone = "Please enter a valid phone number";
+        if (!formData.name.trim()) {
+            currentErrors.name = "Name is required";
+        } else if (!/^[A-Za-z\s]*$/.test(formData.name)) {
+            currentErrors.name = "Name should contain only alphabets";
+        }
+
+        if (!formData.email.trim()) {
+            currentErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            currentErrors.email = "Please enter a valid email address";
+        }
+
+        if (!formData.phone.trim()) {
+            currentErrors.phone = "Phone number is required";
+        } else if (!/^\d*$/.test(formData.phone)) {
+            currentErrors.phone = "Phone number must contain only digits";
+        } else if (formData.phone.length < 5) {
+            currentErrors.phone = "Please enter a valid phone number";
+        }
 
         if (Object.keys(currentErrors).length > 0) {
-            setErrors({ ...errors, ...currentErrors });
+            setErrors(currentErrors);
+            const fieldNames = { name: "Full Name", email: "Email Address", phone: "Phone Number" };
+            const errorFields = Object.keys(currentErrors).map(key => fieldNames[key]).join(', ');
+            setError(`Please provide valid data for: ${errorFields}`);
             return;
         }
 
         setLoading(true);
-        setError(null);
         setMessage(null);
 
         if (!resume && !useProfileResume) {
@@ -219,83 +242,95 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
     }
 
     return (
+        // Wrap everything in the modal overlay inside the component
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-backgroundFade"
+            onClick={(e) => {
+                e.stopPropagation();
+                if (e.target === e.currentTarget) onCancel();
+            }}
+        >
+            <div
+                className="bg-white rounded-[18px] shadow-2xl border-[0.5px] border-[#FFB300] w-full max-w-[957px] h-[95vh] md:h-full max-h-[743px] overflow-hidden flex flex-col relative animate-fadeIn font-lato text-black p-10 pt-6"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Decorative Spheres */}
+                <div className="absolute -top-10 -right-10 w-[200px] h-[200px] bg-gradient-to-br from-white via-gray-100 to-gray-300 rounded-full shadow-[inset_-10px_-10px_20px_rgba(0,0,0,0.1),10px_10px_20px_rgba(0,0,0,0.1)] z-0 pointer-events-none opacity-80"></div>
+                <div className="absolute -bottom-10 -left-10 w-[150px] h-[150px] bg-gradient-to-tr from-white via-gray-100 to-gray-300 rounded-full shadow-[inset_-10px_-10px_20px_rgba(0,0,0,0.1),10px_10px_20px_rgba(0,0,0,0.1)] z-0 pointer-events-none opacity-80"></div>
 
-        <div className="h-full flex flex-col animate-slideUp relative">
-            {/* Close Button (Top Right) - mimicking the 'white circle' or just a clean close */}
-            <div className="absolute -top-2 -right-2 z-20">
-                <button
-                    onClick={onCancel}
-                    className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all backdrop-blur-sm"
-                >
-                    <i className="ri-close-line text-xl text-gray-500 hover:text-black"></i>
-                </button>
-            </div>
-
-            {/* Custom Header for Form */}
-            <div className="flex items-center justify-center gap-3 mb-5 pt-4">
-                <img src={trackpiLogo} alt="Logo" className="w-14 object-contain" />
-                <div className="flex flex-col items-start leading-tight">
-                    <h2 className="text-sm font-bold text-black">TrackPi Private Limited</h2>
-                    <p className="text-gray-500 text-[10px]">{job?.location || "Kochi, Kerala"}</p>
-                    <h3 className="text-black font-bold text-[11px]">{job?.title || "UI/UX Designer"}</h3>
+                {/* Close Button */}
+                <div className="absolute top-4 right-4 z-20">
+                    <button
+                        onClick={onCancel}
+                        className="w-10 h-10 flex items-center justify-center text-2xl font-bold hover:scale-110 transition-transform"
+                    >
+                        ✕
+                    </button>
                 </div>
-            </div>
 
-            <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto px-6 pb-4 space-y-3 relative z-10 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {error && (
-                    <div className="bg-red-50 text-red-600 p-2 rounded-lg text-xs border border-red-100 flex items-center gap-2">
-                        <i className="ri-error-warning-fill"></i>
-                        {error}
+                {/* Header: Logo and Job Info */}
+                <div className="flex items-center justify-center gap-4 mb-8">
+                    <img src={trackpiLogo} alt="Logo" className="w-16 object-contain" />
+                    <div className="flex flex-col items-start text-left">
+                        <h2 className="text-[15px] font-bold">{job?.company || "Company Name"}</h2>
+                        <p className="text-gray-500 text-[12px]">{job?.location || "Location"}</p>
+                        <h3 className="text-[13px] font-bold leading-tight">{job?.title || "Job Title"}</h3>
                     </div>
-                )}
+                </div>
 
+                <form ref={formRef} onSubmit={handleSubmit} className="relative z-10 space-y-8 flex-grow overflow-y-auto px-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100 flex items-center gap-2">
+                            <i className="ri-error-warning-fill"></i>
+                            {error}
+                        </div>
+                    )}
 
-                {/* 1. Personal Information */}
-                <div>
-                    <h4 className="text-sm font-bold text-black mb-1">Personal Information</h4>
+                    {/* Personal Information Section */}
+                    <div className="space-y-6">
+                        <h2 className="text-[20px] font-bold">Personal Information</h2>
 
-                    <div className="space-y-2">
                         {/* Full Name */}
-                        <div className="space-y-0.5">
-                            <label className="text-[10px] font-semibold text-gray-800">Full Name<span className="text-red-500">*</span></label>
+                        <div className="space-y-2">
+                            <label className="text-[14px] font-medium text-gray-700">Full Name<span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="name"
                                 required
                                 value={formData.name}
                                 onChange={handleChange}
-                                className={`w-full text-black font-bold text-xs border-b outline-none py-0.5 bg-transparent transition-colors placeholder:font-normal ${errors.name ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
+                                className={`w-full text-[14px] font-bold border-b outline-none py-1 bg-transparent transition-colors ${errors.name ? 'border-red-500' : 'border-gray-800 focus:border-black'}`}
                                 placeholder="Paul Walker"
                             />
-                            {errors.name && <p className="text-[#FF0000] text-[10px] mt-0.5">{errors.name}</p>}
+                            {errors.name && <p className="text-red-500 text-[12px]">{errors.name}</p>}
                         </div>
 
-                        {/* Email */}
-                        <div className="space-y-0.5">
-                            <label className="text-[10px] font-semibold text-gray-800">Email Address<span className="text-red-500">*</span></label>
+                        {/* Email Address */}
+                        <div className="space-y-2">
+                            <label className="text-[14px] font-medium text-gray-700">Email Address<span className="text-red-500">*</span></label>
                             <input
                                 type="email"
                                 name="email"
                                 required
                                 value={formData.email}
                                 onChange={handleChange}
-                                className={`w-full text-black font-bold text-xs border-b outline-none py-0.5 bg-transparent transition-colors placeholder:font-normal ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
+                                className={`w-full text-[14px] font-bold border-b outline-none py-1 bg-transparent transition-colors ${errors.email ? 'border-red-500' : 'border-gray-800 focus:border-black'}`}
                                 placeholder="paulwalker233@gmail.com"
                             />
-                            {errors.email && <p className="text-[#FF0000] text-[10px] mt-0.5">{errors.email}</p>}
+                            {errors.email && <p className="text-red-500 text-[12px]">{errors.email}</p>}
                         </div>
 
-                        {/* Phone Number */}
-                        <div className="space-y-0.5">
-                            <label className="text-[10px] font-normal text-gray-600">Phone Number (With country code)</label>
-                            <div className={`flex items-center gap-3 border rounded-lg p-1 bg-white ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}>
-                                <div className={`border-r pr-2 ${errors.phone ? 'border-red-300' : 'border-gray-300'}`}>
-                                    <select className="bg-transparent font-bold text-xs text-black outline-none cursor-pointer appearance-none pr-3">
+                        {/* Phone Number Box */}
+                        <div className="space-y-2">
+                            <label className="text-[14px] font-medium text-gray-700">Phone Number <span className="text-gray-500 font-normal">(With country code)</span></label>
+                            <div className={`flex items-center border rounded-[6px] bg-white h-[44px] ${errors.phone ? 'border-red-500' : 'border-gray-400'}`}>
+                                <div className="flex items-center gap-2 px-4 border-r border-gray-400 h-full cursor-pointer relative">
+                                    <span className="text-[14px] font-bold text-black">+91</span>
+                                    <i className="ri-arrow-down-s-fill text-black"></i>
+                                    <select className="absolute inset-0 opacity-0 cursor-pointer">
                                         <option>+91</option>
                                         <option>+1</option>
-                                        <option>+44</option>
                                     </select>
-                                    <i className="ri-arrow-down-s-fill absolute ml-[-12px] mt-[3px] text-[8px] pointer-events-none text-black"></i>
                                 </div>
                                 <input
                                     type="tel"
@@ -303,58 +338,56 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                                     required
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className="flex-grow font-bold text-xs text-black outline-none bg-transparent"
+                                    className="flex-grow px-4 text-[14px] font-bold text-black outline-none bg-transparent"
                                     placeholder="867392385578"
                                 />
                             </div>
-                            {errors.phone && <p className="text-[#FF0000] text-[10px] mt-0.5">{errors.phone}</p>}
+                            {errors.phone && <p className="text-red-500 text-[12px]">{errors.phone}</p>}
                         </div>
                     </div>
-                </div>
 
-                {/* 2. Job-Related Details */}
-                <div>
-                    <h4 className="text-sm font-bold text-black mb-1">Job-Related Details</h4>
+                    {/* Job-Related Details Section */}
+                    <div className="space-y-6">
+                        <h2 className="text-[20px] font-bold">Job-Related Details</h2>
 
-                    <div className="space-y-2">
-                        {/* Experience */}
-                        <div className="space-y-0.5">
-                            <label className="text-[10px] font-normal text-gray-600">Experience</label>
+                        {/* Experience Underlined */}
+                        <div className="space-y-2">
+                            <label className="text-[14px] font-medium text-gray-700">Experience</label>
                             <input
                                 type="text"
                                 name="experience"
                                 value={formData.experience}
                                 onChange={handleChange}
-                                className="w-full font-bold text-xs text-black border-b border-gray-300 focus:border-black outline-none py-0.5 bg-transparent"
+                                className="w-full text-[14px] font-bold border-b border-gray-800 outline-none py-1 bg-transparent"
                                 placeholder="I am fresher"
                             />
                         </div>
 
-                        {/* Resume Upload */}
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-black">Resume / CV Upload</label>
+                        {/* Resume / CV Upload */}
+                        <div className="space-y-4">
+                            <label className="text-[14px] font-bold">Resume / CV Upload</label>
 
                             {profile?.resumeUrl && (
-                                <div className="flex items-center gap-2 mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                                     <div className="flex-grow">
-                                        <p className="text-[10px] font-bold text-green-700">Profile Resume Found</p>
-                                        <p className="text-[9px] text-green-600 truncate">Using your uploaded resume from profile</p>
+                                        <p className="text-[12px] font-bold text-green-700">Profile Resume Found</p>
+                                        <p className="text-[11px] text-green-600">Using resume from profile</p>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setUseProfileResume(!useProfileResume)}
-                                        className={`text-[9px] font-bold px-2 py-1 rounded border transition-colors ${useProfileResume ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300'}`}
+                                        className={`text-[11px] font-bold px-3 py-1.5 rounded border transition-all ${useProfileResume ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300'}`}
                                     >
-                                        {useProfileResume ? "Using Profile" : "Upload New"}
+                                        {useProfileResume ? "Upload New" : "Use Profile Resume"}
                                     </button>
                                 </div>
                             )}
 
                             {!useProfileResume && (
                                 <div className="animate-fadeIn">
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative px-2 py-1 bg-[#E9E9E9] border border-gray-400 rounded overflow-hidden flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
-                                            <span className="text-[9px] font-bold text-black">Choose file</span>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative px-4 py-2 bg-[#F3F3F3] border border-gray-400 rounded-[4px] flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors shadow-sm">
+                                            <span className="text-[13px] font-medium text-black">Choose file</span>
                                             <input
                                                 type="file"
                                                 accept=".pdf"
@@ -362,11 +395,11 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                             />
                                         </div>
-                                        <span className="text-[9px] text-gray-500 truncate max-w-[150px]">{resume ? resume.name : ""}</span>
+                                        <span className="text-[12px] text-gray-500 font-medium truncate">{resume ? resume.name : ""}</span>
                                     </div>
-                                    <p className="text-[#8A8A8A] text-[9px] mt-0.5 tracking-wide leading-tight">PDF only, 2MB limit</p>
+                                    <p className="text-gray-500 text-[11px] mt-2 font-medium">PDF/DOC, file size limit</p>
                                     {fileError && (
-                                        <p className="text-red-500 text-[9px] mt-0.5 flex items-center gap-1 animate-pulse">
+                                        <p className="text-red-500 text-[11px] mt-1 flex items-center gap-1">
                                             <i className="ri-error-warning-line"></i> {fileError}
                                         </p>
                                     )}
@@ -374,41 +407,41 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                             )}
                         </div>
 
-                        {/* Portfolio Link */}
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-black">Portfolio / Work samples Link</label>
-                            <div className="bg-[#F3F3F3] border border-gray-400 rounded p-1.5">
+                        {/* Portfolio Box */}
+                        <div className="space-y-3">
+                            <label className="text-[14px] font-bold">Portfolio / Work samples Link</label>
+                            <div className="bg-[#F3F3F3] border border-gray-400 rounded-[4px] p-3 shadow-inner">
                                 <input
                                     type="url"
                                     name="portfolio"
                                     value={formData.portfolio}
                                     onChange={handleChange}
-                                    className="w-full bg-transparent outline-none text-black font-semibold text-xs placeholder:text-black"
+                                    className="w-full bg-transparent outline-none text-black font-bold text-[14px] placeholder:font-normal"
                                     placeholder="www.behancepaulwalker.com"
                                 />
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Buttons */}
-                <div className="flex items-center justify-center gap-3 pt-2">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-32 h-8 bg-gradient-to-b from-[#FFD740] to-white hover:from-[#FFE57F] hover:to-gray-50 rounded-lg text-black font-bold text-xs shadow-md transition-all flex items-center justify-center border border-[#FFD740]"
-                    >
-                        {loading ? <i className="ri-loader-4-line animate-spin"></i> : "Submit"}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="w-32 h-8 bg-white hover:bg-gray-50 rounded-lg text-black font-bold text-xs shadow-md transition-all border border-black"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </form>
+                    {/* Footer Buttons Centered */}
+                    <div className="flex items-center justify-center gap-8 pt-6 pb-2 relative z-10 shrink-0">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-[180px] h-[48px] bg-gradient-to-r from-[#FFF5D1] via-[#FFD54F] to-[#FFB300] border border-gray-400 rounded-[10px] text-black font-bold text-[16px] shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center justify-center"
+                        >
+                            {loading ? <i className="ri-loader-4-line animate-spin text-xl"></i> : "Submit"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="w-[180px] h-[48px] bg-white border border-gray-800 rounded-[10px] text-black font-bold text-[16px] shadow-sm hover:bg-gray-50 hover:scale-105 transition-all"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 

@@ -27,6 +27,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
 import FormManagement from "./pages/admin/FormManagement";
 import FormDetails from "./pages/admin/FormDetails";
+import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCompetition from "./pages/admin/AdminCompetition";
 import AdminCompetitionTestimonials from "./pages/admin/AdminCompetitionTestimonials";
 import AddCompetitionTestimonial from "./pages/admin/AddCompetitionTestimonial";
@@ -51,6 +52,9 @@ import BrowseJobs from "./pages/BrowseJobs";
 import AddTestimonial from "./pages/admin/AddTestimonial";
 import TestimonialDetails from "./pages/admin/TestimonialDetails";
 import EditTestimonial from "./pages/admin/EditTestimonial";
+import AdminTeam from "./pages/admin/AdminTeam";
+import AddTeamMember from "./pages/admin/AddTeamMember";
+import EditTeamMember from "./pages/admin/EditTeamMember";
 /* Route Protection */
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
@@ -175,16 +179,6 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
-
-          {/* Talent League Routes */}
-          <Route path="competition" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_VIEW}><AdminCompetition /></ProtectedAdminRoute>} />
-          <Route path="competition/testimonials" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AdminCompetitionTestimonials /></ProtectedAdminRoute>} />
-          <Route path="competition/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_ADD}><AddCompetitionTestimonial /></ProtectedAdminRoute>} />
-          <Route path="competition/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_EDIT}><EditCompetitionTestimonial /></ProtectedAdminRoute>} />
-          <Route path="competition/testimonials/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW_DETAILS}><CompetitionTestimonialDetails /></ProtectedAdminRoute>} />
-          <Route path="competition/candidates" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_CANDIDATES_VIEW}><AdminCompetitionCandidates /></ProtectedAdminRoute>} />
-          <Route path="competition/videos" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIDEO_VIEW}><AdminVideos /></ProtectedAdminRoute>} />
-          <Route path="winners" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.WINNERS_VIEW}><AdminPreviousWinners /></ProtectedAdminRoute>} />
         </Route>
 
 

@@ -6,12 +6,12 @@ const EditIcon = ({ className, onClick }) => (
     </svg>
 );
 
-const Tag = ({ label, deletable, onDelete, onClick }) => (
+const Tag = ({ label, isStarred, deletable, onDelete, onClick }) => (
     <span
         onClick={onClick}
         className="border border-[#FFB300] px-4 py-1.5 rounded-lg bg-white text-gray-700 text-xs font-bold flex items-center gap-2 shadow-sm whitespace-nowrap cursor-pointer hover:bg-yellow-50 transition"
     >
-        <span className="text-[#FFB300] text-lg leading-none">★</span>
+        {isStarred && <span className="text-[#FFB300] text-lg leading-none">★</span>}
         {label}
         {deletable && (
             <span
@@ -40,9 +40,12 @@ const SkillsSection = ({ skills, onEdit, onAdd, onDelete }) => {
                 </div>
             </div>
             <div className="flex flex-wrap gap-3">
-                {skills?.map((skill, idx) => (
-                    <Tag key={idx} label={skill} deletable onDelete={() => onDelete(skill)} onClick={onEdit} />
-                ))}
+                {skills?.map((skill, idx) => {
+                    const isObj = typeof skill === 'object' && skill !== null;
+                    const label = isObj ? skill.name : skill;
+                    const isStarred = isObj ? skill.isStarred : false;
+                    return <Tag key={idx} label={label} isStarred={isStarred} deletable onDelete={() => onDelete(skill)} onClick={onEdit} />;
+                })}
             </div>
         </div>
     );

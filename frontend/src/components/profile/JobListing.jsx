@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import config from "../../config";
+import toast from 'react-hot-toast';
 
 import JobDetailsModal from '../home/JobDetailsModal';
 import ApplyJobForm from '../home/ApplyJobForm';
@@ -13,9 +14,11 @@ const JobListing = ({ limit }) => {
     const [selectedJob, setSelectedJob] = useState(null);
     const [showApplyForm, setShowApplyForm] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
+    const [appliedJobIds, setAppliedJobIds] = useState([]);
     const navigate = useNavigate();
 
     const handleApplyClick = (job) => {
+        if (appliedJobIds.includes(job._id)) return;
         setSelectedJob(job);
         setShowApplyForm(true);
     };
@@ -25,19 +28,40 @@ const JobListing = ({ limit }) => {
         setShowDetails(true);
     };
 
-    useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const res = await axios.get(`${config.API_URL}/api/jobs`);
-                setJobs(res.data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-                setLoading(false);
+    const fetchJobsAndApplications = async () => {
+        try {
+            // First fetch all jobs
+            const resJobs = await axios.get(`${config.API_URL}/api/jobs`);
+            
+            // Sort jobs: Urgent first, then New, then by date (newest first)
+            const sortedJobs = Array.isArray(resJobs.data) ? resJobs.data.sort((a, b) => {
+                if (a.status === 'urgent' && b.status !== 'urgent') return -1;
+                if (b.status === 'urgent' && a.status !== 'urgent') return 1;
+                if (a.status === 'new' && b.status !== 'new') return -1;
+                if (b.status === 'new' && a.status !== 'new') return 1;
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            }) : [];
+            
+            setJobs(sortedJobs);
+            // If user is logged in, fetch their applied jobs
+            const token = localStorage.getItem('token');
+            if (token) {
+                const configAuth = { headers: { Authorization: `Bearer ${token}` } };
+                const resApps = await axios.get(`${config.API_URL}/api/applications/my-applications`, configAuth);
+                if (resApps.data.success) {
+                    const appliedIds = resApps.data.applications.map(app => app.jobId?._id || app.jobId || app.job?._id || app.job);
+                    setAppliedJobIds(appliedIds);
+                }
             }
-        };
+        } catch (error) {
+            console.error("Error fetching jobs/applications:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        fetchJobs();
+    useEffect(() => {
+        fetchJobsAndApplications();
     }, []);
 
     // Helper to determine badge properties based on status
@@ -52,7 +76,8 @@ const JobListing = ({ limit }) => {
 
     if (loading) return <div className="text-center py-20">Loading jobs...</div>;
 
-    const displayedJobs = limit ? jobs.slice(0, limit) : jobs;
+    const unappliedJobs = jobs.filter(job => !appliedJobIds.includes(job._id));
+    const displayedJobs = limit ? unappliedJobs.slice(0, limit) : unappliedJobs;
 
     return (
         <div className="relative pb-4 pt-8 px-4 mt-16 font-['Satoshi']">
@@ -157,30 +182,40 @@ const JobListing = ({ limit }) => {
                                     </div>
                                 ) : <div></div>}
 
-                                <button
-                                    onClick={() => handleApplyClick(job)}
-                                    className="bg-[#FFB300] text-black text-[12px] font-bold px-8 py-2.5 rounded-xl hover:bg-[#ffaa00] shadow-md transition-transform active:scale-95"
-                                >
-                                    Apply Now
-                                </button>
+                                {appliedJobIds.includes(job._id) ? (
+                                    <button
+                                        disabled
+                                        className="bg-green-500 text-white text-[12px] font-bold px-8 py-2.5 rounded-xl shadow-none cursor-not-allowed"
+                                    >
+                                        Applied <i className="ri-check-line ml-1"></i>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => handleApplyClick(job)}
+                                        className="bg-[#FFB300] text-black text-[12px] font-bold px-8 py-2.5 rounded-xl hover:bg-[#ffaa00] shadow-md transition-transform active:scale-95"
+                                    >
+                                        Apply Now
+                                    </button>
+                                )}
                             </div>
 
                             {/* 6. Bottom Row: Work from home & Details */}
                             <div className="flex justify-between items-center w-full pt-1 border-gray-100">
                                 {/* Work From Home Pill */}
-                                <div className="flex items-center gap-2 border border-[#FFB300] rounded-full pl-4 pr-1 py-1 bg-white shadow-sm">
-                                    <span className="text-[11px] font-bold text-black">{job.benefits || "Work from home"}</span>
-                                    <div className="bg-[#FFB300] w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm">
+                                <div className="flex items-center gap-2 border border-[#FFB300] rounded-full pl-4 pr-1 py-1 bg-white shadow-sm max-w-[70%]">
+                                    <span className="text-[11px] font-bold text-black truncate" title={job.benefits || "Work from home"}>
+                                        {job.benefits || "Work from home"}
+                                    </span>
+                                    <div className="bg-[#FFB300] w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm shrink-0">
                                         <i className="ri-home-4-fill text-xs"></i>
                                     </div>
                                 </div>
-
                                 <button
                                     onClick={() => handleDetailsClick(job)}
-                                    className="text-[11px] text-black font-bold flex items-center gap-1 hover:gap-2 transition-all"
+                                    className="text-[11px] text-black font-bold flex items-center gap-1 hover:gap-2 transition-all shrink-0"
                                 >
-                                    More details < i className="ri-arrow-right-line" ></i>
-                                </button >
+                                    More details <i className="ri-arrow-right-line"></i>
+                                </button>
                             </div>
 
                         </div>
@@ -202,25 +237,27 @@ const JobListing = ({ limit }) => {
             )}
             {/* Apply Form Modal */}
             {showApplyForm && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-[32px] w-full max-w-xl max-h-[90vh] overflow-hidden shadow-2xl">
-                        <ApplyJobForm
-                            jobId={selectedJob._id}
-                            job={selectedJob}
-                            onCancel={() => setShowApplyForm(false)}
-                            onSuccess={() => {
-                                setShowApplyForm(false);
-                                toast.success("Applied successfully!");
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
+                <ApplyJobForm
+                    jobId={selectedJob._id}
+                    job={selectedJob}
+                    onCancel={() => setShowApplyForm(false)}
+                    onSuccess={() => {
+                        setShowApplyForm(false);
+                        toast.success("Applied successfully!");
+                        fetchJobsAndApplications(); // Refresh applied status
+                    }}
+                />  )}
 
             {/* Job Details Modal */}
             {showDetails && (
                 <JobDetailsModal
                     jobId={selectedJob._id}
+                    isApplied={appliedJobIds.includes(selectedJob._id)}
+                    onApplySuccess={() => {
+                        toast.success("Applied successfully!");
+                        fetchJobsAndApplications();
+                        setShowDetails(false);
+                    }}
                     onClose={() => setShowDetails(false)}
                 />
             )}

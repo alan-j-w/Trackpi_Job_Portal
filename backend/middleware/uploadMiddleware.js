@@ -115,7 +115,10 @@ const testimonialStorage = pkg({
     },
 });
 
-export const uploadTestimonial = multer({ storage: testimonialStorage });
+export const uploadTestimonial = multer({ 
+    storage: testimonialStorage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
 
 // ─── Competition Upload ──────────────────────────────────────────────────────
 export const competitionUpload = buildUploadMiddleware({

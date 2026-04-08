@@ -10,12 +10,12 @@ const EditIcon = ({ className, onClick }) => (
 );
 
 const StrengthItem = ({ label, score, icon, onClick }) => (
-    <div onClick={onClick} className={`flex justify-between items-center text-[13px] font-medium text-black py-1 ${onClick ? 'cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1 transition-colors' : ''}`}>
+    <div onClick={onClick} className={`flex justify-between items-center text-[12px] font-medium text-black py-1 ${onClick ? 'cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1 transition-colors' : ''}`}>
         <div className="flex items-center gap-3">
             <span className="text-black w-5 h-5 flex items-center justify-center">{icon}</span>
             <span>{label}</span>
         </div>
-        <span className="bg-[#DCFCE7] text-[#16A34A] text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 min-w-[50px] justify-center">
+        <span className="bg-[#DCFCE7] text-[#16A34A] text-[9px] font-bold px-2 py-[2px] rounded-full flex items-center gap-1 min-w-[50px] justify-center">
             <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
             {score}
         </span>
@@ -63,78 +63,77 @@ const ProfileSidebar = ({ profile, onAction }) => {
     const strengthStatus = strength >= 100 ? "Excellent" : strength >= 70 ? "Good" : strength >= 50 ? "Intermediate" : "Beginner";
 
     return (
-        <div className="flex-1 lg:max-w-[425px]">
+        <div className="flex-1 lg:max-w-[425px] lg:ml-auto lg:-mt-[100px] relative z-20">
 
             {/* 1. Profile Strength */}
             <div
-                className={`bg-white rounded-[20px] border ${isComplete ? 'border-[#FFB300] shadow-[0_4px_20px_rgba(255,179,0,0.15)]' : 'border-gray-200 shadow-[0_0_15px_rgba(0,0,0,0.08)]'} ${isComplete ? 'p-6 mb-8 flex flex-col items-center relative overflow-hidden' : 'p-8 mb-8 pb-10 flex flex-col items-center relative'}`}
-                style={{ minHeight: isComplete ? 'auto' : '635px' }}
+                className={`bg-white rounded-[14px] border ${isComplete ? 'border-[#FFB300] shadow-[0_4px_12px_rgba(255,179,0,0.12)]' : 'border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.06)]'} p-4 mb-4 flex flex-col items-center overflow-hidden`}
             >
-
                 {isComplete ? (
-                    <div className="flex flex-col items-center justify-center w-full py-1">
+                    <div className="flex flex-col items-center justify-center w-full py-4">
                         {/* 1. Top Strength Text */}
-                        <div className="text-center mb-1">
+                        <div className="text-center mb-2">
                             <span className="text-[14px] font-bold text-[#262626]">Profile Strength </span>
                             <span className="text-[14px] font-bold text-[#FFB300]">100%</span>
                         </div>
 
                         {/* 2. Congratulations Text with Stars */}
-                        <div className="relative">
-                            <h3 className="font-bold text-[36px] text-[#FFB300] tracking-wide text-center leading-tight" style={{ textShadow: '0px 2px 4px rgba(255, 179, 0, 0.2)' }}>
+                        <div className="relative mt-2">
+                            <h3 className="font-bold text-[32px] text-[#FFB300] tracking-wide text-center leading-tight" style={{ textShadow: '0px 2px 4px rgba(255, 179, 0, 0.2)' }}>
                                 Congratulations
                             </h3>
 
                             {/* Decorative Stars */}
-                            {/* Top Left */}
-                            <svg className="absolute -top-1 -left-6 w-5 h-5 text-[#FFB300] animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-                            <svg className="absolute top-4 -left-10 w-3 h-3 text-[#FFB300] animate-bounce" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-
-                            {/* Bottom Left */}
-                            <svg className="absolute -bottom-1 -left-4 w-4 h-4 text-[#FFB300]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-
-                            {/* Top Right */}
-                            <svg className="absolute -top-2 -right-5 w-4 h-4 text-[#FFB300] animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-
-                            {/* Bottom Right */}
-                            <svg className="absolute top-4 -right-9 w-3 h-3 text-[#FFB300]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                            <svg className="absolute -top-1 -left-4 w-4 h-4 text-[#FFB300] animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                            <svg className="absolute top-4 -left-8 w-3 h-3 text-[#FFB300] animate-bounce" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                            <svg className="absolute -top-2 -right-3 w-4 h-4 text-[#FFB300] animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                             <svg className="absolute -bottom-1 -right-4 w-4 h-4 text-[#FFB300] animate-bounce" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                         </div>
                     </div>
                 ) : (
                     <>
-                        <h3 className="font-bold text-[18px] text-black mb-6 mt-2 text-center">I am looking for job</h3>
+                        <h3 className="font-semibold text-[14px] text-black mb-2 text-center">
+                            I am looking for job
+                        </h3>
 
-                        <ProfileStrengthCircle strength={strength} className="mb-8" />
+                        <div className="scale-[0.7] -my-2">
+                            <ProfileStrengthCircle strength={strength} />
+                        </div>
 
-                        {/* Missing Detail List */}
-                        <div className="w-full space-y-2 mb-6 transition-all">
+                        <p className="text-[12px] text-gray-500 mb-2">
+                            {strengthStatus}
+                        </p>
+
+                        {/* Compact Missing Items */}
+                        <div className="w-full space-y-1 transition-all">
                             {(!profile.languages || profile.languages.length === 0) &&
-                                <StrengthItem label="Add language" score="+05%" icon={<i className="ri-translate-2 text-lg"></i>} onClick={() => onAction && onAction('language')} />
+                                <StrengthItem label="Add language" score="+05%" icon={<i className="ri-translate-2 text-sm"></i>} onClick={() => onAction && onAction('language')} />
                             }
                             {(!profile.skills || profile.skills.length === 0) &&
-                                <StrengthItem label="Add skills" score="+10%" icon={<i className="ri-brain-line text-lg"></i>} onClick={() => onAction && onAction('skills')} />
+                                <StrengthItem label="Add skills" score="+10%" icon={<i className="ri-brain-line text-sm"></i>} onClick={() => onAction && onAction('skills')} />
                             }
                             {(!profile.education || profile.education.length === 0) &&
-                                <StrengthItem label="Add education" score="+10%" icon={<i className="ri-graduation-cap-line text-lg"></i>} onClick={() => onAction && onAction('education')} />
+                                <StrengthItem label="Add education" score="+10%" icon={<i className="ri-graduation-cap-line text-sm"></i>} onClick={() => onAction && onAction('education')} />
                             }
                             {!profile.summary &&
-                                <StrengthItem label="Add summary" score="+10%" icon={<i className="ri-user-smile-line text-lg"></i>} onClick={() => onAction && onAction('summary')} />
+                                <StrengthItem label="Add summary" score="+10%" icon={<i className="ri-user-smile-line text-sm"></i>} onClick={() => onAction && onAction('summary')} />
                             }
                             {(!profile.workExperience || profile.workExperience.length === 0) &&
-                                <StrengthItem label="Add experience" score="+10%" icon={<i className="ri-briefcase-line text-lg"></i>} onClick={() => onAction && onAction('experience')} />
+                                <StrengthItem label="Add experience" score="+10%" icon={<i className="ri-briefcase-line text-sm"></i>} onClick={() => onAction && onAction('experience')} />
                             }
-                            {/* Add Photo Wiring */}
                             {!profile.profileImage &&
-                                <StrengthItem label="Add photo" score="+10%" icon={<i className="ri-camera-line text-lg"></i>} onClick={() => onAction && onAction('photo')} />
+                                <StrengthItem label="Add photo" score="+10%" icon={<i className="ri-camera-line text-sm"></i>} onClick={() => onAction && onAction('photo')} />
+                            }
+                            {(!profile.resume && (!profile.resumeUrl || profile.resumeUrl.trim() === "")) &&
+                                <StrengthItem label="Add resume" score="+10%" icon={<i className="ri-file-user-line text-sm"></i>} onClick={() => onAction && onAction('resume')} />
                             }
                         </div>
 
-                        <div className="w-full relative group px-4 pb-2 mt-auto">
+                        <div className="w-full relative group mt-4">
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-[#FFB300] to-[#EAB308] rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
                             <button
                                 onClick={() => setIsMissingDetailsModalOpen(true)}
-                                className="relative w-full bg-[#FFF9E5] text-black font-bold py-3.5 rounded-xl text-xs hover:bg-[#ffeebb] transition shadow-sm border border-[#FFB300]/20"
+                                className="relative w-full bg-[#FFF9E5] text-black font-bold py-2.5 rounded-xl text-xs hover:bg-[#ffeebb] transition shadow-sm border border-[#FFB300]/20"
                             >
                                 See all missing details
                             </button>

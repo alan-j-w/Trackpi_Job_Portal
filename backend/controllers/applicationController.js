@@ -39,6 +39,14 @@ export const applyForJob = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid Job ID format" });
         }
 
+        // Prevent duplicate applications
+        if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+            const existingApplication = await Application.findOne({ jobId, userId });
+            if (existingApplication) {
+                return res.status(400).json({ success: false, message: "You have already applied for this job." });
+            }
+        }
+
         const application = await Application.create({
             jobId,
             userId: (userId && mongoose.Types.ObjectId.isValid(userId)) ? userId : null,
