@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { CustomDatePicker } from "../../pages/create-profile/components/SearchableDropdown";
 
 import { Country } from "country-state-city";
@@ -32,60 +32,90 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
 
 
     // Country Code State
-    const [countries, setCountries] = useState(Country.getAllCountries());
+    const [countries] = useState(() => Country.getAllCountries());
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
     const [countrySearch, setCountrySearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const dropdownRef = useRef(null);
 
+    // Debounce search input for performance
     useEffect(() => {
-        if (details) {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(countrySearch);
+        }, 200);
+        return () => clearTimeout(timer);
+    }, [countrySearch]);
+
+    // Optimization: Memoize sorted countries for extraction logic
+    const sortedCountries = useMemo(() => {
+        return [...countries].sort((a, b) => b.phonecode.length - a.phonecode.length);
+    }, [countries]);
+
+    useEffect(() => {
+        if (details && isOpen) {
             // Parse existing data
-            // Note: detailed mapping depends on how backend stores it. 
-            // ProfileSidebar shows: drivingLicenses?.length ? "Yes" : "No"
-            // We need to handle this conversion on Save.
+            let extractedCode = details.altPhoneCode || "+91";
+            let extractedPhone = "";
+
+            if (details.alternatePhone) {
+                const rawPhone = details.alternatePhone;
+
+                // Find the best matching country code (longest first to avoid +1 vs +1242 issues)
+                const matchedCountry = sortedCountries.find(c => rawPhone.startsWith(`+${c.phonecode}`));
+                
+                if (matchedCountry) {
+                    extractedCode = `+${matchedCountry.phonecode}`;
+                    // Remove prefix and take remaining digits
+                    extractedPhone = rawPhone.slice(extractedCode.length).replace(/\D/g, '').slice(0, 10);
+                } else {
+                    // Fallback: Take last 10 digits as the subscriber number
+                    const digits = rawPhone.replace(/\D/g, '');
+                    extractedPhone = digits.slice(-10);
+                }
+            }
 
             setFormData({
-                altPhoneCode: details.altPhoneCode || "+91", // This might need to be extracted from the phone string if not stored separately
-                altPhone: details.alternatePhone ? details.alternatePhone.replace(/^\+\d+/, '') : (details.alternatePhone || ""), // specific logic needed if phone is stored with code
+                altPhoneCode: extractedCode,
+                altPhone: extractedPhone,
                 drivingLicense: details.drivingLicenses && details.drivingLicenses.length > 0,
                 dob: details.dateOfBirth || "",
                 careerBreak: details.careerBreak || false,
                 preferredWorkMode: details.preferredWorkMode || "",
                 maritalStatus: details.maritalStatus || ""
             });
-
-            // Attempt to extract phone code if it exists in the string
-            if (details.alternatePhone && details.alternatePhone.includes('+')) {
-                // Simple extraction logic, might be improved
-                const match = details.alternatePhone.match(/^(\+\d+)(.*)$/);
-                if (match) {
-                    setFormData(prev => ({ ...prev, altPhoneCode: match[1], altPhone: match[2] }));
-                }
-            }
         }
-    }, [details, isOpen]);
+    }, [details, isOpen, sortedCountries]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        
+        let parsedValue = value;
+        // Normalize boolean values
+        if (value === "true" || value === true) parsedValue = true;
+        else if (value === "false" || value === false) parsedValue = false;
 
-        let newErrors = { ...errors };
+        setErrors(prev => {
+            let newErrors = { ...prev };
 
-        if (name === 'altPhone') {
-            if (value && !/^\d+$/.test(value)) {
-                newErrors.altPhone = "Phone number must contain only digits";
-            } else if (value && value.length !== 10) {
-                newErrors.altPhone = "Please enter a valid 10-digit phone number";
-            } else {
-                delete newErrors.altPhone;
+            if (name === 'altPhone') {
+                if (parsedValue && !/^\d*$/.test(parsedValue)) {
+                    newErrors.altPhone = "Phone number must contain only digits";
+                } else if (parsedValue && parsedValue.length > 10) {
+                    newErrors.altPhone = "Max 10 digits allowed";
+                } else {
+                    delete newErrors.altPhone;
+                }
             }
-        }
 
-        setErrors(newErrors);
-        setFormData(prev => ({ ...prev, [name]: value }));
+            return newErrors;
+        });
+
+        setFormData(prev => ({ ...prev, [name]: parsedValue }));
     };
 
     const handleSubmit = () => {
-        if (formData.altPhone && !/^\d{10}$/.test(formData.altPhone)) {
+        // Final length validation on submit
+        if (formData.altPhone && formData.altPhone.length !== 10) {
             setErrors(prev => ({ ...prev, altPhone: "Please enter a valid 10-digit phone number" }));
             return;
         }
@@ -110,10 +140,17 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const filteredCountries = countries.filter(c =>
-        c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
-        c.phonecode.includes(countrySearch)
-    );
+    const filteredCountries = useMemo(() => {
+        const search = debouncedSearch.toLowerCase().trim();
+        // If no search, return a sliced fast list
+        if (!search) return countries.slice(0, 50);
+        
+        const cleanSearch = search.replace('+', '');
+        return countries.filter(c =>
+            c.name.toLowerCase().includes(search) ||
+            c.phonecode.includes(cleanSearch)
+        ).slice(0, 50); // Centralize slicing here for maximum performance
+    }, [countries, debouncedSearch]);
 
     if (!isOpen) return null;
 
@@ -155,7 +192,7 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                         type="radio"
                         name={name}
                         checked={value === true}
-                        onChange={() => setFormData(prev => ({ ...prev, [name]: true }))}
+                        onChange={() => onChange({ target: { name, value: true } })}
                         className="hidden"
                     />
                     <span className="text-sm text-black">Yes</span>
@@ -169,7 +206,7 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                         type="radio"
                         name={name}
                         checked={value === false}
-                        onChange={() => setFormData(prev => ({ ...prev, [name]: false }))}
+                        onChange={() => onChange({ target: { name, value: false } })}
                         className="hidden"
                     />
                     <span className="text-sm text-black">No</span>
@@ -214,16 +251,25 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                                         {filteredCountries.map((c, idx) => (
                                             <div
                                                 key={`${c.isoCode}-${idx}`}
-                                                className="px-4 py-2 hover:bg-yellow-50 cursor-pointer text-sm flex justify-between"
+                                                className="px-4 py-2 hover:bg-yellow-50 cursor-pointer text-sm flex justify-between items-center"
                                                 onClick={() => {
                                                     setFormData(prev => ({ ...prev, altPhoneCode: `+${c.phonecode}` }));
                                                     setShowCountryDropdown(false);
+                                                    setCountrySearch(""); // Reset search on select
                                                 }}
                                             >
-                                                <span>{c.name}</span>
-                                                <span className="text-gray-400">+{c.phonecode}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium text-black">{c.name}</span>
+                                                    <span className="text-[10px] text-gray-500">{c.isoCode}</span>
+                                                </div>
+                                                <span className="text-gray-400 font-mono">+{c.phonecode}</span>
                                             </div>
                                         ))}
+                                        {filteredCountries.length === 0 && (
+                                            <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                                                No countries found
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -250,6 +296,7 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                         label="Do you have driving license"
                         name="drivingLicense"
                         value={formData.drivingLicense}
+                        onChange={handleChange}
                     />
 
                     {/* Date of Birth */}
@@ -280,6 +327,7 @@ const EditAdditionalDetailsModal = ({ isOpen, onClose, details, onSave }) => {
                         label="Do you have career break"
                         name="careerBreak"
                         value={formData.careerBreak}
+                        onChange={handleChange}
                     />
 
                     {/* Preferred Work Mode */}
