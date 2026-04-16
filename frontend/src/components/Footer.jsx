@@ -17,7 +17,7 @@ import logoLight from "../assets/logo.png";          // For White Footer
 
 const Footer = () => {
   const location = useLocation();
-  const isBlackFooter = location.pathname.includes("/talent-league");
+  const isBlackFooter = location.pathname.includes("/talent-league") || location.pathname.includes("/competition/ui-ux");
 
   // Detect auth state (same approach as Navbar)
   const isLoggedIn = !!localStorage.getItem("token");
@@ -39,7 +39,7 @@ const Footer = () => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  const bgClass = isBlackFooter ? "bg-[#0A0A0A]" : "bg-white";
+  const bgClass = isBlackFooter ? "bg-black" : "bg-white";
   const mainTextClass = isBlackFooter ? "text-white" : "text-black";
   const subTextClass = isBlackFooter ? "text-gray-300" : "text-gray-600";
   const socialHoverClass = isBlackFooter ? "hover:text-white" : "hover:text-black";
@@ -55,6 +55,7 @@ const Footer = () => {
               src={isBlackFooter ? logoDark : logoLight}
               alt="TrackPi Logo"
               className="w-[120px] md:w-[150px] h-auto object-contain ml-6 sm:ml-28 mt-3"
+              style={{ mixBlendMode: 'screen' }}
             />
             <p className={`${subTextClass} text-sm leading-relaxed font-urbanist text-justify max-w-full`}>
               Empowering businesses to succeed through expert
@@ -62,16 +63,18 @@ const Footer = () => {
               potential and achieving success.
             </p>
 
-            {/* ⭐ Social Media */}
-            <div className="flex flex-wrap gap-4 text-2xl text-[#FFB300]">
-              <a href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-facebook-circle-line"></i></a>
-              <a href="https://www.youtube.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-youtube-line"></i></a>
-              <a href="https://www.instagram.com/trackpi_official/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-instagram-line"></i></a>
-              <a href="https://medium.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-medium-line border border-[#FFB300] rounded p-0.5 text-base w-6 h-6 flex items-center justify-center"></i></a>
-              <a href="https://www.linkedin.com/company/trackpi-private-limited/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-linkedin-line border border-[#FFB300] rounded p-0.5 text-base w-6 h-6 flex items-center justify-center"></i></a>
-              <a href="https://www.quora.com/profile/Trackpi-Private-Limited" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.3799.9483A11.9628 11.9628 0 0 1 21.248 19.5397l2.4096 2.4225c.7322.7362.21 1.9905-.8272 1.9905l-10.7105.01a12.52 12.52 0 0 1-.304 0h-.02A11.9628 11.9628 0 0 1 7.3818.9503Zm7.3217 4.428a7.1717 7.1717 0 1 0-5.4873 13.2512 7.1717 7.1717 0 0 0 5.4883-13.2511Z" /></svg></a>
-              <a href="https://trackpi.blogspot.com/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-blogger-line bg-transparent"></i></a>
-            </div>
+            {/* ⭐ Social Media - Hidden on Talent League and UI/UX Designer pages */}
+            {!isBlackFooter && (
+              <div className="flex flex-wrap gap-4 text-2xl text-[#FFB300]">
+                <a href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-facebook-circle-line"></i></a>
+                <a href="https://www.youtube.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-youtube-line"></i></a>
+                <a href="https://www.instagram.com/trackpi_official/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-instagram-line"></i></a>
+                <a href="https://medium.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-medium-line border border-[#FFB300] rounded p-0.5 text-base w-6 h-6 flex items-center justify-center"></i></a>
+                <a href="https://www.linkedin.com/company/trackpi-private-limited/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-linkedin-line border border-[#FFB300] rounded p-0.5 text-base w-6 h-6 flex items-center justify-center"></i></a>
+                <a href="https://www.quora.com/profile/Trackpi-Private-Limited" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.3799.9483A11.9628 11.9628 0 0 1 21.248 19.5397l2.4096 2.4225c.7322.7362.21 1.9905-.8272 1.9905l-10.7105.01a12.52 12.52 0 0 1-.304 0h-.02A11.9628 11.9628 0 0 1 7.3818.9503Zm7.3217 4.428a7.1717 7.1717 0 1 0-5.4873 13.2512 7.1717 7.1717 0 0 0 5.4883-13.2511Z" /></svg></a>
+                <a href="https://trackpi.blogspot.com/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-blogger-line bg-transparent"></i></a>
+              </div>
+            )}
           </div>
 
 

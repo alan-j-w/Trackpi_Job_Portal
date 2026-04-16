@@ -120,7 +120,22 @@ export const uploadTestimonial = multer({
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB
 });
 
+// ─── Competition Upload ──────────────────────────────────────────────────────
+export const competitionUpload = buildUploadMiddleware({
+    fieldName: "question", // Field name from the frontend form
+    mimeTypes: ["application/pdf", "image/jpeg", "image/png", "image/jpg"],
+    mimeError: "Only PDF or image files (JPG, PNG, PDF) are allowed!",
+    folder: "trackpi/competitions",
+    resourceType: "auto", // Automatically detect if PDF (raw) or Image
+    getPublicId: (req) => {
+        const { name } = req.body;
+        const prefix = name ? name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "") : "competition";
+        return `${prefix}_question_${Date.now()}`;
+    }
+});
+
 // ─── Generic upload (memory) ──────────────────────────────────────────────────
 export const upload = multer({ storage: multer.memoryStorage() });
 
 export default uploadTestimonial;
+

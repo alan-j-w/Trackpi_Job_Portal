@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { Pencil, Trash2, ExternalLink, Play, Search } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, Play, Search, X } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import DeleteUserModal from "../../components/admin/DeleteUserModal";
@@ -19,6 +19,7 @@ const AdminTestimonials = () => {
   const [deleteId, setDeleteId] = useState(null); // ID for single delete
   const [isBulkDelete, setIsBulkDelete] = useState(false); // Flag for bulk delete
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTestimonialForAbout, setSelectedTestimonialForAbout] = useState(null);
   const ITEMS_PER_PAGE = 10;
 
   /* SELECT */
@@ -200,7 +201,13 @@ const AdminTestimonials = () => {
                       </div>
                     </td>
                     <td className="p-4 text-sm text-gray-600">
-                      {t.about}
+                      <div className="line-clamp-2 h-[40px] overflow-hidden">"{t.about}"</div>
+                      <button 
+                        onClick={() => setSelectedTestimonialForAbout(t)}
+                        className="text-[#FFB300] font-bold hover:underline block mt-1"
+                      >
+                        See more.....
+                      </button>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-center gap-4">
@@ -272,8 +279,67 @@ const AdminTestimonials = () => {
         title={isBulkDelete ? "Delete testimonials" : "Delete testimonial"}
         message={isBulkDelete ? `Sure you want to delete ${selectedIds.length} testimonials?` : "Sure you want to delete?"}
       />
+
+      <AboutModal 
+        isOpen={!!selectedTestimonialForAbout}
+        onClose={() => setSelectedTestimonialForAbout(null)}
+        testimonial={selectedTestimonialForAbout}
+      />
     </div>
   );
+};
+
+/* ================= ABOUT MODAL ================= */
+const AboutModal = ({ isOpen, onClose, testimonial }) => {
+    if (!isOpen || !testimonial) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}>
+            <div
+                className="bg-white rounded-3xl w-full max-w-2xl p-10 shadow-2xl relative animate-in zoom-in-95 duration-200 border border-gray-100"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute right-8 top-8 text-gray-400 hover:text-gray-900 transition-all hover:rotate-90 p-1"
+                >
+                    <X size={24} />
+                </button>
+
+                <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-50">
+                    <div className="w-20 h-20 rounded-2xl bg-yellow-100 flex items-center justify-center overflow-hidden border-2 border-yellow-50">
+                        {testimonial.coverImage ? (
+                            <img src={testimonial.coverImage.url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gray-200" />
+                        )}
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-black text-gray-900 tracking-tight">{testimonial.name}</h3>
+                        <p className="text-[#FFB300] font-bold uppercase tracking-widest text-xs mt-1">{testimonial.jobTitle}</p>
+                    </div>
+                </div>
+
+                <div className="mb-10">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Testimonial Story</label>
+                    <div className="bg-gray-50/50 rounded-2xl p-8 border border-gray-100 shadow-inner">
+                        <p className="text-gray-600 leading-relaxed italic text-lg opacity-90">
+                            "{testimonial.about}"
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className="px-10 py-3 rounded-xl bg-gradient-to-r from-yellow-300 to-yellow-500 text-black font-black shadow-lg hover:shadow-yellow-200/50 hover:scale-[1.02] transition-all uppercase tracking-widest text-xs"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default AdminTestimonials;

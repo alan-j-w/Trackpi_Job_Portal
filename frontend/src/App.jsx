@@ -28,6 +28,17 @@ import UserManagement from "./pages/admin/UserManagement";
 import FormManagement from "./pages/admin/FormManagement";
 import FormDetails from "./pages/admin/FormDetails";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminCompetition from "./pages/admin/AdminCompetition";
+import AdminCompetitionTestimonials from "./pages/admin/AdminCompetitionTestimonials";
+import AddCompetitionTestimonial from "./pages/admin/AddCompetitionTestimonial";
+import EditCompetitionTestimonial from "./pages/admin/EditCompetitionTestimonial";
+import CompetitionTestimonialDetails from "./pages/admin/CompetitionTestimonialDetails";
+import AdminVideos from "./pages/admin/AdminVideos";
+import AdminPreviousWinners from "./pages/admin/AdminPreviousWinners";
+import AdminCompetitionCandidates from "./pages/admin/AdminCompetitionCandidates";
+
+// Removed placeholder implementations
+
 
 
 import ContactUs from "./pages/ContactUs";
@@ -169,13 +180,26 @@ function App() {
             }
           />
 
-          {/* Team Management */}
-          <Route path="team" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><AdminTeam /></ProtectedAdminRoute>} />
-          <Route path="team/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_ADD}><AddTeamMember /></ProtectedAdminRoute>} />
-          <Route path="team/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_EDIT}><EditTeamMember /></ProtectedAdminRoute>} />
 
+          {/* System Settings */}
           <Route path="settings" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.SETTINGS_MANAGE}><AdminSettings /></ProtectedAdminRoute>} />
+
+          {/* Our Team */}
+          <Route path="team" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><AdminTeam /></ProtectedAdminRoute>} />
+          <Route path="team/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><AddTeamMember /></ProtectedAdminRoute>} />
+          <Route path="team/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.TEAM_VIEW}><EditTeamMember /></ProtectedAdminRoute>} />
+
+          {/* Talent League Pages */}
+          <Route path="competition" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_VIEW}><AdminCompetition /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AdminCompetitionTestimonials /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/add" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><AddCompetitionTestimonial /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/edit/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><EditCompetitionTestimonial /></ProtectedAdminRoute>} />
+          <Route path="competition/testimonials/:id" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_TESTIMONIALS_VIEW}><CompetitionTestimonialDetails /></ProtectedAdminRoute>} />
+          <Route path="competition/candidates" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.COMPETITION_CANDIDATES_VIEW}><AdminCompetitionCandidates /></ProtectedAdminRoute>} />
+          <Route path="competition/videos" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.VIDEO_VIEW}><AdminVideos /></ProtectedAdminRoute>} />
+          <Route path="winners" element={<ProtectedAdminRoute requiredPermission={PERMISSIONS.WINNERS_VIEW}><AdminPreviousWinners /></ProtectedAdminRoute>} />
         </Route>
+
 
         {/* Catch all for main app if needed, or 404 */}
       </Routes>

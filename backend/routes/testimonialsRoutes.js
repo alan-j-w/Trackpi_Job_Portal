@@ -8,7 +8,7 @@ import {
   getPublicTestimonials
 } from "../controllers/testimonialsController.js";
 
-import { uploadTestimonial as upload } from "../middleware/uploadMiddleware.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 import { protect, authorize, checkPermission } from "../middleware/authMiddleware.js";
 import PERMISSIONS from "../config/permissions.js";
 

@@ -1,0 +1,22 @@
+import mongoose from "mongoose";
+
+const competitionCandidateSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true },
+        enrollmentId: { type: String, required: true, unique: true },
+        department: { type: String, required: true },
+        phone: { type: String, required: true },
+        email: { type: String, required: true },
+        portfolio: { type: String },
+        resumeUrl: { type: String }, 
+        status: {
+            type: String,
+            enum: ["Pending", "Pass", "Fail"],
+            default: "Pending"
+        },
+        isLive: { type: Boolean, default: true }
+    },
+    { timestamps: true }
+);
+
+export default mongoose.model("CompetitionCandidate", competitionCandidateSchema);
