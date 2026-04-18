@@ -320,7 +320,7 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
         </div>
 
         {/* Filters Toolbar - Justify Between / 1252px Max Width / 57px Height */}
-        <div className="flex justify-between items-center mb-10 max-w-[1252px] mx-auto w-full z-20 relative px-0 h-[57px]">
+        <div className="flex justify-between items-center mb-10 max-w-[1252px] mx-auto w-full z-30 relative px-0 h-[57px]">
 
           {/* SORT BUTTON (Left) */}
           <div className="relative" ref={sortRef}>
