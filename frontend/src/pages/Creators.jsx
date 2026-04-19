@@ -9,8 +9,6 @@ import img3 from "../assets/creatorsimages/alan.jpeg";
 import img4 from "../assets/creatorsimages/adhy.jpg";
 import img5 from "../assets/creatorsimages/hasna.jpeg";
 import img6 from "../assets/creatorsimages/dony.jpeg";
-import img7 from "../assets/creatorsimages/anwer.png";
-import img8 from "../assets/creatorsimages/anushka.png";
 
 const Creators = () => {
   return (
@@ -56,16 +54,6 @@ const Creators = () => {
         <CreatorCard
           image={img6}
           name="Dony Biji"
-          role="MERN Stack Developer"
-        />
-        <CreatorCard
-          image={img7}
-          name="Anushka Shiva"
-          role="MERN Stack Developer"
-        />
-        <CreatorCard
-          image={img8}
-          name="Alex James"
           role="MERN Stack Developer"
         />
 
