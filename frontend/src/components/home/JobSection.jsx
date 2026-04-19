@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import JobCard from "./JobCard";
 import JobDetailsModal from "./JobDetailsModal";
 import Pagination from "./Pagination";
@@ -94,12 +95,7 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
       }
     };
 
-    // Defer fetch until browser is idle so it doesn't block initial paint
-    if (typeof requestIdleCallback !== "undefined") {
-      requestIdleCallback(() => fetchJobsAndApplications(), { timeout: 2000 });
-    } else {
-      setTimeout(fetchJobsAndApplications, 100);
-    }
+    fetchJobsAndApplications();
   }, []);
 
   /* -------------------- Constants & Options -------------------- */
@@ -136,58 +132,38 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
   const matchFilters = (job) => {
     // 1. Education
     if (filters.education && filters.education.length > 0) {
-      const jobEdu = job.education?.toLowerCase() || "";
+      const jobEdu = (job.education || "").toLowerCase().trim();
       const matches = filters.education.some(f => {
-        if (jobEdu.includes("any")) return true;
-
         const filterStr = f.toLowerCase().trim();
-        if (filterStr === "post graduate" && (jobEdu.includes("post graduate") || jobEdu.includes("post graduation") || jobEdu.includes("pg") || jobEdu.includes("master") || jobEdu.includes("post-graduation"))) return true;
-        if (filterStr === "graduate" && (jobEdu.includes("graduate") || jobEdu.includes("graduation") || jobEdu.includes("degree") || jobEdu.includes("bachelor")) && !jobEdu.includes("post")) return true;
-        if (filterStr === "plus two" && (jobEdu.includes("plus two") || jobEdu.includes("plus 2") || jobEdu.includes("+2") || jobEdu.includes("12th") || jobEdu.includes("twelfth") || jobEdu.includes("12 th"))) return true;
+        // Exact matching or smart matching for common patterns
+        if (filterStr === "graduate") return (jobEdu.includes("graduate") || jobEdu.includes("graduation") || jobEdu.includes("degree")) && !jobEdu.includes("post");
+        if (filterStr === "post graduate") return jobEdu.includes("post graduate") || jobEdu.includes("post graduation") || jobEdu.includes("master") || jobEdu.includes("pg");
+        if (filterStr === "plus two") return jobEdu.includes("plus two") || jobEdu.includes("plus 2") || jobEdu.includes("+2") || jobEdu.includes("12th");
         return jobEdu.includes(filterStr);
       });
       if (!matches) return false;
     }
 
-    // 2. Contract Type (jobType)
+    // 2. Contract Type
     if (filters.jobType && filters.jobType.length > 0) {
-      const jobType = job.jobType?.toLowerCase() || "";
-      const matches = filters.jobType.some(f => {
-        if (f === "Full Time") return jobType.includes("full time") || jobType.includes("full-time");
-        if (f === "Part Time") return jobType.includes("part time") || jobType.includes("part-time");
-        return jobType.includes(f.toLowerCase());
-      });
+      const jobType = (job.jobType || "").toLowerCase();
+      const matches = filters.jobType.some(f => jobType.includes(f.toLowerCase()));
       if (!matches) return false;
     }
 
     // 3. Industry
     if (filters.industry && filters.industry.length > 0) {
-      const text = (job.title + " " + job.company + " " + (job.skills || "") + " " + (job.description || "")).toLowerCase();
-      const matches = filters.industry.some(f => {
-        const filterStr = f.toLowerCase();
-        if (filterStr === "ui/ux designing") return /\b(design|designer|ui|ux|ui\/ux|figma|graphics)\b/i.test(text);
-        if (filterStr === "it") return /\b(it|software|developer|tech|programmer|engineer)\b/i.test(text);
-        if (filterStr === "banking") return /\b(bank|banking|finance|loan)\b/i.test(text);
-        if (filterStr === "accounting") return /\b(account|accounting|tax|audit|bookkeeping|bookkeep)\b/i.test(text);
-        if (filterStr === "marketing") return /\b(market|marketing|sales|bpo|seo|executive)\b/i.test(text);
-        if (filterStr === "finance") return /\b(finance|financial|bank|banking|account|investment)\b/i.test(text);
-
-        return text.includes(filterStr);
-      });
+      const text = `${job.title} ${job.company} ${job.skills || ""} ${job.description || ""}`.toLowerCase();
+      const matches = filters.industry.some(f => text.includes(f.toLowerCase()));
       if (!matches) return false;
     }
 
     // 4. Experience
     if (filters.experience && filters.experience.length > 0) {
-      const jobExp = job.experience?.toLowerCase() || "";
+      const jobExp = (job.experience || "").toLowerCase();
       const matches = filters.experience.some(f => {
-        if (jobExp.includes("any")) return true;
-
-        if (f === "Freshers") return jobExp.includes("fresher") || /\b0\b/.test(jobExp);
-        if (f.startsWith("Entry")) return /\b[1-2]\b/.test(jobExp) || jobExp.includes("entry");
-        if (f.startsWith("Mid")) return /\b[3-4]\b/.test(jobExp) || jobExp.includes("mid");
-        if (f.startsWith("Senior")) return /\b([5-9]|[1-9][0-9]+)\b/.test(jobExp) || jobExp.includes("senior");
-        return jobExp.includes(f.toLowerCase());
+        if (f === "Freshers") return jobExp.includes("fresher") || jobExp.includes("0");
+        return jobExp.includes(f.toLowerCase().slice(0, 5)); // match partials like "Entry" or "Senior"
       });
       if (!matches) return false;
     }
@@ -199,12 +175,13 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
     if (!job) return false;
     const term = searchTerm.toLowerCase();
     const matchSearch = !searchTerm ||
-      job.title?.toLowerCase().includes(term) ||
-      job.company?.toLowerCase().includes(term) ||
-      job.location?.toLowerCase().includes(term);
+      (job.title || "").toLowerCase().includes(term) ||
+      (job.company || "").toLowerCase().includes(term) ||
+      (job.location || "").toLowerCase().includes(term);
 
     return matchSearch && matchFilters(job);
   });
+
 
   // Sort Logic
   const sortedJobs = [...currentFilteredJobs].sort((a, b) => {
@@ -280,7 +257,13 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
       <div className="max-w-[1200px] mx-auto px-4">
 
         {/* 1. Header Title */}
-        <div className="flex flex-col items-center text-center mb-10 relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-col items-center text-center mb-10 relative"
+        >
           {showBack && (
             <button
               onClick={() => navigate("/")}
@@ -297,10 +280,16 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
               All available jobs in one place. Filter and apply
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* 2. Search Bar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 mb-10 max-w-[980px] mx-auto w-full">
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="flex flex-col md:flex-row items-center gap-4 mb-10 max-w-[980px] mx-auto w-full"
+        >
           <div className="relative flex-grow w-full">
             <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#FFB300]">
               <i className="ri-search-line text-xl"></i>
@@ -317,10 +306,16 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
           <button className="w-full md:w-auto h-[44px] px-10 bg-[#FFB300] hover:bg-[#ffc133] text-black font-bold text-sm rounded-[12px] transition-colors shadow-sm">
             Search
           </button>
-        </div>
+        </motion.div>
 
         {/* Filters Toolbar - Justify Between / 1252px Max Width / 57px Height */}
-        <div className="flex justify-between items-center mb-10 max-w-[1252px] mx-auto w-full z-30 relative px-0 h-[57px]">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex justify-between items-center mb-10 max-w-[1252px] mx-auto w-full z-30 relative px-0 h-[57px]"
+        >
 
           {/* SORT BUTTON (Left) */}
           <div className="relative" ref={sortRef}>
@@ -443,13 +438,13 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* 4. Job Listings */}
         <div className="flex flex-col gap-4 max-w-[1200px] mx-auto mb-16">
           {loading && <p className="text-center">Loading jobs...</p>}
 
-          {!loading && currentJobs.length === 0 && (
+          {!loading && sortedJobs.length === 0 && (
             <div className="text-center py-10">
               <p className="text-gray-500 text-lg">No jobs found matching your criteria.</p>
               <button
@@ -467,26 +462,34 @@ const JobSection = ({ className = "", isHome = false, showBack = false }) => {
 
           {!loading &&
             currentJobs.map((job, idx) => (
-              <JobCard
+              <motion.div
                 key={job._id || idx}
-                id={job._id}
-                status={job.status === "urgent" ? "Urgent Hiring" : "New"}
-                statusColor={job.status === "urgent" ? "red" : "green"}
-                title={job.title}
-                company={job.company}
-                location={job.location}
-                jobType={job.jobType}
-                education={job.education}
-                salary={job.salary}
-                experience={job.experience}
-                workMode={job.workMode}
-                gender={job.gender || "Any"}
-                hasApplied={appliedJobIds.includes(job._id)}
-                onDetailsClick={() => setSelectedJobId(job._id)}
-                onApplySuccess={() => setAppliedJobIds(prev => [...prev, job._id])}
-              />
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: idx * 0.05 }}
+              >
+                <JobCard
+                  id={job._id}
+                  status={job.status === "urgent" ? "Urgent Hiring" : "New"}
+                  statusColor={job.status === "urgent" ? "red" : "green"}
+                  title={job.title}
+                  company={job.company}
+                  location={job.location}
+                  jobType={job.jobType}
+                  education={job.education}
+                  salary={job.salary}
+                  experience={job.experience}
+                  workMode={job.workMode}
+                  gender={job.gender || "Any"}
+                  hasApplied={appliedJobIds.includes(job._id)}
+                  onDetailsClick={() => setSelectedJobId(job._id)}
+                  onApplySuccess={() => setAppliedJobIds(prev => [...prev, job._id])}
+                />
+              </motion.div>
             ))}
         </div>
+
 
         {/* Modal */}
         {selectedJobId && (

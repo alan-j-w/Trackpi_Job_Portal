@@ -26,11 +26,6 @@ const steps = [
  * Helper to calculate SVG path for an arc
  */
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-  // SVG Y is down, so we flip the Y axis logic relative to standard math
-  // Angle: 90 is top. Standard math 90 is top.
-  // We want standard math coordinates mapped to SVG.
-  // x = cx + r * cos(a)
-  // y = cy - r * sin(a)  <-- minus because SVG Y grows down
   var angleInRadians = (angleInDegrees * Math.PI) / 180.0;
   return {
     x: centerX + radius * Math.cos(angleInRadians),
@@ -80,7 +75,6 @@ export default function HowToGetHired() {
 function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAngle, totalSweep, steps }) {
   const [isCompleted, setIsCompleted] = useState(false);
   const [startAnimation, setStartAnimation] = useState(false);
-  const [arrowState, setArrowState] = useState({ x: 0, y: 0, angle: 90 });
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(1);
 
   // Single source of truth for progress (0 to 1)
@@ -88,6 +82,21 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
 
   // Map progress (0-1) to circle fraction (0-0.8ish)
   const pathLength = useTransform(progress, [0, 1], [0, totalSweep / 360]);
+
+  // Transform progress to Arrow Position and Rotation
+  const arrowAngle = useTransform(progress, (p) => startAngle - (totalSweep * p));
+  
+  const arrowX = useTransform(arrowAngle, (angle) => {
+    const rad = (angle * Math.PI) / 180.0;
+    return radius + normalizedRadius * Math.cos(rad);
+  });
+  
+  const arrowY = useTransform(arrowAngle, (angle) => {
+    const rad = (angle * Math.PI) / 180.0;
+    return radius - normalizedRadius * Math.sin(rad);
+  });
+  
+  const arrowRotate = useTransform(arrowAngle, (angle) => 90 - angle);
 
   useEffect(() => {
     if (!startAnimation) return;
@@ -101,13 +110,6 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
         setIsCompleted(false);
         progress.set(0);
         setCurrentHighlightIndex(1); // Connect (Start)
-
-        // Define steps with their target progress (cumulative angle / total sweep)
-        // Total sweep = 290
-        // Connect (Start) -> HR (15 deg): 75 deg diff. Target = 75/290
-        // HR -> Sales (-50 deg): 65 deg diff. Cumulative = 140. Target = 140/290
-        // Sales -> Walkin (-130 deg): 80 deg diff. Cumulative = 220. Target = 220/290
-        // Walkin -> Apply (-200 deg): 70 deg diff. Cumulative = 290. Target = 1
 
         const checkpoints = [
           { target: 75 / 290, index: 2 },  // HR
@@ -154,37 +156,19 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
     };
   }, [progress, startAnimation]);
 
-  // Sync Arrow & Highlight with Progress
-  useMotionValueEvent(progress, "change", (latest) => {
-    // Avoid calculations if completed (optional optimization)
-    if (latest >= 1) return;
-
-    // Calculate current angle
-    // start = 90, end = -200. 
-    // current = 90 - (290 * progress)
-    const currentAngle = startAngle - (totalSweep * latest);
-
-    // Calculate Arrow Pos
-    const pos = polarToCartesian(radius, radius, normalizedRadius, currentAngle);
-
-    // Update Arrow State
-    setArrowState({ x: pos.x, y: pos.y, angle: 90 - currentAngle });
-  });
-
   return (
     <motion.section
       className="py-8 md:py-12 bg-white flex flex-col items-center overflow-hidden min-h-[420px] md:min-h-[600px] font-cabinet"
-      initial={{ opacity: 0, scale: 0.8 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: false, amount: 0.3 }}
-      transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       onAnimationComplete={() => setStartAnimation(true)}
       onViewportLeave={() => {
         setStartAnimation(false);
         setIsCompleted(false);
         progress.set(0);
         setCurrentHighlightIndex(1);
-        setArrowState({ x: 0, y: 0, angle: 90 });
       }}
     >
 
@@ -227,13 +211,10 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
             />
           )}
 
-          {/* Full Circle Fill (On Completion) */}
-
         </svg>
 
         {/* 🎯 CENTER */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
-          {/* Inner Yellow Circle Background for Center */}
           <motion.div
             className="absolute inset-0 rounded-full bg-[#FFB300] -z-10"
             initial={{ scale: 0 }}
@@ -265,14 +246,16 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
           </motion.p>
         </div>
 
-        {/* 🏹 ARROW HEAD */}
+        {/* 🏹 ARROW HEAD HEAD */}
         {!isCompleted && (
-          <div
+          <motion.div
             className="absolute w-8 h-8 flex items-center justify-center z-20 pointer-events-none"
             style={{
-              left: arrowState.x,
-              top: arrowState.y,
-              transform: `translate(-50%, -50%) rotate(${arrowState.angle}deg)`
+              left: arrowX,
+              top: arrowY,
+              rotate: arrowRotate,
+              x: "-50%",
+              y: "-50%"
             }}
           >
             {/* Double Chevron SVG */}
@@ -284,22 +267,16 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
                 <path d="M9 5L16 12L9 19" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* 📌 STEPS */}
         {steps.map((step, index) => {
-          // Calculate position on the circle (using normalizedRadius to sit on the stroke)
           const rad = (step.angle * Math.PI) / 180;
           const x = normalizedRadius * Math.cos(rad);
-          // SVG Y is down, standard math Y is up. To map standard angle to SVG:
-          // angle 90 (top) -> cos=0, sin=1. x=0, y=radius. target: x=cx, y=cy-r.
-          // x_draw = cx + r*cos(a) -> cx + 0 = cx. Correct.
-          // y_draw = cy - r*sin(a) -> cy - r*1 = cy-r (Top). Correct.
           const y = normalizedRadius * Math.sin(rad);
 
           let isActive = index === currentHighlightIndex;
-          // on completion, nothing is "active" in the loop sense, or we just dim everything.
 
           return (
             <motion.div
@@ -317,14 +294,11 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
               }}
               transition={{ duration: 0.4 }}
             >
-              {/* IMAGE */}
               <img
                 src={step.image}
                 alt={step.label}
                 className="w-24 h-24 md:w-48 md:h-48 object-contain object-bottom"
               />
-
-              {/* TEXT */}
               <p
                 className={`mt-2 text-sm md:text-lg font-bold leading-tight ${isActive ? "text-black" : "text-gray-400"
                   }`}
@@ -338,4 +312,3 @@ function AnimationContent({ size, radius, normalizedRadius, strokeWidth, startAn
     </motion.section>
   );
 }
-

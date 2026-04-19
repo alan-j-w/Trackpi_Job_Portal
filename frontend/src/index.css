@@ -40,6 +40,10 @@ body, div, p, h1, h2, h3, h4, h5, h6, span, li, header, footer, section, article
 
 /* ─── Component styles ───────────────────────────────────────────────────── */
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body {
   overflow-x: hidden;
   max-width: 100%;
@@ -77,4 +81,22 @@ body {
   .date-icon-left::-webkit-datetime-edit {
     padding-left: 24px;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s ease-out forwards;
 }

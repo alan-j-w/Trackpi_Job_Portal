@@ -1,10 +1,40 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { motion, useInView, useSpring, useTransform } from "framer-motion";
+
+const Counter = ({ value, duration = 2 }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  
+  const springValue = useSpring(0, {
+    stiffness: 100,
+    damping: 30,
+    duration: duration * 1000,
+  });
+
+  const displayValue = useTransform(springValue, (latest) => Math.floor(latest));
+
+  useEffect(() => {
+    if (isInView) {
+      springValue.set(value);
+    }
+  }, [isInView, value, springValue]);
+
+  return (
+    <motion.span ref={ref}>
+      {displayValue}
+    </motion.span>
+  );
+};
 
 const Stats = () => {
   return (
     <section className="w-full bg-white pt-10 pb-0 px-4 flex justify-center font-cabinet">
       {/* Wrapper: clip-path only on md+, simple rounded on mobile */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="
           relative w-full max-w-[1086px]
           bg-[#FFB300]
@@ -14,6 +44,7 @@ const Stats = () => {
           py-8 md:py-0 md:h-[139px]
           px-6 md:px-12
           rounded-[20px] md:rounded-tr-[30px] md:rounded-bl-[30px] md:rounded-tl-none md:rounded-br-none
+          shadow-lg
         "
         style={{
           clipPath: window.innerWidth >= 768
@@ -27,7 +58,7 @@ const Stats = () => {
           {/* ITEM 1: 100+ */}
           <div className="flex flex-col items-center justify-center text-center">
             <h3 className="text-[48px] md:text-[64px] font-normal leading-tight tracking-tight">
-              100+
+              <Counter value={100} />+
             </h3>
             <p className="text-sm md:text-[14px] font-medium text-black">
               Number of Active Vacancies
@@ -40,7 +71,7 @@ const Stats = () => {
           {/* ITEM 2: 41+ (With Live Dot) */}
           <div className="flex flex-col items-center justify-center relative text-center">
             <h3 className="text-[48px] md:text-[64px] font-normal leading-tight tracking-tight">
-              41+
+              <Counter value={41} />+
             </h3>
             <div className="flex items-center justify-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
@@ -59,7 +90,7 @@ const Stats = () => {
           {/* ITEM 3: 72+ */}
           <div className="flex flex-col items-center justify-center text-center">
             <h3 className="text-[48px] md:text-[64px] font-normal leading-tight tracking-tight">
-              72+
+              <Counter value={72} />+
             </h3>
             <p className="text-sm md:text-[14px] font-medium text-black">
               Placement Count
@@ -67,7 +98,7 @@ const Stats = () => {
           </div>
 
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
