@@ -4,18 +4,19 @@ import CompetitionCandidate from "../models/CompetitionCandidate.js";
 // @route   POST /api/competitions/register
 export const registerForCompetition = async (req, res) => {
     try {
-        const { name, email, phone, portfolio, role } = req.body;
-        
-        // Generate enrollment ID: ENDG + random 3 digits + #
-        const randomDigits = Math.floor(100 + Math.random() * 900);
-        const enrollmentId = `ENDG${randomDigits}#`;
+        const { name, email, phone, portfolio, role, location, department } = req.body;
+
+        // Generate enrollment ID: ENDG + 6 random digits (Ensures higher uniqueness)
+        const randomDigits = Math.floor(100000 + Math.random() * 900000);
+        const enrollmentId = `ENDG${randomDigits}`;
 
         const candidate = await CompetitionCandidate.create({
             name,
             email,
             phone,
             portfolio,
-            department: role,
+            department: department || role || "UI/UX Designer",
+            location,
             enrollmentId,
             status: "Pending",
             isLive: true
@@ -74,11 +75,69 @@ export const toggleLiveStatus = async (req, res) => {
     try {
         const candidate = await CompetitionCandidate.findById(req.params.id);
         if (!candidate) return res.status(404).json({ success: false, message: "Candidate not found" });
-        
+
         candidate.isLive = !candidate.isLive;
         await candidate.save();
-        
+
         res.status(200).json({ success: true, candidate });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+// @desc    Submit a task for a competition
+// @route   POST /api/competitions/submit-task
+export const submitTask = async (req, res) => {
+    try {
+        const { enrollmentId } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Please upload a PDF file" });
+        }
+
+        const candidate = await CompetitionCandidate.findOne({ enrollmentId });
+
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: "Invalid Enrollment ID" });
+        }
+
+        candidate.taskUrl = req.file.path;
+        candidate.status = "Pending"; // Reset status if they resubmit? Or keep as is.
+        await candidate.save();
+
+        res.status(200).json({ success: true, message: "Task submitted successfully", candidate });
+    } catch (error) {
+        console.error("Task submission error:", error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+// @desc    Log in with enrollment ID
+// @route   POST /api/competitions/login
+export const loginCandidate = async (req, res) => {
+    try {
+        const { enrollmentId } = req.body;
+        const candidate = await CompetitionCandidate.findOne({ enrollmentId });
+
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: "Invalid Enrollment ID. Please check and try again." });
+        }
+
+        if (!candidate.isLive) {
+            return res.status(403).json({ success: false, message: "This enrollment code has expired and is no longer valid for the current process." });
+        }
+
+        res.status(200).json({ success: true, candidate });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get candidate status by enrollment ID
+// @route   GET /api/competitions/status/:enrollmentId
+export const getCandidateStatus = async (req, res) => {
+    try {
+        const candidate = await CompetitionCandidate.findOne({ enrollmentId: req.params.enrollmentId });
+        if (!candidate) return res.status(404).json({ success: false, message: "Candidate not found" });
+        res.status(200).json({ success: true, status: candidate.status });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }

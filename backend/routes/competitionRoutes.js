@@ -5,11 +5,14 @@ import {
     getAdminCandidates, 
     updateCandidateStatus, 
     bulkDeleteCandidates,
-    toggleLiveStatus
+    toggleLiveStatus,
+    submitTask,
+    loginCandidate,
+    getCandidateStatus
 } from "../controllers/competitionCandidateController.js";
 import { protect, checkPermission } from "../middleware/authMiddleware.js";
 import PERMISSIONS from "../config/permissions.js";
-import { competitionUpload } from "../middleware/uploadMiddleware.js";
+import { competitionUpload, competitionTaskUpload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -47,6 +50,12 @@ router.delete("/:id",
 
 // Registration (Public)
 router.post("/register", registerForCompetition);
+router.post("/login", loginCandidate);
+router.get("/status/:enrollmentId", getCandidateStatus);
+
+// Submit Task (Public - uses enrollmentId)
+router.post("/submit-task", competitionTaskUpload.single(), submitTask);
+
 
 // GET all competition candidates for admin
 router.get("/candidates/all", 

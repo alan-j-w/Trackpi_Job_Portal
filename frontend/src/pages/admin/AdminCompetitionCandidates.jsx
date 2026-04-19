@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { Search, Download, Eye, ChevronDown, Filter, Trash2, X } from "lucide-react";
+import { Search, Download, Eye, ChevronDown, Filter, Trash2, X, FileText } from "lucide-react";
 import { hasPermission } from "../../utils/auth";
 import { PERMISSIONS } from "../../constants/permissions";
 import DeleteUserModal from "../../components/admin/DeleteUserModal";
@@ -9,20 +9,21 @@ const AdminCompetitionCandidates = () => {
     const token = localStorage.getItem("token");
 
     const [candidates, setCandidates] = useState([
-        { _id: "1", name: "Mark Jacobs", enrollmentId: "ENDG235#", department: "UI UX Designer", phone: "9735276590", email: "abc@gmail.com", status: "Pending", isLive: true, createdAt: new Date().toISOString() },
-        { _id: "2", name: "Stephen Jacobs", enrollmentId: "ENDG236#", department: "Graphic designer", phone: "9735276590", email: "abc@gmail.com", status: "Pass", isLive: true, createdAt: new Date().toISOString() },
-        { _id: "3", name: "Stephen Jacobs", enrollmentId: "ENDG237#", department: "UI UX Designer", phone: "9735276590", email: "abc@gmail.com", status: "Pass", isLive: true, createdAt: new Date().toISOString() },
-        { _id: "4", name: "Mark Jacobs", enrollmentId: "ENDG238#", department: "UI UX Designer", phone: "9735276590", email: "abc@gmail.com", status: "Fail", isLive: true, createdAt: new Date().toISOString() },
-        { _id: "5", name: "Stephen Jacobs", enrollmentId: "ENDG239#", department: "Graphic designer", phone: "9735276590", email: "abc@gmail.com", status: "Pass", isLive: false, createdAt: new Date().toISOString() }
+        { _id: "1", name: "Angel", enrollmentId: "ENDG425028", department: "UI/UX Designer", phone: "87695674387", email: "angel13@gmail.com", status: "Pending", isLive: true, createdAt: new Date().toISOString() },
+        { _id: "2", name: "Alona", enrollmentId: "ENDG354193", department: "MERN Stack Developer", phone: "9678564748", email: "alona@gmail.com", status: "Pass", isLive: true, createdAt: new Date().toISOString() },
+        { _id: "3", name: "Akhil Joseph", enrollmentId: "ENDG784929", department: "Graphic Designer", phone: "9756875634", email: "akhi@gmail.com", status: "Pending", isLive: true, createdAt: new Date().toISOString() },
+        { _id: "4", name: "Anju Joseph", enrollmentId: "ENDG106180", department: "HR", phone: "9856745676", email: "anju123@gmail.com", status: "Fail", isLive: true, createdAt: new Date().toISOString() },
+        { _id: "5", name: "Dony", enrollmentId: "ENDG560550", department: "UI/UX Designer", phone: "87695674387", email: "joyal123@gmail.com", status: "Pass", isLive: true, createdAt: new Date().toISOString() }
     ]);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState([]);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    
+
     // Sort and Filter states
     const [sortOrder, setSortOrder] = useState("newest");
     const [filterStatus, setFilterStatus] = useState("all");
+    const [filterDept, setFilterDept] = useState("all");
 
     /* FETCH */
     const fetchCandidates = async () => {
@@ -54,7 +55,7 @@ const AdminCompetitionCandidates = () => {
         const targetList = isLive ? liveCandidates : previousCandidates;
         const targetIds = targetList.map(c => c._id);
         const allSelected = targetIds.every(id => selectedIds.includes(id));
-        
+
         if (allSelected) {
             setSelectedIds(prev => prev.filter(id => !targetIds.includes(id)));
         } else {
@@ -66,9 +67,9 @@ const AdminCompetitionCandidates = () => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/candidates/${id}/status`, {
                 method: "PUT",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}` 
+                    Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({ status })
             });
@@ -85,9 +86,9 @@ const AdminCompetitionCandidates = () => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/candidates/bulk-delete`, {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}` 
+                    Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({ ids: selectedIds })
             });
@@ -105,9 +106,10 @@ const AdminCompetitionCandidates = () => {
 
     /* FILTER & SORT */
     const filteredAndSorted = candidates
-        .filter(c => 
+        .filter(c =>
             (c.name.toLowerCase().includes(search.toLowerCase()) || c.enrollmentId.toLowerCase().includes(search.toLowerCase())) &&
-            (filterStatus === "all" || c.status.toLowerCase() === filterStatus.toLowerCase())
+            (filterStatus === "all" || c.status.toLowerCase() === filterStatus.toLowerCase()) &&
+            (filterDept === "all" || c.department.toLowerCase() === filterDept.toLowerCase())
         )
         .sort((a, b) => {
             if (sortOrder === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
@@ -124,7 +126,7 @@ const AdminCompetitionCandidates = () => {
             <div className="flex flex-wrap items-center gap-6 mb-12">
                 <div className="relative flex-1 min-w-[300px]">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input 
+                    <input
                         placeholder="Search candidates or enrollment number"
                         className="w-full h-14 bg-white border border-gray-200 pl-14 pr-6 rounded-2xl outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all font-medium shadow-sm"
                         value={search}
@@ -145,7 +147,7 @@ const AdminCompetitionCandidates = () => {
 
                     <div className="relative group">
                         <button className="h-10 px-6 bg-white border border-gray-200 rounded-xl flex items-center gap-3 font-bold text-sm text-gray-600 hover:border-yellow-400 transition-all shadow-sm">
-                            Filter <Filter size={14} />
+                            Status <ChevronDown size={14} />
                         </button>
                         <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 overflow-hidden">
                             <button onClick={() => setFilterStatus("all")} className="w-full px-5 py-3 text-left text-sm font-medium hover:bg-yellow-50 text-gray-600">All Status</button>
@@ -154,11 +156,24 @@ const AdminCompetitionCandidates = () => {
                             <button onClick={() => setFilterStatus("fail")} className="w-full px-5 py-3 text-left text-sm font-medium hover:bg-yellow-50 text-gray-600">Fail</button>
                         </div>
                     </div>
+
+                    <div className="relative group">
+                        <button className="h-10 px-6 bg-white border border-gray-200 rounded-xl flex items-center gap-3 font-bold text-sm text-gray-600 hover:border-yellow-400 transition-all shadow-sm">
+                            Department <Filter size={14} />
+                        </button>
+                        <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 overflow-hidden">
+                            <button onClick={() => setFilterDept("all")} className="w-full px-5 py-3 text-left text-sm font-medium hover:bg-yellow-50 text-gray-600">All Departments</button>
+                            <option className="hidden">---</option>
+                            {["MERN Stack Developer", "UI/UX Designer", "Graphic Designer", "HR"].map(dept => (
+                                <button key={dept} onClick={() => setFilterDept(dept)} className="w-full px-5 py-3 text-left text-sm font-medium hover:bg-yellow-50 text-gray-600">{dept}</button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* SECTIONS */}
-            <CandidateTableSection 
+            <CandidateTableSection
                 title="Live candidates"
                 candidates={liveCandidates}
                 loading={loading}
@@ -169,7 +184,7 @@ const AdminCompetitionCandidates = () => {
                 hasEditPermission={hasPermission(PERMISSIONS.COMPETITION_CANDIDATES_EDIT)}
             />
 
-            <CandidateTableSection 
+            <CandidateTableSection
                 title="Previous candidates"
                 candidates={previousCandidates}
                 loading={loading}
@@ -185,7 +200,7 @@ const AdminCompetitionCandidates = () => {
             {selectedIds.length > 0 && (
                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white px-10 py-5 rounded-[2rem] shadow-2xl border border-gray-100 flex items-center gap-10 animate-in slide-in-from-bottom-10 z-30">
                     <div className="text-gray-600 font-bold">Selected <span className="text-yellow-600">{selectedIds.length}</span> items</div>
-                    <button 
+                    <button
                         onClick={() => setIsDeleteModalOpen(true)}
                         className="flex items-center gap-2 text-red-500 font-black uppercase tracking-widest text-xs hover:underline decoration-2"
                     >
@@ -194,7 +209,7 @@ const AdminCompetitionCandidates = () => {
                 </div>
             )}
 
-            <DeleteUserModal 
+            <DeleteUserModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmBulkDelete}
@@ -207,22 +222,22 @@ const AdminCompetitionCandidates = () => {
 
 /* ================= HELPER COMPONENTS ================= */
 
-const CandidateTableSection = ({ 
-    title, 
-    candidates, 
-    loading, 
-    selectedIds, 
-    toggleSelect, 
-    toggleSelectAll, 
-    handleUpdateStatus, 
+const CandidateTableSection = ({
+    title,
+    candidates,
+    loading,
+    selectedIds,
+    toggleSelect,
+    toggleSelectAll,
+    handleUpdateStatus,
     hasEditPermission,
-    wrapperClass = "" 
+    wrapperClass = ""
 }) => {
     return (
         <div className={wrapperClass}>
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h3>
-                <button 
+                <button
                     onClick={toggleSelectAll}
                     className="text-yellow-600 font-bold text-sm underline underline-offset-4"
                 >
@@ -256,7 +271,7 @@ const CandidateTableSection = ({
                                     <tr key={c._id} className="hover:bg-yellow-50/20 transition-all font-medium text-gray-700">
                                         <td className="p-6">
                                             <div className="flex items-center justify-center">
-                                                <input 
+                                                <input
                                                     type="checkbox"
                                                     checked={selectedIds.includes(c._id)}
                                                     onChange={() => toggleSelect(c._id)}
@@ -271,12 +286,23 @@ const CandidateTableSection = ({
                                         <td className="p-6 text-center text-gray-400">{c.email}</td>
                                         <td className="p-6">
                                             <div className="flex justify-center">
-                                                <button 
-                                                    onClick={() => c.resumeUrl && window.open(c.resumeUrl)}
-                                                    className="p-2.5 bg-gray-100 rounded-xl text-gray-600 hover:bg-yellow-400 hover:text-white transition-all shadow-sm"
-                                                >
-                                                    <Download size={18} />
-                                                </button>
+                                                {c.taskUrl ? (
+                                                    <button
+                                                        onClick={() => window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(c.taskUrl)}`, '_blank')}
+                                                        title="View submitted task PDF"
+                                                        className="p-2.5 bg-red-50 rounded-xl text-red-500 hover:bg-red-100 transition-all shadow-sm flex items-center justify-center"
+                                                    >
+                                                        <FileText size={18} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        disabled
+                                                        title="No task submitted yet"
+                                                        className="p-2.5 bg-gray-100 rounded-xl text-gray-300 cursor-not-allowed shadow-sm"
+                                                    >
+                                                        <Download size={18} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="p-6">
@@ -288,8 +314,8 @@ const CandidateTableSection = ({
                                         </td>
                                         <td className="p-6">
                                             <div className="flex justify-center">
-                                                <ResultToggle 
-                                                    status={c.status} 
+                                                <ResultToggle
+                                                    status={c.status}
                                                     onUpdate={(val) => handleUpdateStatus(c._id, val)}
                                                     disabled={!hasEditPermission}
                                                 />
@@ -310,7 +336,7 @@ const ResultToggle = ({ status, onUpdate, disabled }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const getStatusStyle = (s) => {
-        switch(s.toLowerCase()) {
+        switch (s.toLowerCase()) {
             case "pass": return "bg-green-600 text-white border-green-600 hover:bg-green-700";
             case "fail": return "bg-red-600 text-white border-red-600 hover:bg-red-700";
             default: return "bg-white text-gray-700 border-gray-200 hover:border-yellow-400";
@@ -319,7 +345,7 @@ const ResultToggle = ({ status, onUpdate, disabled }) => {
 
     return (
         <div className="relative">
-            <button 
+            <button
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={`min-w-[100px] py-2 px-4 rounded-xl border-2 font-black text-xs uppercase tracking-widest transition-all shadow-sm ${getStatusStyle(status)}`}
             >
@@ -328,7 +354,7 @@ const ResultToggle = ({ status, onUpdate, disabled }) => {
             {isOpen && (
                 <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-2xl z-20 overflow-hidden animate-in zoom-in-95 duration-150">
                     {["Pending", "Pass", "Fail"].map(s => (
-                        <button 
+                        <button
                             key={s}
                             onClick={() => { onUpdate(s); setIsOpen(false); }}
                             className="w-full px-5 py-3 text-left text-[11px] font-black uppercase tracking-widest hover:bg-yellow-50 text-gray-700 border-b border-gray-50 last:border-0"
@@ -341,5 +367,6 @@ const ResultToggle = ({ status, onUpdate, disabled }) => {
         </div>
     );
 };
+
 
 export default AdminCompetitionCandidates;

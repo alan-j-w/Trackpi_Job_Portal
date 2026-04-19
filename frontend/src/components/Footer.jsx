@@ -17,7 +17,9 @@ import logoLight from "../assets/logo.png";          // For White Footer
 
 const Footer = () => {
   const location = useLocation();
-  const isBlackFooter = location.pathname.includes("/talent-league") || location.pathname.includes("/competition/ui-ux");
+  const isBlackFooter = location.pathname.includes("/talent-league") || 
+                        location.pathname.includes("/competition/ui-ux") ||
+                        location.pathname.includes("/competition/testimonials");
 
   // Detect auth state (same approach as Navbar)
   const isLoggedIn = !!localStorage.getItem("token");
@@ -50,31 +52,32 @@ const Footer = () => {
         <div className={`max-w-[1440px] mx-auto px-6 md:px-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 ${mainTextClass}`}>
 
           {/* 🟡 Logo & About */}
-          <div className="flex flex-col gap-2 w-full sm:col-span-2 md:col-span-1">
+          <div className="flex flex-col gap-6 w-full sm:col-span-2 md:col-span-1">
             <img
               src={isBlackFooter ? logoDark : logoLight}
               alt="TrackPi Logo"
-              className="w-[120px] md:w-[150px] h-auto object-contain ml-6 sm:ml-28 mt-3"
-              style={{ mixBlendMode: 'screen' }}
+              className="w-[150px] h-auto object-contain"
+              style={{ 
+                mixBlendMode: "screen",
+                filter: "brightness(0.9) contrast(1.5)"
+              }}
             />
-            <p className={`${subTextClass} text-sm leading-relaxed font-urbanist text-justify max-w-full`}>
+            <p className={`${subTextClass} text-[18px] leading-relaxed font-urbanist text-left max-w-full`}>
               Empowering businesses to succeed through expert
               guidance and personalized solutions. Unlocking
               potential and achieving success.
             </p>
 
-            {/* ⭐ Social Media - Hidden on Talent League and UI/UX Designer pages */}
-            {!isBlackFooter && (
-              <div className="flex flex-wrap gap-4 text-2xl text-[#FFB300]">
-                <a href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-facebook-circle-line"></i></a>
-                <a href="https://www.youtube.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-youtube-line"></i></a>
-                <a href="https://www.instagram.com/trackpi_official/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-instagram-line"></i></a>
-                <a href="https://medium.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-medium-line border border-[#FFB300] rounded p-0.5 text-base w-6 h-6 flex items-center justify-center"></i></a>
-                <a href="https://www.linkedin.com/company/trackpi-private-limited/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-linkedin-line border border-[#FFB300] rounded p-0.5 text-base w-6 h-6 flex items-center justify-center"></i></a>
-                <a href="https://www.quora.com/profile/Trackpi-Private-Limited" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.3799.9483A11.9628 11.9628 0 0 1 21.248 19.5397l2.4096 2.4225c.7322.7362.21 1.9905-.8272 1.9905l-10.7105.01a12.52 12.52 0 0 1-.304 0h-.02A11.9628 11.9628 0 0 1 7.3818.9503Zm7.3217 4.428a7.1717 7.1717 0 1 0-5.4873 13.2512 7.1717 7.1717 0 0 0 5.4883-13.2511Z" /></svg></a>
-                <a href="https://trackpi.blogspot.com/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-blogger-line bg-transparent"></i></a>
-              </div>
-            )}
+            {/* ⭐ Social Media - visible on all footers */}
+            <div className="flex flex-nowrap gap-4 text-2xl text-[#FFB300] items-center mt-4 w-full overflow-visible">
+              <a href="https://www.facebook.com/people/Trackpi-Private-Limited/61565947096778/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-facebook-circle-line"></i></a>
+              <a href="https://www.youtube.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-youtube-line"></i></a>
+              <a href="https://www.instagram.com/trackpi_official/" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-instagram-line"></i></a>
+              <a href="https://medium.com/@trackpi" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-medium-line border border-[#FFB300] rounded p-1 flex items-center justify-center"></i></a>
+              <a href="https://www.linkedin.com/company/trackpi-private-limited/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className={`${socialHoverClass} transition`}><i className="ri-linkedin-box-line"></i></a>
+              <a href="https://www.quora.com/profile/Trackpi-Private-Limited" target="_blank" rel="noopener noreferrer" className="transition bg-white rounded p-1 flex items-center justify-center w-9 h-9"><svg className="w-full h-full fill-[#FFB300]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.3799.9483A11.9628 11.9628 0 0 1 21.248 19.5397l2.4096 2.4225c.7322.7362.21 1.9905-.8272 1.9905l-10.7105.01a12.52 12.52 0 0 1-.304 0h-.02A11.9628 11.9628 0 0 1 7.3818.9503Zm7.3217 4.428a7.1717 7.1717 0 1 0-5.4873 13.2512 7.1717 7.1717 0 0 0 5.4883-13.2511Z" /></svg></a>
+              <a href="https://trackpi.blogspot.com/" target="_blank" rel="noopener noreferrer" className="transition bg-white rounded p-1 flex items-center justify-center w-9 h-9"><i className="ri-blogger-fill text-[#FFB300] text-2xl"></i></a>
+            </div>
           </div>
 
 
@@ -82,31 +85,34 @@ const Footer = () => {
           <div className="mt-4 md:pl-16 lg:pl-24">
             <h3 className={`font-extrabold text-lg mb-6 ${mainTextClass} text-left font-urbanist`}>Links</h3>
             <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist font-bold`}>
-              <li className="w-[155px] h-[22px] flex items-center">
+              <li className="flex items-center">
                 <Link to="/" className={`cursor-pointer hover:text-[#FFB300] w-full`}>
                   Home
                 </Link>
               </li>
-              <li className="w-[155px] h-[22px] flex items-center">
+              <li className="flex items-center">
                 <Link to="/about" className={`cursor-pointer hover:text-[#FFB300] w-full`}>
                   About
                 </Link></li>
-              <li className="w-[155px] h-[22px] flex items-center">
+              <li className="flex items-center">
                 <Link to="/contact" className={`cursor-pointer hover:text-[#FFB300] w-full`}>Connect Us</Link></li>
-              <li className="w-[155px] h-[22px] flex items-center">
+              <li className="flex items-center">
                 <Link to="/creators" className={`hover:text-[#FFB300] w-full`}>
                   Creators
                 </Link>
               </li>
-              <li className={`cursor-pointer hover:text-[#FFB300] w-[155px] h-[22px] flex items-center`}>
+              <li className={`cursor-pointer hover:text-[#FFB300] flex items-center`}>
                 <Link to="/terms" className="w-full">Terms & Conditions</Link>
               </li>
             </ul>
           </div>
           {/* 🛠 Services */}
           <div className="mt-4">
-            <h3 className={`font-extrabold text-lg mb-6 ${mainTextClass} text-left font-urbanist w-[185px] h-[29px]`}>Services</h3>
-            <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist w-[185px] font-bold`}>
+            <h3 className={`font-extrabold text-lg mb-6 ${mainTextClass} text-left font-urbanist`}>Services</h3>
+            <ul className={`space-y-4 ${subTextClass} text-sm text-left font-urbanist font-bold`}>
+              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Software development</Link></li>
+              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Sales training</Link></li>
+              <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Operations training</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Software development</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Sales training</Link></li>
               <li className="cursor-pointer hover:text-[#FFB300]"><Link to="#">Operations training</Link></li>

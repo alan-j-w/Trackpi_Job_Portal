@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Trophy, Calendar, Award, Users, CheckCircle, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -20,45 +20,37 @@ import excellenceBottomEllipse from "../assets/Talent league/ui ux/excellence_bo
 import excellenceRightWinners from "../assets/Talent league/ui ux/excellence_right_winners.png";
 import excellenceRightInternship from "../assets/Talent league/ui ux/excellence_right_internship.png";
 import excellenceRightPortfolio from "../assets/Talent league/ui ux/excellence_right_portfolio.png";
-import excellenceTrophyWireframe from "../assets/Talent league/ui ux/excellence_trophy_wireframe.png";
+import excellenceTrophyWireframe from "../assets/Talent league/ui ux/trophy.png";
+import songAudio from "../assets/Talent league/ui ux/song.mp3.mp3";
+import ChallengeModal from "../components/competitions/ChallengeModal";
 
 const UiUxCompetition = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        portfolio: "",
-    });
-    const [loading, setLoading] = useState(false);
+    const [showChallengeModal, setShowChallengeModal] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef(null);
 
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...formData, role: "UI/UX Designer" }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                toast.success("Successfully registered for the competition!");
-                setIsModalOpen(false);
-                setFormData({ name: "", email: "", phone: "", portfolio: "" });
-            } else {
-                toast.error(data.message || "Registration failed");
+    useEffect(() => {
+        audioRef.current = new Audio(songAudio);
+        audioRef.current.loop = true;
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
             }
-        } catch (error) {
-            toast.error("An error occurred during registration");
-        } finally {
-            setLoading(false);
+        };
+    }, []);
+
+    const togglePlay = () => {
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play().catch(e => console.error("Audio play failed:", e));
         }
+        setIsPlaying(!isPlaying);
     };
+
+
+
+
 
     return (
         <div className="relative w-full min-h-screen overflow-x-hidden bg-black text-white font-sans">
@@ -93,22 +85,30 @@ const UiUxCompetition = () => {
 
                 {/* Bottom Right: Volume Icon */}
                 <div className="absolute bottom-10 right-10 z-20">
-                    <button className="text-white hover:scale-110 transition-transform opacity-80 hover:opacity-100">
-                        <i className="ri-volume-up-fill text-2xl"></i>
+                    <button onClick={togglePlay} className="text-white hover:scale-110 transition-transform opacity-80 hover:opacity-100 rounded-full px-2 py-2 flex items-center justify-center">
+                        <i className={isPlaying ? "ri-volume-up-fill text-3xl" : "ri-volume-mute-fill text-3xl"}></i>
                     </button>
                 </div>
 
                 {/* Bottom Left: Buttons and Watch Now */}
                 <div className="absolute bottom-12 left-10 lg:left-24 z-20 flex flex-col gap-6 items-start">
                     <div className="flex gap-4">
-                        <button className="px-8 py-3 rounded-xl border-[1px] border-yellow-500 bg-black text-white font-bold text-sm hover:bg-white/10 transition shadow-[0_10px_30px_rgba(234,179,8,0.2)]">
-                            Testimonials
-                        </button>
+                        <Link to="/competition/testimonials">
+                            <button className="relative inline-flex overflow-hidden rounded-xl p-[1.5px] shadow-[0_10px_30px_rgba(234,179,8,0.2)] group transition-transform hover:scale-[1.02]">
+                                <span className="absolute inset-[-1000%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#000000_0%,#FFB300_50%,#000000_100%)]" />
+                                <span className="relative inline-flex h-full w-full items-center justify-center rounded-[10.5px] bg-black px-8 py-3 font-bold text-sm text-white transition-colors group-hover:bg-[#1a1a1a]">
+                                    Testimonials
+                                </span>
+                            </button>
+                        </Link>
                         <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="px-8 py-3 rounded-xl bg-yellow-500 text-black font-bold text-sm shadow-[0_10px_30px_rgba(234,179,8,0.3)] hover:scale-105 transition"
+                            onClick={() => setShowChallengeModal(true)}
+                            className="relative inline-flex overflow-hidden rounded-xl p-[1.5px] shadow-[0_10px_30px_rgba(234,179,8,0.3)] group transition-transform hover:scale-[1.02]"
                         >
-                            Register Competition
+                            <span className="absolute inset-[-1000%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#EAB308_0%,#000000_50%,#EAB308_100%)]" />
+                            <span className="relative inline-flex h-full w-full items-center justify-center rounded-[10.5px] bg-yellow-500 px-8 py-3 font-bold text-sm text-black transition-colors group-hover:bg-yellow-400">
+                                Register Competition
+                            </span>
                         </button>
                     </div>
                     <button className="flex items-center gap-2 text-white/80 font-medium hover:text-white transition group">
@@ -227,30 +227,44 @@ const UiUxCompetition = () => {
                             style={{
                                 width: '511px',
                                 height: '196px',
-                                padding: '1px',
-                                background: 'linear-gradient(to bottom, #FFFFFF, #FFB300)',
                                 borderRadius: '40px',
                                 flex: 'none',
                                 order: 1,
                                 flexGrow: 0,
                                 position: 'relative',
-                                overflow: 'hidden',
                                 margin: '0 auto',
                                 zIndex: 10
                             }}
-                            className="shadow-2xl transition-transform duration-300 hover:scale-[1.02]"
+                            className="shadow-2xl"
                         >
+                            {/* Gradient Border Overlay */}
+                            <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    borderRadius: '40px',
+                                    padding: '1px',
+                                    background: 'linear-gradient(to bottom, #FFFFFF, #FFB300)',
+                                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                                    WebkitMaskComposite: 'xor',
+                                    maskComposite: 'exclude',
+                                    zIndex: 20
+                                }}
+                            ></div>
+
                             <div
                                 style={{
                                     width: '100%',
                                     height: '100%',
-                                    backgroundColor: '#000',
-                                    borderRadius: '39px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    backdropFilter: 'blur(12px)',
+                                    WebkitBackdropFilter: 'blur(12px)',
+                                    borderRadius: '40px',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    position: 'relative'
+                                    position: 'relative',
+                                    overflow: 'hidden'
                                 }}
                             >
                                 {/* Decorative Texture/Confetti */}
@@ -402,10 +416,10 @@ const UiUxCompetition = () => {
                     <img
                         src={excellenceTrophyWireframe}
                         alt="Wireframe Trophy Background"
-                        className="absolute top-[65%] right-[10%] -translate-y-1/2 w-[350px] h-auto pointer-events-none opacity-70"
+                        className="absolute top-[75%] right-[2%] -translate-y-1/2 w-[350px] h-auto pointer-events-none opacity-70"
                         style={{
                             zIndex: 10,
-                            filter: 'brightness(1.5)'
+                            filter: 'brightness(1.2) drop-shadow(0 0 30px rgba(0, 102, 255, 0.8))'
                         }}
                     />
                     {/* Black Circle Background */}
@@ -510,6 +524,16 @@ const UiUxCompetition = () => {
                         className="w-full h-auto object-contain"
                     />
                 </div>
+
+                {/* Navigation Arrows */}
+                <div className="flex justify-center items-center gap-16 mt-12 mb-4">
+                    <button className="w-[45px] h-[45px] rounded-[8px] border-[1.5px] border-[#FFB300] flex justify-center items-center text-[#FFB300] hover:bg-[#FFB300]/10 transition">
+                        <i className="ri-arrow-left-s-line text-3xl font-light"></i>
+                    </button>
+                    <button className="w-[45px] h-[45px] rounded-[8px] border-[1.5px] border-[#FFB300] flex justify-center items-center text-[#FFB300] hover:bg-[#FFB300]/10 transition">
+                        <i className="ri-arrow-right-s-line text-3xl font-light"></i>
+                    </button>
+                </div>
             </section>
 
             {/* Join Section */}
@@ -573,56 +597,7 @@ const UiUxCompetition = () => {
                 </div>
             </section>
 
-            {/* Registration Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-[#1A1A1A] w-full max-w-md rounded-3xl border border-white/10 p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4">
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition">
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <h3 className="text-2xl font-bold mb-6 text-yellow-500">Register for Competition</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Full Name</label>
-                                <input
-                                    required name="name" value={formData.name} onChange={handleInputChange}
-                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-yellow-500/50 transition"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Email</label>
-                                <input
-                                    required type="email" name="email" value={formData.email} onChange={handleInputChange}
-                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-yellow-500/50 transition"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Phone Number</label>
-                                <input
-                                    required name="phone" value={formData.phone} onChange={handleInputChange}
-                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-yellow-500/50 transition"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Portfolio Link</label>
-                                <input
-                                    required name="portfolio" value={formData.portfolio} onChange={handleInputChange}
-                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-yellow-500/50 transition"
-                                    placeholder="Dribbble, Behance, or Website"
-                                />
-                            </div>
-                            <button
-                                disabled={loading}
-                                className="w-full py-4 bg-yellow-500 text-black font-bold rounded-xl mt-6 shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:bg-yellow-400 transition flex items-center justify-center gap-2"
-                            >
-                                {loading ? "Registering..." : "Submit Registration"}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+
 
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
@@ -634,6 +609,12 @@ const UiUxCompetition = () => {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
+
+            <ChallengeModal
+                isOpen={showChallengeModal}
+                onClose={() => setShowChallengeModal(false)}
+            />
+
             <Footer />
         </div>
     );

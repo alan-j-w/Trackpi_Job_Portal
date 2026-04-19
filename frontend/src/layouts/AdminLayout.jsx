@@ -134,7 +134,7 @@ const AdminLayout = () => {
                 {/* Logo */}
                 <div className="h-20 flex items-center justify-center">
                     {isSidebarOpen ? (
-                        <img src={logo} alt="TrackPi" className="h-10 mt-4" />
+                        <img src={logo} alt="TrackPi" className="h-10 mt-4" style={{ mixBlendMode: 'screen', filter: 'brightness(0.9) contrast(1.5)' }} />
                     ) : (
                         <span className="text-xl font-bold text-yellow-500 mt-4">TP</span>
                     )}

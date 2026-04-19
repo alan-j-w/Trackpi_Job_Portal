@@ -9,8 +9,8 @@ const TrackpiTalentHunt = () => {
             <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-20">
 
                 {/* Section Heading */}
-                <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent mb-12 text-center font-russo drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-                    <span className="text-[#FFB300] drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">Trackpi</span> Talent Hunt
+                <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent mb-12 text-center font-russo">
+                    <span className="text-[#FFB300]">Trackpi</span> Talent Hunt
                 </h2>
 
                 <div className="flex flex-col items-center justify-center gap-12 text-center">

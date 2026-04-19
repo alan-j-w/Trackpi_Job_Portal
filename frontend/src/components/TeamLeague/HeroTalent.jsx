@@ -93,16 +93,36 @@ export default function HeroTalent() {
                             our internship program — <span className="font-raleway italic rgb-shift">where talent meets opportunity!</span>
                         </p>
 
-                        <button
+                        {/* Competition Button - Strict Layout Specs: 230x47px, 10px Radius, 1px Border, 10px Pad/Gap */}
+                        <button 
                             onClick={scrollToCompetitions}
-                            className="relative w-[230px] h-[47px] rounded-[10px] flex items-center justify-center gap-3 overflow-hidden border-[1px] border-[#FFB300] transition-transform hover:scale-105 active:scale-95 group"
+                            className="group relative flex items-center justify-center transition-all hover:scale-[1.02] active:scale-[0.98] mt-8"
                             style={{
-                                background: 'linear-gradient(to right, #6856CF 0%, #370C4B 51%, #E141D1 100%)'
+                                width: '230px',
+                                height: '47px',
+                                background: 'linear-gradient(90deg, #5c48b7 0%, #301648 45%, #301648 55%, #cb3298 100%)',
+                                border: '1px solid #FFB300',
+                                borderRadius: '10px',
+                                padding: '10px',
+                                gap: '10px',
+                                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'
                             }}
                         >
-                            <span className="font-russo text-white text-[20px] leading-none mb-1">Competition</span>
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full border-[1px] border-[#FFB300] bg-transparent text-[#FFB300]">
-                                <i className="ri-arrow-down-line text-[12px] font-bold"></i>
+                            <span className="font-russo text-[22px] text-white leading-none tracking-tight">Competition</span>
+                            <div className="w-[28px] h-[28px] border-[1px] border-[#FFB300] rounded-full flex items-center justify-center">
+                                <svg 
+                                    width="14" 
+                                    height="14" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="#FFB300" 
+                                    strokeWidth="3.5" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    className="transform transition-transform group-hover:translate-y-0.5"
+                                >
+                                    <path d="M7 13l5 5 5-5M12 18V6" />
+                                </svg>
                             </div>
                         </button>
                     </div>
