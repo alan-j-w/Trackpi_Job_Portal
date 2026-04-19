@@ -3,11 +3,13 @@ import axios from "axios";
 import { applyForJob } from "../../jobService";
 import trackpiLogo from "../../assets/badges/trackpi-striped.png";
 import config from "../../config";
+import { Country } from "country-state-city";
 
 const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
+        phoneCode: "+91",
         phone: "",
         experience: "",
         portfolio: "",
@@ -15,6 +17,11 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
 
     const [profile, setProfile] = useState(null);
     const [useProfileResume, setUseProfileResume] = useState(false);
+
+    const [countries] = useState(() => Country.getAllCountries());
+    const sortedCountries = React.useMemo(() => {
+        return [...countries].sort((a, b) => b.phonecode.length - a.phonecode.length);
+    }, [countries]);
 
     // Load user data and profile on mount
     useEffect(() => {
@@ -43,11 +50,33 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                     if (res.data.success && res.data.profile) {
                         const p = res.data.profile;
                         setProfile(p);
+                        
+                        let extractedCode = "+91";
+                        let extractedPhone = "";
+
+                        if (p.phone) {
+                            const rawPhone = p.phone;
+
+                            // Find the best matching country code (longest first to avoid +1 vs +1242 issues)
+                            const matchedCountry = sortedCountries.find(c => rawPhone.startsWith(`+${c.phonecode}`));
+                            
+                            if (matchedCountry) {
+                                extractedCode = `+${matchedCountry.phonecode}`;
+                                // Remove prefix and take remaining digits
+                                extractedPhone = rawPhone.slice(extractedCode.length).replace(/\D/g, '').slice(0, 10);
+                            } else {
+                                // Fallback: Take last 10 digits as the subscriber number
+                                const digits = rawPhone.replace(/\D/g, '');
+                                extractedPhone = digits.slice(-10);
+                            }
+                        }
+
                         setFormData(prev => ({
                             ...prev,
                             name: p.fullName || prev.name,
                             email: p.email || prev.email,
-                            phone: p.phone || prev.phone,
+                            phoneCode: extractedCode,
+                            phone: extractedPhone,
                         }));
                         if (p.resumeUrl) {
                             setUseProfileResume(true);
@@ -92,15 +121,19 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         }
 
         if (name === 'phone') {
-            if (!/^\d*$/.test(value)) {
+            const cleanValue = value.replace(/\D/g, '').slice(0, 10);
+            if (!cleanValue && value) {
                 newErrors.phone = "Phone number must contain only digits";
-            } else if (value.trim() && value.length < 5) {
+            } else if (cleanValue && cleanValue.length < 5) {
                 newErrors.phone = "Please enter a valid phone number";
-            } else if (!value.trim()) {
+            } else if (!cleanValue) {
                 newErrors.phone = "Phone number is required";
             } else {
                 delete newErrors.phone;
             }
+            setErrors(newErrors);
+            setFormData(prev => ({ ...prev, [name]: cleanValue }));
+            return; // Handle separately due to sanitization
         }
 
         if (name === 'email') {
@@ -185,7 +218,7 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
         const data = new FormData();
         data.append("name", formData.name);
         data.append("email", formData.email);
-        data.append("phone", formData.phone);
+        data.append("phone", `${formData.phoneCode}${formData.phone}`);
         data.append("experience", formData.experience);
         data.append("portfolio", formData.portfolio);
 
@@ -325,11 +358,18 @@ const ApplyJobForm = ({ jobId, job, onCancel, onSuccess }) => {
                             <label className="text-[14px] font-medium text-gray-700">Phone Number <span className="text-gray-500 font-normal">(With country code)</span></label>
                             <div className={`flex items-center border rounded-[6px] bg-white h-[44px] ${errors.phone ? 'border-red-500' : 'border-gray-400'}`}>
                                 <div className="flex items-center gap-2 px-4 border-r border-gray-400 h-full cursor-pointer relative">
-                                    <span className="text-[14px] font-bold text-black">+91</span>
+                                    <span className="text-[14px] font-bold text-black">{formData.phoneCode}</span>
                                     <i className="ri-arrow-down-s-fill text-black"></i>
-                                    <select className="absolute inset-0 opacity-0 cursor-pointer">
-                                        <option>+91</option>
-                                        <option>+1</option>
+                                    <select 
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        value={formData.phoneCode}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, phoneCode: e.target.value }))}
+                                    >
+                                        {countries.map((c, idx) => (
+                                            <option key={`${c.isoCode}-${idx}`} value={`+${c.phonecode}`}>
+                                                {c.name} (+{c.phonecode})
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <input
