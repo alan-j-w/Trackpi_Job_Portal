@@ -40,6 +40,11 @@ body, div, p, h1, h2, h3, h4, h5, h6, span, li, header, footer, section, article
 
 /* ─── Component styles ───────────────────────────────────────────────────── */
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   font-family: 'Cabinet Grotesk', sans-serif;
 }

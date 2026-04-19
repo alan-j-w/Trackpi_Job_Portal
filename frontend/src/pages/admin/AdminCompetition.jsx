@@ -508,87 +508,88 @@ const AdminCompetition = () => {
         <div className="mb-10">
             <h3 className="text-xl font-bold mb-6 text-gray-900">{title}</h3>
             
-            <div className="bg-white rounded-2xl border-2 border-yellow-400/30 mb-5 py-6 px-4 shadow-[0_4px_20px_-4px_rgba(255,179,0,0.1)] overflow-hidden relative">
+            <div className="bg-white rounded-2xl border-2 border-yellow-400/30 shadow-[0_4px_20px_-4px_rgba(255,179,0,0.1)] overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400"></div>
-                <div className="flex text-[11px] font-black text-gray-400 uppercase tracking-widest items-center">
-                    <div className="w-1/4 pl-2">Competition name</div>
-                    <div className="w-1/4 text-center">Competition Department</div>
-                    <div className="w-[15%] text-center">Start date</div>
-                    <div className="w-[15%] text-center">End date</div>
-                    <div className="w-[10%] text-center">Question</div>
-                    {showActions && <div className="w-[10%] text-right pr-2">Action</div>}
-                </div>
-            </div>
-
-            <div className="overflow-x-auto px-2">
-                <table className="w-full text-left table-fixed">
-                    <tbody className="divide-y divide-gray-100">
-                        {data.length === 0 ? (
-                            <tr><td colSpan={showActions ? 6 : 5} className="py-8 text-center text-gray-400 text-sm">No competitions found here</td></tr>
-                        ) : (
-                            data.map((item) => (
-                                <tr key={item._id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="py-5 px-4 text-sm font-medium text-gray-700 w-1/4 truncate" title={item.name}>{item.name}</td>
-                                    <td className="py-5 px-4 text-sm text-gray-600 w-1/4 text-center truncate" title={item.department}>{item.department}</td>
-                                    <td className="py-5 px-4 text-sm text-gray-600 w-[15%] text-center">
-                                        {new Date(item.startDate).toLocaleDateString('en-GB').replace(/\//g, ' - ')}
-                                    </td>
-                                    <td className="py-5 px-4 text-sm text-gray-600 w-[15%] text-center">
-                                        {new Date(item.endDate).toLocaleDateString('en-GB').replace(/\//g, ' - ')}
-                                    </td>
-                                    <td className="py-5 px-4 text-sm text-gray-600 w-[10%] text-center">
-                                        {item.questionUrl ? (
-                                            <div className="flex justify-center">
-                                                <a
-                                                    href={item.questionUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-2 bg-red-50 rounded-lg text-red-500 hover:bg-red-100 transition border border-red-100 shadow-sm"
-                                                >
-                                                    <FileText size={18} />
-                                                </a>
-                                            </div>
-                                        ) : (
-                                            <button 
-                                                onClick={() => onFileAdd ? onFileAdd(item._id) : (onAdd ? onAdd() : openEditModal(item))}
-                                                className="text-yellow-600 hover:text-yellow-700 font-bold text-sm flex items-center justify-center gap-1 w-full"
-                                            >
-                                                Add <Plus size={16} />
-                                            </button>
-                                        )}
-                                    </td>
-                                    {showActions && (
-                                        <td className="py-5 px-4 text-right w-[10%]">
-                                            <div className="flex justify-end items-center gap-3">
-                                                <button
-                                                    onClick={() => openEditModal(item)}
-                                                    className="p-2 bg-yellow-400 rounded-lg text-black hover:bg-yellow-500 transition shadow-sm hover:shadow-md"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(item._id)}
-                                                    className="p-2 bg-red-100 rounded-lg text-red-600 hover:bg-red-200 transition shadow-sm hover:shadow-md border border-red-200"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                                {(item.status === 'live' || item.status === 'future') && (
-                                                    <button
-                                                        onClick={() => handleGoLive(item)}
-                                                        className="ml-2 px-5 py-2 border-2 border-red-500 text-red-500 rounded-full text-[10px] font-black hover:bg-red-50 transition-all whitespace-nowrap flex items-center gap-2 uppercase tracking-widest shadow-sm"
-                                                    >
-                                                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
-                                                        Go Live
-                                                    </button>
-                                                )}
-                                            </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left table-fixed border-collapse">
+                        <thead>
+                            <tr className="border-b border-gray-100">
+                                <th className="py-6 px-4 w-1/4 text-[11px] font-black text-gray-400 uppercase tracking-widest pl-8">Competition name</th>
+                                <th className="py-6 px-4 w-1/4 text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">Competition Department</th>
+                                <th className="py-6 px-4 w-[12%] text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">Start date</th>
+                                <th className="py-6 px-4 w-[12%] text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">End date</th>
+                                <th className="py-6 px-4 w-[8%] text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">Question</th>
+                                {showActions && <th className="py-6 px-4 w-[18%] text-right text-[11px] font-black text-gray-400 uppercase tracking-widest pr-8">Action</th>}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {data.length === 0 ? (
+                                <tr><td colSpan={showActions ? 6 : 5} className="py-8 text-center text-gray-400 text-sm">No competitions found here</td></tr>
+                            ) : (
+                                data.map((item) => (
+                                    <tr key={item._id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="py-5 px-4 pl-8 text-sm font-medium text-gray-700 w-1/4 truncate" title={item.name}>{item.name}</td>
+                                        <td className="py-5 px-4 text-sm text-gray-600 w-1/4 text-center truncate" title={item.department}>{item.department}</td>
+                                        <td className="py-5 px-4 text-sm text-gray-600 w-[12%] text-center">
+                                            {new Date(item.startDate).toLocaleDateString('en-GB').replace(/\//g, ' - ')}
                                         </td>
-                                    )}
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                                        <td className="py-5 px-4 text-sm text-gray-600 w-[12%] text-center">
+                                            {new Date(item.endDate).toLocaleDateString('en-GB').replace(/\//g, ' - ')}
+                                        </td>
+                                        <td className="py-5 px-4 text-sm text-gray-600 w-[8%] text-center">
+                                            {item.questionUrl ? (
+                                                <div className="flex justify-center">
+                                                    <a
+                                                        href={item.questionUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-2 bg-red-50 rounded-lg text-red-500 hover:bg-red-100 transition border border-red-100 shadow-sm"
+                                                    >
+                                                        <FileText size={18} />
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => onFileAdd ? onFileAdd(item._id) : (onAdd ? onAdd() : openEditModal(item))}
+                                                    className="text-yellow-600 hover:text-yellow-700 font-bold text-sm flex items-center justify-center gap-1 w-full"
+                                                >
+                                                    Add <Plus size={16} />
+                                                </button>
+                                            )}
+                                        </td>
+                                        {showActions && (
+                                            <td className="py-5 px-4 pr-8 text-right w-[18%]">
+                                                <div className="flex justify-end items-center gap-3">
+                                                    <button
+                                                        onClick={() => openEditModal(item)}
+                                                        className="p-2 bg-yellow-400 rounded-lg text-black hover:bg-yellow-500 transition shadow-sm hover:shadow-md"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item._id)}
+                                                        className="p-2 bg-red-100 rounded-lg text-red-600 hover:bg-red-200 transition shadow-sm hover:shadow-md border border-red-200"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                    {(item.status === 'live' || item.status === 'future') && (
+                                                        <button
+                                                            onClick={() => handleGoLive(item)}
+                                                            className="px-4 py-2 border-2 border-red-500 text-red-500 rounded-full text-[10px] font-black hover:bg-red-50 transition-all whitespace-nowrap flex items-center gap-2 uppercase tracking-widest shadow-sm"
+                                                        >
+                                                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+                                                            Go Live
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

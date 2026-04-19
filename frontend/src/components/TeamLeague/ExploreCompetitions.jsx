@@ -4,6 +4,7 @@ import graphicDesignerImg from "../../assets/illustrations/side_circle_requested
 import uiUxDesignerImg from "../../assets/illustrations/ui_ux_middle_requested.png";
 import videoEditorImg from "../../assets/illustrations/side_circle_requested.png";
 import trophyWireframe from "../../assets/competitions/trophy-wireframe-new.png";
+import vectorRightImg from "../../assets/Talent league/ui ux/Vector 3 1.png";
 
 const ExploreCompetitions = () => {
     const competitions = [
@@ -55,7 +56,7 @@ const ExploreCompetitions = () => {
 
                 <div className="flex flex-col lg:flex-row items-center justify-center gap-16 relative">
                     {/* Spanning Confetti Background for Graphic Designer and UI/UX Designer */}
-                    <div className="absolute left-[-250px] lg:left-[-25%] bottom-[-280px] w-[900px] h-[450px] pointer-events-none z-30">
+                    <div className="absolute left-[-250px] lg:left-[-20%] bottom-[-300px] w-[800px] h-[800px] pointer-events-none z-30 opacity-70">
                         <img
                             src="/assets/confetti_bg.png"
                             alt=""
@@ -74,7 +75,7 @@ const ExploreCompetitions = () => {
                     {competitions.map((comp, index) => (
                         <div
                             key={index}
-                            className={`relative rounded-full border border-[#FFB300]/30 bg-gradient-to-b from-[#FFB300]/20 to-[#010102] p-4 flex flex-col items-center text-center transition-all duration-300 group hover:border-[#FFB300] shadow-[0_0_40px_rgba(0,0,0,0.8)]
+                            className={`relative rounded-full border border-[#FFB300]/30 bg-gradient-to-b from-[#FFB300]/25 to-[#010102] p-4 flex flex-col items-center text-center transition-all duration-300 group hover:border-[#FFB300] shadow-[0_0_50px_rgba(255,179,0,0.12)]
                                 ${comp.isCenter
                                     ? 'w-[260px] h-[260px] md:w-[340px] md:h-[340px] z-20 scale-105 lg:translate-y-16 justify-start pt-6 md:pt-8 gap-0'
                                     : 'w-[220px] h-[220px] md:w-[290px] md:h-[290px] z-10 lg:-translate-y-16 justify-start pt-5 md:pt-6 gap-1'}
@@ -96,12 +97,12 @@ const ExploreCompetitions = () => {
                             <div className="mt-auto mb-3 md:mb-5 z-10">
                                 {comp.title === "UI UX Designer" ? (
                                     <Link to="/competition/ui-ux">
-                                        <button className="px-8 py-1 rounded-lg bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-serif text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+                                        <button className="px-8 py-1.5 rounded-full bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-bold text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
                                             Go On <i className="ri-arrow-right-s-line text-xs md:text-sm"></i>
                                         </button>
                                     </Link>
                                 ) : (
-                                    <button className="px-8 py-1 rounded-lg bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-serif text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+                                    <button className="px-8 py-1.5 rounded-full bg-gradient-to-r from-[#FFD700] to-[#FFC107] text-black font-bold text-[10px] md:text-xs border border-white hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
                                         Coming Soon
                                     </button>
                                 )}

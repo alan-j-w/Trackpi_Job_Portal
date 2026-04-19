@@ -116,7 +116,7 @@ const JobListing = ({ limit }) => {
                                             {job.logo ? (
                                                 <img src={job.logo} alt={job.company} className="w-full h-full object-contain" />
                                             ) : (
-                                                <img src={logo} alt="TrackPi" className="w-full h-full object-contain opacity-80" />
+                                                <img src={logo} alt="TrackPi" className="w-full h-full object-contain opacity-80" style={{ mixBlendMode: 'screen', filter: 'brightness(0.9) contrast(1.5)' }} />
                                             )}
                                         </div>
                                     </div>

@@ -115,7 +115,7 @@ const testimonialStorage = pkg({
     },
 });
 
-export const uploadTestimonial = multer({ 
+export const uploadTestimonial = multer({
     storage: testimonialStorage,
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB
 });
@@ -136,6 +136,19 @@ export const competitionUpload = buildUploadMiddleware({
 
 // ─── Generic upload (memory) ──────────────────────────────────────────────────
 export const upload = multer({ storage: multer.memoryStorage() });
+
+// ─── Competition Task Upload ────────────────────────────────────────────────
+export const competitionTaskUpload = buildUploadMiddleware({
+    fieldName: "taskFile",
+    mimeTypes: ["application/pdf"],
+    mimeError: "Only PDF files are allowed for task submission!",
+    folder: "trackpi/competitions/tasks",
+    resourceType: "raw",
+    getPublicId: (req) => {
+        const { enrollmentId } = req.body;
+        return `${enrollmentId || "task"}_${Date.now()}`;
+    }
+});
 
 export default uploadTestimonial;
 

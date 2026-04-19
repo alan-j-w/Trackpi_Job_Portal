@@ -7,8 +7,10 @@ const competitionCandidateSchema = new mongoose.Schema(
         department: { type: String, required: true },
         phone: { type: String, required: true },
         email: { type: String, required: true },
+        location: { type: String },
         portfolio: { type: String },
-        resumeUrl: { type: String }, 
+        resumeUrl: { type: String },
+        taskUrl: { type: String },
         status: {
             type: String,
             enum: ["Pending", "Pass", "Fail"],

@@ -1,0 +1,249 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import trackpiLogo from "../assets/logo.png";
+import goldConfetti from "../assets/Talent league/ui ux/realistic-golden-confetti-background.png";
+import challengeMusic from "../assets/Talent league/ui ux/challenge music.mp3.mp3";
+import taskPDF from "../assets/Talent league/ui ux/Assessment.pdf";
+import { Volume2, VolumeX, ChevronLeft, FileText, Upload, Loader2 } from "lucide-react";
+
+const CompetitionTask = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = React.useRef(new Audio(challengeMusic));
+  const [selectedFile, setSelectedFile] = useState(null);
+  
+  // Timer State
+  const [timeLeft, setTimeLeft] = useState({
+    days: "02",
+    hours: "02",
+    minutes: "01",
+    seconds: "51"
+  });
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    audio.loop = true;
+    return () => audio.pause();
+  }, []);
+
+  const toggleMusic = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
+
+  // Dynamic Timer Logic
+  useEffect(() => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 2);
+    targetDate.setHours(targetDate.getHours() + 2);
+    targetDate.setMinutes(targetDate.getMinutes() + 2);
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = targetDate.getTime() - now.getTime();
+      if (diff <= 0) {
+        clearInterval(interval);
+        return;
+      }
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeLeft({
+        days: d < 10 ? `0${d}` : `${d}`,
+        hours: h < 10 ? `0${h}` : `${h}`,
+        minutes: m < 10 ? `0${m}` : `${m}`,
+        seconds: s < 10 ? `0${s}` : `${s}`
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const enrollmentId = localStorage.getItem("enrollmentId");
+    if (!enrollmentId) {
+      navigate("/");
+      return;
+    }
+    setAuthLoading(false);
+  }, [navigate]);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "application/pdf") {
+      setSelectedFile(file);
+      toast.success("PDF uploaded successfully!");
+    } else {
+      toast.error("Please upload a PDF file.");
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedFile) {
+      toast.error("Please upload your PDF task file first.");
+      return;
+    }
+
+    const enrollmentId = localStorage.getItem("enrollmentId");
+    if (!enrollmentId) {
+      toast.error("Not logged in. Please log in again.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("taskFile", selectedFile);
+      formData.append("enrollmentId", enrollmentId);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/submit-task`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      if (response.data.success) {
+        toast.success("Task PDF Submitted Successfully!");
+        navigate("/competition/completed"); 
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error(error.response?.data?.message || "Failed to submit task.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (authLoading) return null;
+
+  return (
+    <div className="relative w-full min-h-screen overflow-hidden bg-white text-black font-sans flex flex-col pb-20">
+      {/* Background Confetti */}
+      <img
+        src={goldConfetti}
+        alt=""
+        className="absolute top-0 left-0 w-full h-[600px] object-cover opacity-50 pointer-events-none z-0"
+        style={{
+          filter: "brightness(2) contrast(1.1) saturate(1.4)",
+          maskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent 100%)",
+        }}
+      />
+
+      {/* Navbar */}
+      <nav className="relative z-10 w-full px-12 py-6 flex justify-between items-center bg-transparent mt-4">
+        <div className="flex items-center">
+            <Link to="/">
+              <img src={trackpiLogo} alt="TrackPi Logo" className="h-10 cursor-pointer object-contain" />
+            </Link>
+        </div>
+
+        <div className="flex items-center gap-10">
+          <Link to="/competition/ui-ux" className="text-[#FFB300] font-russo text-[18px]">
+            Competition
+          </Link>
+          <Link to="/competition/pending" className="text-black font-russo text-[18px] hover:text-[#FFB300] transition">
+            Result
+          </Link>
+          <button
+            onClick={() => {
+              localStorage.removeItem("enrollmentId");
+              navigate("/");
+            }}
+            className="text-black font-russo text-[18px] hover:text-[#FFB300] transition"
+          >
+            Logout
+          </button>
+          <button onClick={toggleMusic} className="text-black hover:scale-110 transition-transform">
+            {isPlaying ? <Volume2 size={24} /> : <VolumeX size={24} />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="relative z-20 flex-1 flex flex-col items-center mt-4 px-4 overflow-y-auto">
+        <h1 className="font-russo text-[#FFB300] text-[48px] mb-8 text-center">
+          Start Your Talent League
+        </h1>
+
+        {/* Countdown Timer Row */}
+        <div className="flex gap-8 mb-8">
+            {[
+                { label: 'DAYS', val: timeLeft.days },
+                { label: 'HOURS', val: timeLeft.hours },
+                { label: 'MINUTES', val: timeLeft.minutes },
+                { label: 'SECONDS', val: timeLeft.seconds }
+            ].map((item) => (
+                <div key={item.label} className="flex flex-col items-center gap-2">
+                    <div className="w-[90px] h-[90px] bg-[#FFB300] rounded-[12px] flex items-center justify-center shadow-[0_8px_16px_rgba(255,179,0,0.25)] border-t border-white/20">
+                        <span className="text-black font-russo text-[42px]">{item.val}</span>
+                    </div>
+                    <span className="text-black text-[11px] font-bold tracking-[0.15em] uppercase">{item.label}</span>
+                </div>
+            ))}
+        </div>
+
+        {/* View Your Task Section */}
+        <div className="w-full max-w-[815px] mb-8 text-center flex flex-col items-center">
+          <h3 className="text-[#FFB300] font-russo text-[20px] mb-2 uppercase tracking-wide">View Your Task</h3>
+          <a
+            href={taskPDF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-[330px] h-[65px] bg-white border-[1.2px] border-[#A1A1AA] rounded-[12px] flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm group"
+          >
+            <div className="bg-[#EF4444]/10 p-2 rounded-lg group-hover:bg-[#EF4444]/20 transition-colors">
+              <FileText className="text-[#EF4444]" size={36} />
+            </div>
+          </a>
+        </div>
+
+        {/* Submit Your Task Section */}
+        <div className="w-full max-w-[900px] mb-10 text-center flex flex-col items-center">
+          <h3 className="text-[#FFB300] font-russo text-[20px] mb-2 uppercase tracking-wide">Submit Your Task</h3>
+          <div className="w-full min-h-[120px] bg-white border-[1.2px] border-[#A1A1AA] rounded-[12px] p-6 flex flex-col items-center justify-center gap-4 shadow-sm relative">
+            <p className="text-[#686868] text-[18px] font-medium font-sans">
+              {selectedFile ? `Selected: ${selectedFile.name}` : "Submit your design in figma link or adobe XD link or PDF ."}
+            </p>
+            <label className="flex items-center justify-center gap-2 w-[160px] h-[40px] bg-white border-[1.2px] border-[#FFB300] rounded-[10px] text-[#FFB300] font-bold text-[16px] hover:bg-[#FFB300]/5 transition-all cursor-pointer shadow-sm">
+                Upload file
+                <Upload size={20} className="ml-1" />
+                <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" />
+            </label>
+          </div>
+        </div>
+
+        {/* Final Submit Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-[240px] h-[52px] bg-[#FFB300] text-white font-bold text-[22px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
+        >
+          {loading ? <Loader2 className="animate-spin" size={28} /> : "Submit"}
+        </button>
+      </main>
+
+      {/* Bottom Glow */}
+      <div className="absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-[#FFB300]/15 to-transparent pointer-events-none z-0"></div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Raleway:wght@400;500;600;700&display=swap');
+        .font-russo { font-family: 'Russo One', sans-serif; }
+      `}</style>
+    </div>
+  );
+};
+
+export default CompetitionTask;

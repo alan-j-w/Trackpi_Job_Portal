@@ -70,6 +70,14 @@ import UiUxCompetition from "./pages/UiUxCompetition";
 import Creators from "./pages/Creators";
 import Jobs from "./pages/Jobs";
 import Terms from "./pages/Terms";
+import CompetitionTestimonials from "./pages/CompetitionTestimonials";
+import CompetitionCompleted from "./pages/CompetitionCompleted";
+import CompetitionResult from "./pages/CompetitionResult";
+import CompetitionFailed from "./pages/CompetitionFailed";
+import CompetitionPending from "./pages/CompetitionPending";
+import CompetitionIntro from "./pages/CompetitionIntro";
+import CompetitionTask from "./pages/CompetitionTask";
+import CompetitionFinished from "./pages/CompetitionFinished";
 
 function App() {
   return (
@@ -83,8 +91,16 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/testimonials" element={<Testimonials />} />
+        <Route path="/competition/testimonials" element={<CompetitionTestimonials />} />
         <Route path="/talent-league" element={<TalentLeague />} />
         <Route path="/competition/ui-ux" element={<UiUxCompetition />} />
+        <Route path="/competition/completed" element={<CompetitionCompleted />} />
+        <Route path="/competition/result" element={<CompetitionResult />} />
+        <Route path="/competition/failed" element={<CompetitionFailed />} />
+        <Route path="/competition/pending" element={<CompetitionPending />} />
+        <Route path="/competition/intro" element={<CompetitionIntro />} />
+        <Route path="/competition/task" element={<CompetitionTask />} />
+        <Route path="/competition/finished" element={<CompetitionFinished />} />
         <Route path="/creators" element={<Creators />} />
         <Route path="/resume-gen" element={<ResumeGen />} />
         <Route path="/jobs" element={<Jobs />} />
