@@ -23,13 +23,14 @@ const Partners = () => {
   if (loading) return null;
   if (!partners.length) return null;
 
-  // 4 copies ensures screen is always filled during loop transition
-  const track = [...partners, ...partners, ...partners, ...partners];
+  // We duplicate the list to ensure a seamless infinite loop.
+  // The animation moves the container by exactly one set's width.
+  const track = [...partners, ...partners];
 
   return (
-    <section className="pt-8 pb-0 bg-white font-cabinet">
-      <h2 className="text-center text-[32px] font-[800] mb-8 tracking-wider">
-        <span className="text-[#FFB300]">OUR HIRING PARTNERS</span>
+    <section className="py-12 bg-white font-cabinet overflow-hidden">
+      <h2 className="text-center text-[28px] md:text-[42px] font-[900] mb-12 tracking-tight uppercase">
+        OUR <span className="text-[#FFB300]">HIRING PARTNERS</span>
       </h2>
 
       <style>{`
@@ -37,23 +38,28 @@ const Partners = () => {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        .marquee-track {
-          animation: marquee 40s linear infinite;
-          will-change: transform;
+        .marquee-container {
+          display: flex;
+          width: max-content;
+          animation: marquee 35s linear infinite;
         }
-        .marquee-track:hover {
+        .marquee-container:hover {
           animation-play-state: paused;
         }
       `}</style>
 
-      <div className="w-full overflow-hidden">
-        <div className="marquee-track flex items-center gap-16 py-6" style={{ width: "max-content" }}>
+      <div className="relative flex overflow-hidden">
+        {/* Left/Right masks for a premium "fade in/out" look */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+        <div className="marquee-container flex items-center gap-20 md:gap-32 px-10">
           {track.map((partner, index) => (
-            <div key={index} className="flex-shrink-0 flex justify-center items-center">
+            <div key={index} className="flex-shrink-0 flex justify-center items-center px-4">
               <img
                 src={partner.logo?.url}
                 alt={partner.organizationname}
-                className="h-12 md:h-16 w-auto object-contain transition-all duration-300 hover:scale-110"
+                className="h-16 md:h-24 w-auto object-contain transition-all duration-300 hover:scale-110"
               />
             </div>
           ))}

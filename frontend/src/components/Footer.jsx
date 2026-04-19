@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import "remixicon/fonts/remixicon.css";
 import {
   FaInstagram,
@@ -48,7 +49,9 @@ const Footer = () => {
 
   return (
     <>
-      <footer className={`${bgClass} py-12 font-cabinet transition-colors duration-300`}>
+      <footer 
+        className={`${bgClass} py-12 font-cabinet transition-colors duration-300`}
+      >
         <div className={`max-w-[1440px] mx-auto px-6 md:px-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 ${mainTextClass}`}>
 
           {/* 🟡 Logo & About */}

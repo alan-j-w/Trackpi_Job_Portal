@@ -59,10 +59,11 @@ app.use(express.urlencoded({ extended: true }));
 // Static uploads
 app.use("/uploads", express.static("uploads"));
 
-// Sanitization
-// Uncomment if these are working fine in your project
+// Sanitization (Note: Disabled due to incompatibility with Express 5 read-only req.query)
 // app.use(mongoSanitize());
 // app.use(xss());
+
+
 
 // Rate limiting
 const limiter = rateLimit({

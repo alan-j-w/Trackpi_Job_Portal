@@ -1,6 +1,6 @@
-// src/components/JobCard.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import "remixicon/fonts/remixicon.css";
 
 /* Assets */
@@ -49,8 +49,11 @@ const JobCard = ({
   return (
     <>
       {/* ================= CARD ================= */}
-      <div className="relative">
-        <div className="bg-white border border-gray-300 rounded-[25px] shadow-sm relative">
+      <motion.div 
+        whileHover={{ y: -5, transition: { duration: 0.2 } }}
+        className="relative"
+      >
+        <div className="bg-white border border-gray-300 rounded-[25px] shadow-sm relative hover:shadow-md transition-shadow duration-300">
 
           {/* STATUS RIBBON */}
           <div
@@ -134,11 +137,11 @@ const JobCard = ({
               </div>
             </div>
 
-            {/* ACTION PANEL - Moved Bottom */}
-            <div className="flex flex-row md:flex-col items-center justify-start md:justify-end gap-0 w-full md:w-auto md:min-w-[180px] md:pb-6 relative flex-grow">
+            {/* ACTION PANEL */}
+            <div className="flex flex-col items-start md:items-end gap-4 w-full md:w-auto md:min-w-[180px] md:pb-6 relative">
               <button
                 onClick={handleApplyClick}
-                className="flex-1 md:flex-none font-bold text-[14px] transition-all flex items-center justify-center translate-y-[20px]"
+                className="font-bold text-[14px] transition-all flex items-center justify-center"
                 style={{
                   width: "155px",
                   height: "33px",
@@ -152,33 +155,22 @@ const JobCard = ({
                 Apply Now
               </button>
 
-              {/* More Details - Exact Absolute Positioning */}
-              <div
-                className="absolute"
-                style={{
-                  top: "58px",
-                  left: "42px",
-                  width: "90px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center"
-                }}
-              >
+              <div className="flex flex-col items-center">
                 <button
                   onClick={onDetailsClick}
-                  className="w-full text-[14px] font-medium text-black leading-none font-['Satoshi'] flex items-center justify-center gap-1"
+                  className="text-[14px] font-medium text-black leading-none font-['Satoshi'] flex items-center justify-center gap-1"
                 >
                   More details <i className="ri-arrow-right-line scale-90"></i>
                 </button>
                 <div
-                  className="border-t-[1px] border-[#D02520] mt-[2px]"
-                  style={{ width: "77px", height: "0px" }}
+                  className="border-t-[1px] border-[#D02520] mt-[2px] w-[77px]"
                 ></div>
               </div>
             </div>
+
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ================= LOGIN POPUP ================= */}
       {showLoginPopup && (
