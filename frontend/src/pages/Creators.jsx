@@ -8,7 +8,7 @@ import img2 from "../assets/creatorsimages/anshid.png"
 import img3 from "../assets/creatorsimages/alan.jpeg";
 import img4 from "../assets/creatorsimages/adhy.jpg";
 import img5 from "../assets/creatorsimages/hasna.jpeg";
-import img6 from "../assets/creatorsimages/dony.jpeg";
+import img6 from "../assets/creatorsimages/dony.PNG";
 
 const Creators = () => {
   return (

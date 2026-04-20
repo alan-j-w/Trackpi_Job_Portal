@@ -21,12 +21,22 @@ const DEFAULT_REPAIR_PERMISSIONS = [
 export const googleAuth = async (req, res) => {
     try {
         const { access_token } = req.body;
+        
+        console.log("Starting Google Auth process... Token:", access_token ? "Provided" : "Missing");
 
-        const googleRes = await axios.get(
-            `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
-        );
+        // Use fetch instead of axios to avoid potential IPv6 hanging issues on Node/Windows
+        const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Google API responded with error:", response.status, errorText);
+            return res.status(400).json({ message: "Failed to fetch user profile from Google." });
+        }
 
-        const { email, name, sub } = googleRes.data;
+        const data = await response.json();
+        const { email, name, sub } = data;
+
+        console.log("Google API returned email:", email);
 
         if (!email) {
             return res.status(400).json({ message: "Google account does not have a verified email." });
@@ -80,10 +90,7 @@ export const googleAuth = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Google Auth Controller Error:", error.message);
-        if (error.response) {
-            console.error("Google API Response:", error.response.data);
-        }
+        console.error("Google Auth Controller Error:", error);
         res.status(500).json({ message: "Google authentication failed", error: error.message });
     }
 };
