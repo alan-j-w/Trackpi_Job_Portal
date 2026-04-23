@@ -11,46 +11,36 @@ import businessmanStayingTop from "../../assets/Talent league/ui ux/businessman-
 import goldConfetti from "../../assets/Talent league/ui ux/realistic-golden-confetti-background.png";
 import taskPDF from "../../assets/Talent league/ui ux/Assessment.pdf";
 import trackpiLogo from "../../assets/logo.png";
-import challengeMusic from "../../assets/Talent league/ui ux/challenge music.mp3.mp3";
-
+import logoutImg from "../../assets/Talent league/ui ux/logout.png";
+import { challengeAudio } from "../../utils/audioManager";
 
 /**
  * ChallengeModal component that displays upcoming and future competitions.
  * Based on the visual design provided with 1024x701px dimensions.
  */
-const ChallengeModal = ({ isOpen, onClose }) => {
+const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
   const navigate = useNavigate();
-  const [view, setView] = useState("cards"); // 'cards', 'register', 'success', 'login', 'talentLeagueIntro', 'task', 'result'
+  const [view, setView] = useState(initialView); // 'cards', 'register', 'success', 'login', 'talentLeagueIntro', 'task', 'result'
   const [loginCode, setLoginCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
   const [idCode, setIdCode] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = React.useRef(new Audio(challengeMusic));
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    audio.loop = true;
-    return () => audio.pause();
+    if (isOpen) {
+      setView(initialView);
+    }
+  }, [isOpen, initialView]);
+
+  useEffect(() => {
+    const unsubscribe = challengeAudio.subscribe(setIsPlaying);
+    return unsubscribe;
   }, []);
 
   const toggleMusic = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      audio.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(err => {
-          console.error("Playback failed:", err);
-          toast.error("Please click on the page once to enable audio!");
-        });
-    }
+    challengeAudio.toggle();
   };
   const [formData, setFormData] = useState({
     fullName: "",
@@ -168,7 +158,6 @@ const ChallengeModal = ({ isOpen, onClose }) => {
     });
     setLoading(false);
     setIdCode("");
-    audioRef.current.pause();
     setIsPlaying(false);
     onClose();
   };
@@ -238,10 +227,15 @@ const ChallengeModal = ({ isOpen, onClose }) => {
       >
 
         {/* Global Back Button (Top Level) */}
-        {(view === "success" || view === "login" || view === "register" || !["cards", "talentLeagueIntro", "task", "result"].includes(view)) && (
+        {(view === "login" || !["cards", "talentLeagueIntro", "task", "result", "register", "success"].includes(view)) && (
           <button
             onClick={() => {
-              setView("cards");
+              if (view === "login") {
+                resetAndClose();
+                navigate("/talent-league");
+              } else {
+                setView("cards");
+              }
             }}
             className="absolute top-6 left-8 text-white hover:text-[#FFB300] transition-colors z-[200] flex items-center gap-2"
           >
@@ -250,14 +244,16 @@ const ChallengeModal = ({ isOpen, onClose }) => {
         )}
 
         {/* Close Button */}
-        <button
-          onClick={resetAndClose}
-          className={`absolute top-6 right-8 transition-colors z-[200] ${(view === "task" || view === "result") ? "text-black hover:text-[#FFB300]" : "text-white hover:text-[#FFB300]"
-            }`}
+        {!["login", "register", "success", "talentLeagueIntro"].includes(view) && (
+          <button
+            onClick={resetAndClose}
+            className={`absolute top-6 right-8 transition-colors z-[200] ${(view === "task" || view === "result") ? "text-black hover:text-[#FFB300]" : "text-white hover:text-[#FFB300]"
+              }`}
 
-        >
-          <X size={32} />
-        </button>
+          >
+            <X size={32} />
+          </button>
+        )}
 
         {view === "cards" ? (
           <>
@@ -405,7 +401,7 @@ const ChallengeModal = ({ isOpen, onClose }) => {
 
             {/* Already registered Login Link - Centered at the bottom */}
             <div className="w-full flex justify-center mt-12 mb-6 z-10">
-              <button 
+              <button
                 onClick={() => {
                   setLoginCode("");
                   setLoginError("");
@@ -500,9 +496,11 @@ const ChallengeModal = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Next Button after registration - leads to Intro/Timer */}
+              {/* Next Button after registration - leads to Login */}
               <button
-                onClick={() => setView("login")}
+                onClick={() => {
+                  setView("login");
+                }}
                 className="mt-[-5px] bg-[#FFB300] hover:bg-[#FFC732] text-white shadow-[0_10px_25px_rgba(255,179,0,0.3)] transition-all active:scale-[0.98] flex items-center justify-center"
                 style={{
                   width: '414.22px',
@@ -617,6 +615,10 @@ const ChallengeModal = ({ isOpen, onClose }) => {
                     setLoginError("Please enter your Enrollment Code");
                     return;
                   }
+                  if (loginCode.length < 6) {
+                    setLoginError("Invalid Enrollment Code. Please check and try again.");
+                    return;
+                  }
                   setLoading(true);
                   setLoginError("");
                   try {
@@ -627,28 +629,33 @@ const ChallengeModal = ({ isOpen, onClose }) => {
                     if (response.data.success) {
                       localStorage.setItem("enrollmentId", loginCode);
                       toast.success("Login Successful!");
-                      
-                      const status = response.data.candidate.status;
-                      const hasSubmittedTask = response.data.candidate.taskUrl;
 
-                      if (status === "Pass") {
-                        onClose();
-                        navigate("/competition/result");
-                      } else if (status === "Fail") {
-                        onClose();
-                        navigate("/competition/failed");
-                      } else if (!hasSubmittedTask) {
-                        // Not submitted yet - show Intro to start the challenge
-                        onClose();
-                        navigate("/competition/intro");
+                      setLoginCode(""); // Clear input for next user
+                      onClose();
+
+                      if (window.location.pathname === "/talent-league") {
+                        setTimeout(() => {
+                          const section = document.getElementById("explore-competitions");
+                          if (section) {
+                            section.scrollIntoView({ behavior: "smooth" });
+                          }
+                        }, 100);
                       } else {
-                        // Submitted but Pending - show the Evaluation/Completed page
-                        onClose();
-                        navigate("/competition/completed");
+                        const { status, taskUrl } = response.data.candidate;
+
+                        if (status === "Pass") {
+                          navigate("/competition/result");
+                        } else if (status === "Fail") {
+                          navigate("/competition/failed");
+                        } else if (!taskUrl) {
+                          navigate("/competition/intro");
+                        } else {
+                          navigate("/competition/pending");
+                        }
                       }
                     }
                   } catch (error) {
-                    const msg = error.response?.data?.message || "Invalid Code";
+                    const msg = error.response?.data?.message || "Invalid Enrollment Code. Please check and try again.";
                     setLoginError(msg);
                     toast.error(msg);
                   } finally {
@@ -772,18 +779,17 @@ const ChallengeModal = ({ isOpen, onClose }) => {
               }}
             >
               <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setView("login")}
-                  className="text-black hover:text-[#FFB300] transition-colors"
-                >
-                  <ChevronLeft size={32} />
-                </button>
                 <img src={trackpiLogo} alt="TrackPi" className="h-[36px] object-contain" />
               </div>
               <div className="flex items-center gap-10">
                 <span className="text-[#FFB300] font-russo text-[18px] cursor-default">Competition</span>
                 <span className="text-black font-russo text-[18px] cursor-default opacity-50">Result</span>
-                <span className="text-black font-russo text-[18px] cursor-default opacity-50">Logout</span>
+                <button
+                  onClick={() => setShowLogoutModal(true)}
+                  className="text-black font-russo text-[18px] hover:opacity-100 transition-opacity"
+                >
+                  Logout
+                </button>
                 <button onClick={toggleMusic} className="ml-4 hover:scale-110 transition-transform">
                   {isPlaying ? <Volume2 size={24} strokeWidth={1.5} className="text-black cursor-pointer" /> : <VolumeX size={24} strokeWidth={1.5} className="text-black cursor-pointer" />}
                 </button>
@@ -933,10 +939,7 @@ const ChallengeModal = ({ isOpen, onClose }) => {
                 </button>
                 <button
                   className="text-black font-russo text-[18px] hover:opacity-80 transition-opacity"
-                  onClick={() => {
-                    setView("login");
-                    setSelectedFile(null);
-                  }}
+                  onClick={() => setShowLogoutModal(true)}
                 >
                   Logout
                 </button>
@@ -1074,6 +1077,94 @@ const ChallengeModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+        ) : view === "result" ? (
+          /* Result View (Matching CompetitionPending design) */
+          <div className="w-full relative animate-pop-in flex flex-col items-center pt-20 pb-4 px-8 h-full">
+            {/* Gold Bottom Glow */}
+            <div className="absolute bottom-0 left-0 right-0 h-[220px] bg-gradient-to-t from-[#FFB300]/20 to-transparent pointer-events-none z-0"></div>
+
+            {/* Light Background Confetti */}
+            <img
+              src={goldConfetti}
+              alt="Confetti Background"
+              className="absolute top-0 left-0 right-0 w-full h-[550px] object-cover opacity-100 pointer-events-none z-0"
+              style={{
+                filter: 'brightness(3.0) contrast(1.1) saturate(1.6)',
+                maskImage: 'radial-gradient(ellipse at center, transparent 20%, black 80%), linear-gradient(to bottom, black 70%, transparent 100%)',
+                WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 20%, black 80%), linear-gradient(to bottom, black 70%, transparent 100%)',
+                maskComposite: 'intersect',
+                WebkitMaskComposite: 'source-in'
+              }}
+            />
+
+            {/* Top Navigation Bar - Matching Task View Navbar */}
+            <nav
+              className="absolute flex items-center justify-between z-20"
+              style={{
+                width: 'calc(100% - 144px)',
+                top: '55px',
+                left: '72px',
+                height: '40.17px'
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setView("task")}
+                  className="text-black hover:text-[#FFB300] transition-colors"
+                >
+                  <ChevronLeft size={32} />
+                </button>
+                <img src={trackpiLogo} alt="TrackPi" className="h-[36px] object-contain" />
+              </div>
+
+              <div className="flex items-center gap-10">
+                <button
+                  onClick={() => setView("task")}
+                  className={`${view === "task" ? "text-[#FFB300]" : "text-black"} font-russo text-[18px] hover:opacity-80 transition-opacity`}
+                >
+                  Competition
+                </button>
+                <button
+                  onClick={() => setView("result")}
+                  className={`${view === "result" ? "text-[#FFB300]" : "text-black"} font-russo text-[18px] hover:opacity-80 transition-opacity`}
+                >
+                  Result
+                </button>
+                <button
+                  className="text-black font-russo text-[18px] hover:opacity-80 transition-opacity"
+                  onClick={() => setShowLogoutModal(true)}
+                >
+                  Logout
+                </button>
+                <button onClick={toggleMusic} className="ml-4 hover:scale-110 transition-transform">
+                  {isPlaying ? <Volume2 size={24} strokeWidth={1.5} className="text-black cursor-pointer" /> : <VolumeX size={24} strokeWidth={1.5} className="text-black cursor-pointer" />}
+                </button>
+              </div>
+            </nav>
+
+            {/* Main Content - No result found state */}
+            <div className="flex-1 flex flex-col items-center justify-center -mt-20 z-10 w-full">
+              <h2
+                className="text-center"
+                style={{
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: "32px",
+                  fontWeight: 400,
+                  color: "#000000",
+                  opacity: 0.8
+                }}
+              >
+                No result found. We will update you soon
+              </h2>
+
+              <button
+                onClick={() => navigate("/competition/ui-ux")}
+                className="w-[200px] h-[52px] bg-[#FFB300] text-white rounded-[10px] font-bold text-[20px] hover:brightness-105 active:scale-95 transition-all shadow-md flex items-center justify-center mt-10"
+              >
+                Back to home
+              </button>
+            </div>
+          </div>
         ) : (
           /* Registration View (As per provided image) */
           <div className="w-full h-full relative animate-slide-in overflow-hidden">
@@ -1204,7 +1295,7 @@ const ChallengeModal = ({ isOpen, onClose }) => {
                   />
                   {errors.location && <p className="text-[#EF4444] text-[11px] mt-1 ml-1">{errors.location}</p>}
                 </div>
- 
+
                 {/* Department Section */}
                 <div className="flex flex-col gap-1 text-left w-full">
                   <label className="text-white text-[14px] font-medium ml-1 flex items-center gap-1">
@@ -1357,7 +1448,69 @@ const ChallengeModal = ({ isOpen, onClose }) => {
         
         .custom-scrollbar {
           -ms-overflow-style: none;
-          scrollbar-width: none;
+        }
+      `}</style>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-[32px] w-full max-w-[500px] p-10 flex flex-col items-center animate-pop-in text-center relative shadow-2xl overflow-hidden border border-gray-100">
+            <div className="mb-6 h-[180px] overflow-hidden flex items-start justify-center w-full">
+              <img
+                src={logoutImg}
+                alt="Logout Illustration"
+                className="w-[280px] h-[350px] object-contain"
+                style={{ objectPosition: 'top' }}
+              />
+            </div>
+
+            <h2 className="text-black font-bold text-3xl mb-2 font-inter">
+              Are you logging out?
+            </h2>
+            <p className="text-gray-600 text-lg mb-10 font-medium font-inter">
+              You can always back at any time.
+            </p>
+
+            <div className="flex gap-4 w-full">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 h-[58px] rounded-[12px] font-bold text-xl text-black transition-all active:scale-95 shadow-md flex items-center justify-center"
+                style={{
+                  background: "linear-gradient(180deg, #FFFFFF 0%, #FFB300 100%)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("enrollmentId");
+                  setLoginCode("");
+                  setIdCode("");
+                  setLoginError("");
+                  setView("cards");
+                  setShowLogoutModal(false);
+                  onClose();
+                  navigate("/talent-league");
+                }}
+                className="flex-1 h-[58px] rounded-[12px] border-2 border-black font-bold text-xl text-black bg-white hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Raleway:wght@400;500;600;700&family=Inter:wght@400;700&display=swap');
+        .font-russo { font-family: 'Russo One', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        @keyframes popIn {
+          from { opacity: 0; transform: scale(0.9) translateY(20px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pop-in {
+          animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
       `}</style>
     </div>

@@ -4,7 +4,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import trackpiLogo from "../assets/logo.png";
 import goldConfetti from "../assets/Talent league/ui ux/realistic-golden-confetti-background.png";
-import challengeMusic from "../assets/Talent league/ui ux/challenge music.mp3.mp3";
+import logoutImg from "../assets/Talent league/ui ux/logout.png";
+import { challengeAudio } from "../utils/audioManager";
 import { Volume2, VolumeX } from "lucide-react";
 
 const CompetitionResult = () => {
@@ -12,35 +13,16 @@ const CompetitionResult = () => {
   const [loading, setLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = React.useRef(new Audio(challengeMusic));
 
   useEffect(() => {
     document.title = "Competition Results | TrackPi";
-    const audio = audioRef.current;
-    audio.loop = true;
-    
-    return () => {
-      audio.pause();
-    };
+    const unsubscribe = challengeAudio.subscribe(setIsPlaying);
+    challengeAudio.play();
+    return unsubscribe;
   }, []);
 
   const toggleMusic = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      audio.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(err => {
-          console.error("Playback failed:", err);
-          toast.error("Click anywhere on the page first to allow music!");
-        });
-    }
+    challengeAudio.toggle();
   };
 
   useEffect(() => {
@@ -199,18 +181,19 @@ const CompetitionResult = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="bg-white rounded-[32px] w-full max-w-[500px] p-10 flex flex-col items-center animate-pop-in text-center relative shadow-2xl overflow-hidden">
             {/* Illustration Placeholder - Using a generic high-quality one if specific not found */}
-            <div className="mb-6">
+            <div className="mb-6 h-[180px] overflow-hidden flex items-start justify-center w-full">
                <img 
-                 src="https://img.freepik.com/free-vector/home-moving-concept-illustration_114360-4663.jpg" 
+                 src={logoutImg} 
                  alt="Logout Illustration" 
-                 className="w-[280px] h-[200px] object-contain"
+                 className="w-[280px] h-[350px] object-contain"
+                 style={{ objectPosition: 'top' }}
                />
             </div>
 
             <h2 className="text-black font-bold text-3xl mb-2 font-inter">
               Are you logging out?
             </h2>
-            <p className="text-gray-600 text-lg mb-10 font-medium">
+            <p className="text-gray-600 text-lg mb-10 font-medium font-inter">
               You can always back at any time.
             </p>
 
@@ -225,10 +208,10 @@ const CompetitionResult = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                   localStorage.removeItem("enrollmentId");
-                   navigate("/");
-                }}
+                  onClick={() => {
+                    localStorage.removeItem("enrollmentId");
+                    navigate("/talent-league");
+                  }}
                 className="flex-1 h-[58px] rounded-[12px] border-2 border-black font-bold text-xl text-black bg-white hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center"
               >
                 Log out

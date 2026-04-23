@@ -5,12 +5,12 @@ import toast from 'react-hot-toast';
 import { API_URL } from '../../config';
 
 // ─── Custom Calendar Component ──────────────────────────────────────────────
-const CustomCalendarPopup = ({ onSelect, onClose, value }) => {
+const CustomCalendarPopup = ({ onSelect, onClose, value, position = "left-0" }) => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    // Parse current value or use today
-    const initialDate = value ? new Date(value) : new Date();
+    // Parse current value safely (YYYY-MM-DD)
+    const initialDate = value ? new Date(value + 'T00:00:00') : new Date();
     const [viewDate, setViewDate] = useState(initialDate);
 
     const year = viewDate.getFullYear();
@@ -21,14 +21,8 @@ const CustomCalendarPopup = ({ onSelect, onClose, value }) => {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const days = [];
-    // Add empty slots for the first week
-    for (let i = 0; i < firstDayOfMonth; i++) {
-        days.push(null);
-    }
-    // Add actual days
-    for (let i = 1; i <= daysInMonth; i++) {
-        days.push(i);
-    }
+    for (let i = 0; i < firstDayOfMonth; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
 
     const handlePrevMonth = () => setViewDate(new Date(year, month - 1, 1));
     const handleNextMonth = () => setViewDate(new Date(year, month + 1, 1));
@@ -36,14 +30,17 @@ const CustomCalendarPopup = ({ onSelect, onClose, value }) => {
     const handleDateSelect = (day) => {
         if (!day) return;
         const selected = new Date(year, month, day);
-        // Format to YYYY-MM-DD for consistency
-        const formatted = selected.toISOString().split('T')[0];
+        // Format to YYYY-MM-DD manually to avoid timezone shift from toISOString
+        const y = selected.getFullYear();
+        const m = (selected.getMonth() + 1).toString().padStart(2, '0');
+        const d = selected.getDate().toString().padStart(2, '0');
+        const formatted = `${y}-${m}-${d}`;
         onSelect(formatted);
         onClose();
     };
 
     return (
-        <div className="absolute top-[105%] left-0 z-[110] bg-white rounded-[1.5rem] shadow-[0_15px_40px_-5px_rgba(0,0,0,0.15)] p-4 max-w-[280px] w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-200 origin-top">
+        <div className={`absolute top-[105%] ${position} z-[110] bg-white rounded-[1.5rem] shadow-[0_15px_40px_-5px_rgba(0,0,0,0.15)] p-4 max-w-[280px] w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-200 origin-top`}>
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-4 px-1">
                 <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-50 rounded-lg transition-all shadow-sm active:scale-90 bg-white border border-gray-100">
@@ -75,7 +72,8 @@ const CustomCalendarPopup = ({ onSelect, onClose, value }) => {
             <div className="grid grid-cols-7 gap-0.5">
                 {days.map((day, i) => {
                     const isToday = day && i - firstDayOfMonth + 1 === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear();
-                    const isSelected = day && new Date(year, month, day).toISOString().split('T')[0] === value;
+                    const dateStr = day ? `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}` : null;
+                    const isSelected = day && dateStr === value;
 
                     return (
                         <div
@@ -95,10 +93,6 @@ const CustomCalendarPopup = ({ onSelect, onClose, value }) => {
                 })}
             </div>
 
-            {/* Final grid row filler to match mockup look */}
-            {days.length < 42 && Array.from({ length: 42 - days.length }).map((_, i) => (
-                <div key={`extra-${i}`} className="aspect-square"></div>
-            ))}
         </div>
     );
 
@@ -139,7 +133,7 @@ const CreateCompetitionModal = ({ isOpen, onClose, type = "live", onSave, editDa
                     department: editData.department || '',
                     startDate: editData.startDate ? new Date(editData.startDate).toISOString().split('T')[0] : '',
                     endDate: editData.endDate ? new Date(editData.endDate).toISOString().split('T')[0] : '',
-                    status: editData.status || (type === 'future' ? 'future' : 'live')
+                    status: editData.status || 'live'
                 });
             } else {
                 setFormData({
@@ -147,12 +141,45 @@ const CreateCompetitionModal = ({ isOpen, onClose, type = "live", onSave, editDa
                     department: '',
                     startDate: '',
                     endDate: '',
-                    status: type === 'future' ? 'future' : 'live'
+                    status: 'live'
                 });
             }
             setFile(null);
         }
-    }, [isOpen, type, editData]);
+    }, [isOpen, editData]);
+
+    // Automatic Status Detection
+    useEffect(() => {
+        if (formData.startDate && formData.endDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const start = new Date(formData.startDate + 'T00:00:00');
+            const end = new Date(formData.endDate + 'T23:59:59');
+            
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            let autoStatus = 'live';
+            
+            if (end < today) {
+                autoStatus = 'previous';
+            } else {
+                const startMonth = start.getMonth();
+                const startYear = start.getFullYear();
+                
+                if (startYear > currentYear || (startYear === currentYear && startMonth > currentMonth)) {
+                    autoStatus = 'future';
+                } else {
+                    autoStatus = 'live';
+                }
+            }
+            
+            if (formData.status !== autoStatus) {
+                setFormData(prev => ({ ...prev, status: autoStatus }));
+            }
+        }
+    }, [formData.startDate, formData.endDate, formData.status]);
 
     if (!isOpen) return null;
 
@@ -186,73 +213,74 @@ const CreateCompetitionModal = ({ isOpen, onClose, type = "live", onSave, editDa
     const isFuture = type === "future";
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-all duration-300" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto transition-all duration-300" onClick={onClose}>
             <div
-                className="bg-white w-full max-w-[600px] rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] p-10 relative border border-gray-100 animate-in zoom-in-95 duration-200"
+                className="bg-white w-[555px] rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] pt-[50px] px-[30px] pb-[60px] relative border border-gray-100 animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={onClose}
-                    className="absolute right-8 top-8 text-gray-400 hover:text-gray-900 transition-all hover:rotate-90 p-1"
+                    className="absolute right-6 top-6 text-gray-400 hover:text-gray-900 transition-all hover:rotate-90 p-1"
                 >
-                    <X size={24} />
+                    <X size={18} />
                 </button>
 
-                <h2 className="text-3xl font-black text-center mb-10 text-gray-900 tracking-tight">
+                <h2 className="text-3xl font-black text-center mb-12 text-gray-900 tracking-tight">
                     {editData ? "Edit Competition" : (isFuture ? "Create future Competition" : "Create Competition")}
                 </h2>
 
-                <div className="space-y-8">
-                    {/* Competition Name */}
-                    <div className="space-y-3">
-                        <label className="text-sm font-bold text-gray-700 ml-1">Competition name</label>
-                        <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="Enter competition name"
-                            className="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-yellow-400 focus:outline-none bg-gray-50/50 transition-all text-gray-700 font-medium placeholder:text-gray-400 shadow-sm"
-                        />
-                    </div>
+                <div className="flex flex-col gap-[32px]">
+                    {/* Row 1: Name & Department */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-700 ml-1">Competition name</label>
+                            <input
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="Enter competition name"
+                                className="w-full px-5 py-3.5 rounded-xl border-2 border-gray-100 focus:border-yellow-400 focus:outline-none bg-gray-50/50 transition-all text-sm text-gray-700 font-medium placeholder:text-gray-400 shadow-sm"
+                            />
+                        </div>
 
-                    {/* Department */}
-                    <div className="space-y-3">
-                        <label className="text-sm font-bold text-gray-700 ml-1">Competition Department</label>
-                        <div className="relative group">
-                            <select
-                                value={formData.department}
-                                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                                className="w-full px-6 py-4 rounded-2xl border-2 border-gray-100 focus:border-yellow-400 focus:outline-none bg-gray-50/50 transition-all text-gray-700 font-medium appearance-none shadow-sm cursor-pointer"
-                            >
-                                <option value="" disabled>Select competition department</option>
-                                <option value="UI UX Designer">UI UX Designer</option>
-                                <option value="Graphic Designer">Graphic Designer</option>
-                                <option value="MERN Stack">MERN Stack</option>
-                                <option value="HR Department">HR Department</option>
-                            </select>
-                            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                <ChevronDown size={20} />
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-700 ml-1">Competition Department</label>
+                            <div className="relative group">
+                                <select
+                                    value={formData.department}
+                                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                                    className="w-full px-5 py-3.5 rounded-xl border-2 border-gray-100 focus:border-yellow-400 focus:outline-none bg-gray-50/50 transition-all text-sm text-gray-700 font-medium appearance-none shadow-sm cursor-pointer"
+                                >
+                                    <option value="" disabled>Select department</option>
+                                    <option value="UI UX Designer">UI UX Designer</option>
+                                    <option value="Graphic Designer">Graphic Designer</option>
+                                    <option value="MERN Stack">MERN Stack</option>
+                                    <option value="HR Department">HR Department</option>
+                                </select>
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <ChevronDown size={18} />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Custom Calendar Fields */}
-                    <div className="space-y-3">
-                        <label className="text-sm font-bold text-gray-700 ml-1">Competition date</label>
+                    {/* Row 2: Dates */}
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-700 ml-1">Competition date</label>
                         <div className="grid grid-cols-2 gap-4">
                             {/* Start Date */}
                             <div className="relative" ref={startRef}>
                                 <div
                                     onClick={() => setShowStartCalendar(!showStartCalendar)}
                                     className={`
-                                        w-full px-6 py-4 rounded-2xl border-2 bg-gray-50/50 transition-all font-medium text-gray-700 shadow-sm flex items-center justify-between cursor-pointer
+                                        w-full px-5 py-3.5 rounded-xl border-2 bg-gray-50/50 transition-all font-medium text-sm text-gray-700 shadow-sm flex items-center justify-between cursor-pointer
                                         ${showStartCalendar ? "border-yellow-400" : "border-gray-100 hover:border-gray-200"}
                                     `}
                                 >
                                     <span className={formData.startDate ? "text-gray-900" : "text-gray-400"}>
-                                        {formData.startDate ? new Date(formData.startDate).toLocaleDateString('en-GB') : "Start date"}
+                                        {formData.startDate ? (() => { const [y,m,d] = formData.startDate.split('-'); return `${d}/${m}/${y}`; })() : "Start date"}
                                     </span>
-                                    <Calendar className="text-gray-400" size={20} />
+                                    <Calendar className="text-gray-400" size={18} />
                                 </div>
                                 {showStartCalendar && (
                                     <CustomCalendarPopup
@@ -268,62 +296,64 @@ const CreateCompetitionModal = ({ isOpen, onClose, type = "live", onSave, editDa
                                 <div
                                     onClick={() => setShowEndCalendar(!showEndCalendar)}
                                     className={`
-                                        w-full px-6 py-4 rounded-2xl border-2 bg-gray-50/50 transition-all font-medium text-gray-700 shadow-sm flex items-center justify-between cursor-pointer
+                                        w-full px-5 py-3.5 rounded-xl border-2 bg-gray-50/50 transition-all font-medium text-sm text-gray-700 shadow-sm flex items-center justify-between cursor-pointer
                                         ${showEndCalendar ? "border-yellow-400" : "border-gray-100 hover:border-gray-200"}
                                     `}
                                 >
                                     <span className={formData.endDate ? "text-gray-900" : "text-gray-400"}>
-                                        {formData.endDate ? new Date(formData.endDate).toLocaleDateString('en-GB') : "End date"}
+                                        {formData.endDate ? (() => { const [y,m,d] = formData.endDate.split('-'); return `${d}/${m}/${y}`; })() : "End date"}
                                     </span>
-                                    <Calendar className="text-gray-400" size={20} />
+                                    <Calendar className="text-gray-400" size={18} />
                                 </div>
                                 {showEndCalendar && (
                                     <CustomCalendarPopup
                                         value={formData.endDate}
                                         onSelect={(date) => setFormData({ ...formData, endDate: date })}
                                         onClose={() => setShowEndCalendar(false)}
+                                        position="right-0"
                                     />
                                 )}
                             </div>
                         </div>
                     </div>
 
+                    {/* Row 3: Question */}
                     {!isFuture && (
-                        <div className="space-y-3">
-                            <label className="text-sm font-bold text-gray-700 ml-1">Competition Question</label>
-                            <div className="flex items-center gap-4">
-                                <label className="cursor-pointer">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-700 ml-1">Competition Question</label>
+                            <div className="flex items-center gap-3">
+                                <label className="cursor-pointer flex-1">
                                     <input
                                         type="file"
                                         className="hidden"
                                         onChange={(e) => setFile(e.target.files[0])}
                                     />
-                                    <div className="flex items-center gap-2 px-6 py-3 border-2 border-yellow-400 rounded-xl bg-white hover:bg-yellow-50 transition-all font-bold text-gray-900 shadow-sm group">
-                                        <span>Upload file</span>
-                                        <Upload size={20} className="text-yellow-500 group-hover:-translate-y-1 transition-transform" />
+                                    <div className="flex items-center justify-center gap-2 px-5 py-3.5 border-2 border-yellow-400 rounded-xl bg-white hover:bg-yellow-50 transition-all font-bold text-sm text-gray-900 shadow-sm group">
+                                        <span>{file ? "Change File" : "Upload competition question (PDF/Image)"}</span>
+                                        <Upload size={18} className="text-yellow-500 group-hover:-translate-y-0.5 transition-transform" />
                                     </div>
                                 </label>
-                                {file && <span className="text-xs text-gray-500 font-medium truncate max-w-[200px]">{file.name}</span>}
+                                {file && <span className="text-xs text-gray-500 font-medium truncate max-w-[200px]" title={file.name}>{file.name}</span>}
                             </div>
                         </div>
                     )}
 
-                    <div className={`flex gap-4 pt-6 ${isFuture ? "justify-center" : ""}`}>
+
+
+                    <div className="flex gap-4 pt-12">
                         <button
                             onClick={handleSubmit}
                             disabled={loading}
-                            className={`${isFuture ? "w-64" : "flex-1"} py-4 bg-gradient-to-r from-[#FFB300] via-[#FFCA28] to-[#FFD54F] hover:shadow-lg text-white font-black rounded-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 tracking-widest uppercase text-sm shadow-md border-b-2 border-yellow-600/20 flex items-center justify-center gap-2`}
+                            className="flex-1 h-[48px] bg-gradient-to-r from-[#FFB300] via-[#FFCA28] to-[#FFD54F] hover:shadow-lg text-white font-black rounded-xl transition-all transform hover:-translate-y-0.5 active:scale-95 tracking-widest uppercase text-sm shadow-md border-b-2 border-yellow-600/20 flex items-center justify-center gap-2"
                         >
                             {loading ? <Loader2 className="animate-spin" size={20} /> : "Save"}
                         </button>
-                        {!isFuture && (
-                            <button
-                                onClick={onClose}
-                                className="flex-1 py-4 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-500 font-bold rounded-2xl transition-all active:scale-95 text-sm"
-                            >
-                                Cancel
-                            </button>
-                        )}
+                        <button
+                            onClick={onClose}
+                            className="flex-1 h-[48px] bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-400 font-bold rounded-xl transition-all active:scale-95 text-sm"
+                        >
+                            Cancel
+                        </button>
                     </div>
                 </div>
             </div>
@@ -500,9 +530,30 @@ const AdminCompetition = () => {
     });
 
 
-    const liveCompetitions = filteredCompetitions.filter(c => c.status === 'live');
-    const futureCompetitions = filteredCompetitions.filter(c => c.status === 'future');
-    const previousCompetitions = filteredCompetitions.filter(c => c.status === 'previous');
+    const sortedCompetitions = [...filteredCompetitions].sort((a, b) => {
+        return new Date(a.startDate) - new Date(b.startDate);
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    const previousCompetitions = sortedCompetitions.filter(c => new Date(c.endDate) < today);
+    
+    const liveCompetitions = sortedCompetitions.filter(c => {
+        const start = new Date(c.startDate);
+        const end = new Date(c.endDate);
+        if (end < today) return false;
+        return start.getMonth() === currentMonth && start.getFullYear() === currentYear;
+    });
+
+    const futureCompetitions = sortedCompetitions.filter(c => {
+        const start = new Date(c.startDate);
+        const end = new Date(c.endDate);
+        if (end < today) return false;
+        return (start.getFullYear() > currentYear) || (start.getFullYear() === currentYear && start.getMonth() > currentMonth);
+    });
 
     const CompTable = ({ title, data, showActions = true, onAdd, onFileAdd }) => (
         <div className="mb-10">
@@ -621,13 +672,6 @@ const AdminCompetition = () => {
                         <span>Create Competition</span>
                         <Plus size={20} className="text-yellow-500 group-hover:scale-125 transition-transform" />
                     </button>
-                    <button
-                        onClick={() => openModal("future")}
-                        className="bg-white border-2 border-gray-200 hover:border-yellow-400 text-gray-800 px-6 py-3 rounded-2xl font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 group"
-                    >
-                        <span>Create future Competition</span>
-                        <Plus size={20} className="text-yellow-500 group-hover:scale-125 transition-transform" />
-                    </button>
                 </div>
             </div>
 
@@ -677,7 +721,11 @@ const AdminCompetition = () => {
                 </div>
             ) : (
                 <div className="space-y-4 px-2">
-                    <CompTable title="Live competitions" data={liveCompetitions} />
+                    <CompTable 
+                        title="Live competitions" 
+                        data={liveCompetitions} 
+                        onFileAdd={triggerFileUpload}
+                    />
                     <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-10"></div>
                     <CompTable 
                         title="Future competitions" 

@@ -19,6 +19,8 @@ const AdminCompetitionCandidates = () => {
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState([]);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedCandidate, setSelectedCandidate] = useState(null);
 
     // Sort and Filter states
     const [sortOrder, setSortOrder] = useState("newest");
@@ -181,6 +183,7 @@ const AdminCompetitionCandidates = () => {
                 toggleSelect={toggleSelect}
                 toggleSelectAll={() => toggleSelectAll(true)}
                 handleUpdateStatus={handleUpdateStatus}
+                handleViewDetails={(c) => { setSelectedCandidate(c); setIsDetailsModalOpen(true); }}
                 hasEditPermission={hasPermission(PERMISSIONS.COMPETITION_CANDIDATES_EDIT)}
             />
 
@@ -192,6 +195,7 @@ const AdminCompetitionCandidates = () => {
                 toggleSelect={toggleSelect}
                 toggleSelectAll={() => toggleSelectAll(false)}
                 handleUpdateStatus={handleUpdateStatus}
+                handleViewDetails={(c) => { setSelectedCandidate(c); setIsDetailsModalOpen(true); }}
                 hasEditPermission={hasPermission(PERMISSIONS.COMPETITION_CANDIDATES_EDIT)}
                 wrapperClass="mt-16"
             />
@@ -216,6 +220,12 @@ const AdminCompetitionCandidates = () => {
                 title="Delete Candidates"
                 message={`Are you sure you want to delete ${selectedIds.length} candidate(s)?`}
             />
+
+            <CandidateDetailsModal
+                isOpen={isDetailsModalOpen}
+                onClose={() => setIsDetailsModalOpen(false)}
+                candidate={selectedCandidate}
+            />
         </div>
     );
 };
@@ -230,6 +240,7 @@ const CandidateTableSection = ({
     toggleSelect,
     toggleSelectAll,
     handleUpdateStatus,
+    handleViewDetails,
     hasEditPermission,
     wrapperClass = ""
 }) => {
@@ -249,16 +260,17 @@ const CandidateTableSection = ({
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b-2 border-yellow-400/30 text-gray-400 font-bold text-[11px] uppercase tracking-[0.2em]">
-                                <th className="p-6 text-center w-[60px]"></th>
-                                <th className="p-6">Candidate Name</th>
-                                <th className="p-6">Enrollment ID</th>
-                                <th className="p-6">Department</th>
-                                <th className="p-6">Phone Number</th>
-                                <th className="p-6 text-center">Email</th>
-                                <th className="p-6 text-center">Download</th>
-                                <th className="p-6 text-center">Action</th>
-                                <th className="p-6 text-center">Result</th>
+                            <tr className="border-b-2 border-yellow-400/30 text-gray-400 font-bold text-[10px] uppercase tracking-[0.1em]">
+                                <th className="px-2 py-4 text-center w-[50px]"></th>
+                                <th className="px-4 py-4">Candidate Name</th>
+                                <th className="px-4 py-4">Enrollment ID</th>
+                                <th className="px-4 py-4">Date</th>
+                                <th className="px-4 py-4">Department</th>
+                                <th className="px-4 py-4">Phone Number</th>
+                                <th className="px-4 py-4 text-center">Email</th>
+                                <th className="px-4 py-4 text-center">Download</th>
+                                <th className="px-4 py-4 text-center">Action</th>
+                                <th className="px-4 py-4 text-center">Result</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -268,51 +280,57 @@ const CandidateTableSection = ({
                                 <tr><td colSpan="9" className="p-20 text-center text-gray-400 font-medium italic">No candidates found in this section.</td></tr>
                             ) : (
                                 candidates.map((c) => (
-                                    <tr key={c._id} className="hover:bg-yellow-50/20 transition-all font-medium text-gray-700">
-                                        <td className="p-6">
+                                    <tr key={c._id} className="hover:bg-yellow-50/20 transition-all font-medium text-gray-700 text-xs">
+                                        <td className="px-2 py-4">
                                             <div className="flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedIds.includes(c._id)}
                                                     onChange={() => toggleSelect(c._id)}
-                                                    className="w-5 h-5 rounded-lg border-2 border-gray-300 text-yellow-500 focus:ring-yellow-500 cursor-pointer transition-all"
+                                                    className="w-4 h-4 rounded-md border-2 border-gray-300 text-yellow-500 focus:ring-yellow-500 cursor-pointer transition-all"
                                                 />
                                             </div>
                                         </td>
-                                        <td className="p-6 text-gray-900">{c.name}</td>
-                                        <td className="p-6 font-black text-gray-900">{c.enrollmentId}</td>
-                                        <td className="p-6">{c.department}</td>
-                                        <td className="p-6">{c.phone}</td>
-                                        <td className="p-6 text-center text-gray-400">{c.email}</td>
-                                        <td className="p-6">
+                                        <td className="px-4 py-4 text-gray-900 font-bold">{c.name}</td>
+                                        <td className="px-4 py-4 font-black text-gray-900">{c.enrollmentId}</td>
+                                        <td className="px-4 py-4 text-[11px] font-black text-gray-900">
+                                            {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-GB') : "N/A"}
+                                        </td>
+                                        <td className="px-4 py-4">{c.department}</td>
+                                        <td className="px-4 py-4">{c.phone}</td>
+                                        <td className="px-4 py-4 text-center text-gray-900 text-[11px] font-black">{c.email}</td>
+                                        <td className="px-4 py-4">
                                             <div className="flex justify-center">
                                                 {c.taskUrl ? (
                                                     <button
                                                         onClick={() => window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(c.taskUrl)}`, '_blank')}
                                                         title="View submitted task PDF"
-                                                        className="p-2.5 bg-red-50 rounded-xl text-red-500 hover:bg-red-100 transition-all shadow-sm flex items-center justify-center"
+                                                        className="p-2 bg-red-50 rounded-lg text-red-500 hover:bg-red-100 transition-all shadow-sm flex items-center justify-center"
                                                     >
-                                                        <FileText size={18} />
+                                                        <FileText size={16} />
                                                     </button>
                                                 ) : (
                                                     <button
                                                         disabled
                                                         title="No task submitted yet"
-                                                        className="p-2.5 bg-gray-100 rounded-xl text-gray-300 cursor-not-allowed shadow-sm"
+                                                        className="p-2 bg-gray-100 rounded-lg text-gray-300 cursor-not-allowed shadow-sm"
                                                     >
-                                                        <Download size={18} />
+                                                        <Download size={16} />
                                                     </button>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="p-6">
+                                        <td className="px-4 py-4">
                                             <div className="flex justify-center">
-                                                <button className="p-2.5 bg-yellow-400 text-white rounded-xl hover:bg-yellow-500 transition-all shadow-md shadow-yellow-200/50">
-                                                    <Eye size={18} />
+                                                <button
+                                                    onClick={() => handleViewDetails(c)}
+                                                    className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-all shadow-md shadow-yellow-200/50"
+                                                >
+                                                    <Eye size={16} />
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="p-6">
+                                        <td className="px-4 py-4">
                                             <div className="flex justify-center">
                                                 <ResultToggle
                                                     status={c.status}
@@ -347,7 +365,7 @@ const ResultToggle = ({ status, onUpdate, disabled }) => {
         <div className="relative">
             <button
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`min-w-[100px] py-2 px-4 rounded-xl border-2 font-black text-xs uppercase tracking-widest transition-all shadow-sm ${getStatusStyle(status)}`}
+                className={`min-w-[80px] py-1.5 px-3 rounded-lg border-2 font-black text-[10px] uppercase tracking-widest transition-all shadow-sm ${getStatusStyle(status)}`}
             >
                 {status || "Pending"}
             </button>
@@ -364,6 +382,69 @@ const ResultToggle = ({ status, onUpdate, disabled }) => {
                     ))}
                 </div>
             )}
+        </div>
+    );
+};
+
+const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
+    if (!isOpen || !candidate) return null;
+
+    const DetailItem = ({ label, value }) => (
+        <div className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100/50">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
+            <p className="text-sm font-bold text-gray-800 break-all">{value || "N/A"}</p>
+        </div>
+    );
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+            <div
+                className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative p-10 animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute right-8 top-8 text-gray-400 hover:text-gray-900 transition-all hover:rotate-90 p-2 hover:bg-gray-50 rounded-xl"
+                >
+                    <X size={24} />
+                </button>
+
+                <div className="flex items-center gap-6 mb-10 pb-8 border-b border-gray-100">
+                    <div className="w-20 h-20 bg-yellow-400 rounded-[2rem] flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-yellow-200">
+                        {candidate.name.charAt(0)}
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">{candidate.name}</h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                {candidate.department}
+                            </span>
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${candidate.status === "Pass" ? "bg-green-100 text-green-600" :
+                                    candidate.status === "Fail" ? "bg-red-100 text-red-600" : "bg-yellow-100 text-yellow-600"
+                                }`}>
+                                {candidate.status || "Pending"}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <DetailItem label="Enrollment ID" value={candidate.enrollmentId} />
+                    <DetailItem label="Registration Date" value={candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString('en-GB') : "N/A"} />
+                    <DetailItem label="Phone Number" value={candidate.phone} />
+                    <DetailItem label="Email Address" value={candidate.email} />
+                    <DetailItem label="Location" value={candidate.location} />
+                </div>
+
+                <div className="mt-10 pt-8 border-t border-gray-100 flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className="px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg shadow-gray-200 active:scale-95"
+                    >
+                        Close Profile
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
