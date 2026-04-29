@@ -48,7 +48,10 @@ export const updateCandidateStatus = async (req, res) => {
         const { status } = req.body;
         const candidate = await CompetitionCandidate.findByIdAndUpdate(
             req.params.id,
-            { status },
+            {
+                status,
+                isLive: status === "Pending" ? true : false
+            },
             { new: true }
         );
         if (!candidate) return res.status(404).json({ success: false, message: "Candidate not found" });
@@ -107,7 +110,8 @@ export const toggleLiveStatus = async (req, res) => {
 // @route   POST /api/competitions/submit-task
 export const submitTask = async (req, res) => {
     try {
-        const { enrollmentId } = req.body;
+        let { enrollmentId } = req.body;
+        if (enrollmentId) enrollmentId = enrollmentId.trim().toUpperCase();
 
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Please upload a PDF file" });
@@ -133,14 +137,15 @@ export const submitTask = async (req, res) => {
 // @route   POST /api/competitions/login
 export const loginCandidate = async (req, res) => {
     try {
-        const { enrollmentId } = req.body;
+        let { enrollmentId } = req.body;
+        if (enrollmentId) enrollmentId = enrollmentId.trim().toUpperCase();
         const candidate = await CompetitionCandidate.findOne({ enrollmentId });
 
         if (!candidate) {
             return res.status(404).json({ success: false, message: "Invalid Enrollment ID. Please check and try again." });
         }
 
-        if (!candidate.isLive) {
+        if (!candidate.isLive && candidate.status === "Pending") {
             return res.status(403).json({ success: false, message: "This enrollment code has expired and is no longer valid for the current process." });
         }
 

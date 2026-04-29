@@ -119,8 +119,8 @@ const AdminCompetitionCandidates = () => {
             return 0;
         });
 
-    const liveCandidates = filteredAndSorted.filter(c => c.isLive);
-    const previousCandidates = filteredAndSorted.filter(c => !c.isLive);
+    const liveCandidates = filteredAndSorted.filter(c => c.isLive && c.status.toLowerCase() === "pending");
+    const previousCandidates = filteredAndSorted.filter(c => !c.isLive || c.status.toLowerCase() === "pass" || c.status.toLowerCase() === "fail");
 
     return (
         <div className="p-8 bg-white min-h-screen font-sans">
@@ -420,7 +420,7 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
                                 {candidate.department}
                             </span>
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${candidate.status === "Pass" ? "bg-green-100 text-green-600" :
-                                    candidate.status === "Fail" ? "bg-red-100 text-red-600" : "bg-yellow-100 text-yellow-600"
+                                candidate.status === "Fail" ? "bg-red-100 text-red-600" : "bg-yellow-100 text-yellow-600"
                                 }`}>
                                 {candidate.status || "Pending"}
                             </span>

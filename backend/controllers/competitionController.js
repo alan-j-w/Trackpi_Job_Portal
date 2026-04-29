@@ -71,3 +71,48 @@ export const updateCompetition = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Get active competition for public countdown
+// @route   GET /api/competitions/active
+// @access  Public
+export const getActiveCompetition = async (req, res) => {
+    try {
+        const { department } = req.query;
+        let query = { status: "live" };
+        
+        if (department) {
+            // Find competition matching the candidate's department
+            query.department = new RegExp(department, 'i');
+        }
+
+        // Find the most recently created 'live' competition that matches the criteria
+        let competition = await Competition.findOne(query).sort({ startDate: 1 });
+        
+        if (!competition) {
+            // Fallback: If no specific competition, find any live one
+            competition = await Competition.findOne({ status: "live" }).sort({ startDate: 1 });
+        }
+
+        if (competition) {
+            // Ensure the endDate is at the end of the day (23:59:59) for proper countdown
+            const end = new Date(competition.endDate);
+            end.setHours(23, 59, 59, 999);
+            
+            // Convert to a plain object to modify
+            const compObj = competition.toObject();
+            compObj.endDate = end;
+            
+            return res.status(200).json({ success: true, competition: compObj });
+        }
+        
+        // Final fallback if nothing found
+        return res.status(200).json({ 
+            success: true, 
+            isFallback: true,
+            message: "No active competition found, using default timer" 
+        });
+    } catch (error) {
+        console.error("Error fetching active competition:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

@@ -31,36 +31,56 @@ const CompetitionIntro = () => {
     challengeAudio.toggle();
   };
 
-  // Dynamic Timer Logic
+  // Individual 48-Hour Timer (Starts from Registration)
   useEffect(() => {
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 2);
-    targetDate.setHours(targetDate.getHours() + 2);
-    targetDate.setMinutes(targetDate.getMinutes() + 2);
+    const fetchCandidateTimer = async () => {
+      try {
+        const enrollmentId = localStorage.getItem("enrollmentId");
+        if (!enrollmentId) return;
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = targetDate.getTime() - now.getTime();
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
+        
+        if (res.data.success && res.data.candidate) {
+          const registrationDate = new Date(res.data.candidate.createdAt);
+          const targetDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000)); // Exactly 48 hours from registration
 
-      if (diff <= 0) {
-        clearInterval(interval);
-        return;
+          if (new Date() > targetDate) {
+            navigate("/competition/completed");
+            return;
+          }
+
+          const interval = setInterval(() => {
+            const now = new Date();
+            const diff = targetDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+              clearInterval(interval);
+              setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+              navigate("/competition/completed");
+              return;
+            }
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeLeft({
+              days: d < 10 ? `0${d}` : `${d}`,
+              hours: h < 10 ? `0${h}` : `${h}`,
+              minutes: m < 10 ? `0${m}` : `${m}`,
+              seconds: s < 10 ? `0${s}` : `${s}`
+            });
+          }, 1000);
+
+          return () => clearInterval(interval);
+        }
+      } catch (err) {
+        console.error("Error setting individual timer:", err);
       }
+    };
 
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setTimeLeft({
-        days: d < 10 ? `0${d}` : `${d}`,
-        hours: h < 10 ? `0${h}` : `${h}`,
-        minutes: m < 10 ? `0${m}` : `${m}`,
-        seconds: s < 10 ? `0${s}` : `${s}`
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
+    fetchCandidateTimer();
   }, []);
 
   useEffect(() => {
@@ -115,7 +135,7 @@ const CompetitionIntro = () => {
 
         <div className="flex items-center gap-10">
           <Link to="/competition/ui-ux" className="text-[#FFB300] font-russo text-[18px]">
-            Competition
+            Compatetion
           </Link>
           <Link to="/competition/pending" className="text-black font-russo text-[18px] hover:text-[#FFB300] transition">
             Result
@@ -159,7 +179,7 @@ const CompetitionIntro = () => {
         </p>
 
         <button
-          onClick={() => navigate("/competition/task")}
+          onClick={() => navigate("/talent-league")}
           className="w-[190px] h-[48px] border-[1.5px] border-[#1A1A1A] bg-white rounded-[10px] text-[#1A1A1A] font-bold text-[20px] hover:bg-gray-50 transition-all shadow-sm"
         >
           Done

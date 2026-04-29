@@ -27,6 +27,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
   const [idCode, setIdCode] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isRegistrationLogin, setIsRegistrationLogin] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -47,7 +48,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
     email: "",
     phone: "",
     location: "",
-    department: "UI/UX Designer",
+    department: "",
     agreed: false
   });
 
@@ -57,6 +58,54 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
     location: ""
   });
 
+  const handleLogin = async (codeToUse) => {
+    const cleanedCode = (codeToUse || loginCode).trim().toUpperCase();
+    if (!cleanedCode) {
+      setLoginError("Please enter your Enrollment Code");
+      return;
+    }
+
+    setLoading(true);
+    setLoginError("");
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`,
+        { enrollmentId: cleanedCode }
+      );
+      if (response.data.success) {
+        localStorage.setItem("enrollmentId", cleanedCode);
+        toast.success("Login Successful!");
+
+        setLoginCode(""); // Clear input for next user
+        onClose();
+
+        const { status, taskUrl, createdAt } = response.data.candidate;
+        const registrationDate = new Date(createdAt);
+        const expirationDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000));
+        const isExpired = new Date() > expirationDate;
+
+        if (status === "Pass") {
+          navigate("/competition/result");
+        } else if (status === "Fail") {
+          navigate("/competition/failed");
+        } else if (taskUrl || isExpired) {
+          navigate("/competition/completed");
+        } else if (isRegistrationLogin) {
+          setIsRegistrationLogin(false);
+          navigate("/competition/intro");
+        } else {
+          navigate("/competition/task");
+        }
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || "Invalid Enrollment Code. Please check and try again.";
+      setLoginError(msg);
+      toast.error(msg); 
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Timer State (Hardcoded for demonstration as per Image 1)
   const [timeLeft, setTimeLeft] = useState({
     days: "02",
@@ -65,44 +114,65 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
     seconds: "02"
   });
 
+  const [isTimeUp, setIsTimeUp] = useState(false);
   const [loginError, setLoginError] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // Dynamic Timer Logic
+  // Individual 48-Hour Timer (Starts from Registration)
   useEffect(() => {
     if (view !== "task" && view !== "talentLeagueIntro") return;
 
-    // Set target date - e.g., 2 days, 2 hours, 2 mins from now as in Image 1
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 2);
-    targetDate.setHours(targetDate.getHours() + 2);
-    targetDate.setMinutes(targetDate.getMinutes() + 2);
+    const fetchCandidateTimer = async () => {
+      try {
+        const enrollmentId = localStorage.getItem("enrollmentId");
+        let targetDate;
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = targetDate.getTime() - now.getTime();
+        if (enrollmentId) {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
+          if (res.data.success && res.data.candidate) {
+            const registrationDate = new Date(res.data.candidate.createdAt);
+            targetDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000));
+          }
+        }
 
-      if (diff <= 0) {
-        clearInterval(interval);
-        setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
-        return;
+        if (!targetDate) {
+          // Standard fallback if no candidate info is available
+          targetDate = new Date();
+          targetDate.setHours(targetDate.getHours() + 48);
+        }
+
+        const interval = setInterval(() => {
+          const now = new Date();
+          const diff = targetDate.getTime() - now.getTime();
+
+          if (diff <= 0) {
+            clearInterval(interval);
+            setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+            setIsTimeUp(true);
+            return;
+          }
+
+          const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+          setTimeLeft({
+            days: d.toString().padStart(2, "0"),
+            hours: h.toString().padStart(2, "0"),
+            minutes: m.toString().padStart(2, "0"),
+            seconds: s.toString().padStart(2, "0")
+          });
+        }, 1000);
+
+        return () => clearInterval(interval);
+      } catch (err) {
+        console.error("Error setting individual modal timer:", err);
       }
+    };
 
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setTimeLeft({
-        days: d.toString().padStart(2, "0"),
-        hours: h.toString().padStart(2, "0"),
-        minutes: m.toString().padStart(2, "0"),
-        seconds: s.toString().padStart(2, "0")
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
+    fetchCandidateTimer();
   }, [view]);
 
   const handleFileUpload = (e) => {
@@ -148,12 +218,13 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
 
   const resetAndClose = () => {
     setView("cards");
+    setIsRegistrationLogin(false);
     setFormData({
       fullName: "",
       email: "",
       phone: "",
       location: "",
-      department: "UI/UX Designer",
+      department: "",
       agreed: false
     });
     setLoading(false);
@@ -197,6 +268,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
         const newIdCode = response.data.candidate.enrollmentId;
         setIdCode(newIdCode);
         localStorage.setItem("enrollmentId", newIdCode); // Persist ID for subsequent pages
+        sessionStorage.setItem("isFirstTime", "true"); // Flag for initial flow
         setView("success");
         toast.success("Registration Successful!");
       }
@@ -409,7 +481,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                 }}
                 className="text-white/80 hover:text-[#FFB300] font-sans text-[16px] underline underline-offset-4 transition-colors font-medium decoration-white/30 hover:decoration-[#FFB300]/50"
               >
-                Already registered, log in
+                Log in to View Results
               </button>
             </div>
           </>
@@ -499,6 +571,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
               {/* Next Button after registration - leads to Login */}
               <button
                 onClick={() => {
+                  setIsRegistrationLogin(true);
                   setView("login");
                 }}
                 className="mt-[-5px] bg-[#FFB300] hover:bg-[#FFC732] text-white shadow-[0_10px_25px_rgba(255,179,0,0.3)] transition-all active:scale-[0.98] flex items-center justify-center"
@@ -583,11 +656,22 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
               >
                 <input
                   type="text"
-                  placeholder="258DEH"
+                  placeholder="ENDG258734"
                   value={loginCode}
                   onChange={(e) => {
-                    setLoginCode(e.target.value.toUpperCase());
+                    const val = e.target.value.replace(/\s/g, '').toUpperCase();
+                    setLoginCode(val);
                     if (loginError) setLoginError("");
+                  }}
+                  onPaste={(e) => {
+                    const pastedData = e.clipboardData.getData('text').replace(/\s/g, '');
+                    const match = pastedData.match(/ENDG\d{6}/i);
+                    if (match) {
+                      e.preventDefault();
+                      const code = match[0].toUpperCase();
+                      setLoginCode(code);
+                      if (loginError) setLoginError("");
+                    }
                   }}
                   className="w-full h-full bg-transparent border-none outline-none text-white font-russo text-[42px] text-center tracking-[12px] placeholder:opacity-20"
                 />
@@ -610,58 +694,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
 
               {/* Submit Button - Exact Figma Specs */}
               <button
-                onClick={async () => {
-                  if (!loginCode) {
-                    setLoginError("Please enter your Enrollment Code");
-                    return;
-                  }
-                  if (loginCode.length < 6) {
-                    setLoginError("Invalid Enrollment Code. Please check and try again.");
-                    return;
-                  }
-                  setLoading(true);
-                  setLoginError("");
-                  try {
-                    const response = await axios.post(
-                      `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`,
-                      { enrollmentId: loginCode }
-                    );
-                    if (response.data.success) {
-                      localStorage.setItem("enrollmentId", loginCode);
-                      toast.success("Login Successful!");
-
-                      setLoginCode(""); // Clear input for next user
-                      onClose();
-
-                      if (window.location.pathname === "/talent-league") {
-                        setTimeout(() => {
-                          const section = document.getElementById("explore-competitions");
-                          if (section) {
-                            section.scrollIntoView({ behavior: "smooth" });
-                          }
-                        }, 100);
-                      } else {
-                        const { status, taskUrl } = response.data.candidate;
-
-                        if (status === "Pass") {
-                          navigate("/competition/result");
-                        } else if (status === "Fail") {
-                          navigate("/competition/failed");
-                        } else if (!taskUrl) {
-                          navigate("/competition/intro");
-                        } else {
-                          navigate("/competition/pending");
-                        }
-                      }
-                    }
-                  } catch (error) {
-                    const msg = error.response?.data?.message || "Invalid Enrollment Code. Please check and try again.";
-                    setLoginError(msg);
-                    toast.error(msg);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
+                onClick={() => handleLogin()}
                 disabled={loading}
                 className="mt-6 hover:brightness-110 text-white shadow-[0_10px_25px_rgba(255,179,0,0.15)] transition-all active:scale-[0.98] flex items-center justify-center disabled:opacity-50"
                 style={{
@@ -832,7 +865,10 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
 
               {/* Done Button - Matching Figma Image 2 */}
               <button
-                onClick={() => setView("task")}
+                onClick={() => {
+                  resetAndClose();
+                  navigate("/talent-league");
+                }}
                 className="w-[190px] h-[48px] border-[1.5px] border-[#1A1A1A] bg-white rounded-[10px] text-[#1A1A1A] font-bold text-[20px] hover:bg-gray-100 active:scale-95 transition-all shadow-sm flex items-center justify-center"
               >
                 Done
@@ -1011,16 +1047,26 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                       <p className="text-[#1A1A1A] text-[15px] font-medium font-inter">
                         {selectedFile ? `Selected: ${selectedFile.name}` : "Submit your design in figma link or adobe XD link or PDF ."}
                       </p>
-                      <label className="flex items-center gap-2 px-6 h-[34px] bg-white border-[1.2px] border-[#FFB300] rounded-[8px] text-[#FFB300] font-bold text-[14px] hover:bg-[#FFB300]/5 transition-all active:scale-[0.98] cursor-pointer shadow-sm">
-                        {selectedFile ? "Change file" : "Upload file"}
-                        <Upload size={16} className="text-[#FFB300]" />
-                        <input
-                          type="file"
-                          className="hidden"
-                          onChange={handleFileUpload}
-                          accept=".pdf"
-                        />
-                      </label>
+                      <div className="flex flex-col items-center gap-2">
+                        <label 
+                          className={`flex items-center gap-2 px-6 h-[34px] rounded-[8px] font-bold text-[14px] transition-all shadow-sm ${!isTimeUp ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white border-[1.2px] border-[#FFB300] text-[#FFB300] hover:bg-[#FFB300]/5 active:scale-[0.98] cursor-pointer'}`}
+                        >
+                          {isTimeUp ? (selectedFile ? "Change file" : "Upload file") : "Locked"}
+                          <Upload size={16} className={isTimeUp ? "text-[#FFB300]" : "text-gray-400"} />
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={handleFileUpload}
+                            accept=".pdf"
+                            disabled={!isTimeUp}
+                          />
+                        </label>
+                        {!isTimeUp && (
+                          <p className="text-[#FF4D4D] text-[11px] font-medium mt-1">
+                            * Only after the time ends you should upload the task
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1065,8 +1111,8 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                         setLoading(false);
                       }
                     }}
-                    disabled={loading}
-                    className="w-[182px] h-[52px] bg-[#FFB300] text-white font-bold text-[20px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all mb-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mt-2"
+                    disabled={loading || !isTimeUp}
+                    className="w-[182px] h-[52px] bg-[#FFB300] text-white font-bold text-[20px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all mb-2 disabled:opacity-50 flex items-center justify-center mt-2"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={24} />

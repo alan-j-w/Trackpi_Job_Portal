@@ -175,7 +175,7 @@ const CompetitionCompleted = () => {
           </div>
 
           <button
-            onClick={() => navigate("/competition/finished")}
+            onClick={() => navigate("/talent-league")}
             style={{
               background: "linear-gradient(180deg, #FFEAB2 0%, #FFD666 100%)",
             }}

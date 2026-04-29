@@ -16,6 +16,7 @@ const CompetitionTask = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isTimeUp, setIsTimeUp] = useState(false);
   
   // Timer State
   const [timeLeft, setTimeLeft] = useState({
@@ -35,34 +36,57 @@ const CompetitionTask = () => {
     challengeAudio.toggle();
   };
 
-  // Dynamic Timer Logic
+  // Individual 48-Hour Timer (Starts from Registration)
   useEffect(() => {
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 2);
-    targetDate.setHours(targetDate.getHours() + 2);
-    targetDate.setMinutes(targetDate.getMinutes() + 2);
+    const fetchCandidateTimer = async () => {
+      try {
+        const enrollmentId = localStorage.getItem("enrollmentId");
+        if (!enrollmentId) return;
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = targetDate.getTime() - now.getTime();
-      if (diff <= 0) {
-        clearInterval(interval);
-        return;
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
+        
+        if (res.data.success && res.data.candidate) {
+          const registrationDate = new Date(res.data.candidate.createdAt);
+          const targetDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000)); // Exactly 48 hours from registration
+
+          if (new Date() > targetDate) {
+            navigate("/competition/completed");
+            return;
+          }
+
+          const interval = setInterval(() => {
+            const now = new Date();
+            const diff = targetDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+              clearInterval(interval);
+              setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+              setIsTimeUp(true);
+              navigate("/competition/completed");
+              return;
+            }
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeLeft({
+              days: d < 10 ? `0${d}` : `${d}`,
+              hours: h < 10 ? `0${h}` : `${h}`,
+              minutes: m < 10 ? `0${m}` : `${m}`,
+              seconds: s < 10 ? `0${s}` : `${s}`
+            });
+          }, 1000);
+
+          return () => clearInterval(interval);
+        }
+      } catch (err) {
+        console.error("Error setting individual timer:", err);
       }
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
+    };
 
-      setTimeLeft({
-        days: d < 10 ? `0${d}` : `${d}`,
-        hours: h < 10 ? `0${h}` : `${h}`,
-        minutes: m < 10 ? `0${m}` : `${m}`,
-        seconds: s < 10 ? `0${s}` : `${s}`
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
+    fetchCandidateTimer();
   }, []);
 
   useEffect(() => {
@@ -224,18 +248,27 @@ const CompetitionTask = () => {
             <p className="text-[#686868] text-[18px] font-medium font-sans">
               {selectedFile ? `Selected: ${selectedFile.name}` : "Submit your design in figma link or adobe XD link or PDF ."}
             </p>
-            <label className="flex items-center justify-center gap-2 w-[160px] h-[40px] bg-white border-[1.2px] border-[#FFB300] rounded-[10px] text-[#FFB300] font-bold text-[16px] hover:bg-[#FFB300]/5 transition-all cursor-pointer shadow-sm">
-                Upload file
-                <Upload size={20} className="ml-1" />
-                <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" />
-            </label>
+            <div className="flex flex-col items-center gap-2">
+              <label 
+                className={`flex items-center justify-center gap-2 w-[160px] h-[40px] rounded-[10px] font-bold text-[16px] transition-all cursor-pointer shadow-sm ${!isTimeUp ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white border-[1.2px] border-[#FFB300] text-[#FFB300] hover:bg-[#FFB300]/5'}`}
+              >
+                  {isTimeUp ? "Upload file" : "Locked"}
+                  <Upload size={20} className="ml-1" />
+                  <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" disabled={!isTimeUp} />
+              </label>
+              {!isTimeUp && (
+                <p className="text-[#FF4D4D] text-[13px] font-medium mt-1">
+                  * Only after the time ends you should upload the task
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Final Submit Button */}
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !isTimeUp}
           className="w-[240px] h-[52px] bg-[#FFB300] text-white font-bold text-[22px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
         >
           {loading ? <Loader2 className="animate-spin" size={28} /> : "Submit"}
