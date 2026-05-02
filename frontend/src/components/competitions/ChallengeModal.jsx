@@ -18,7 +18,7 @@ import { challengeAudio } from "../../utils/audioManager";
  * ChallengeModal component that displays upcoming and future competitions.
  * Based on the visual design provided with 1024x701px dimensions.
  */
-const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
+const ChallengeModal = ({ isOpen, onClose, initialView = "cards", department = "" }) => {
   const navigate = useNavigate();
   const [view, setView] = useState(initialView); // 'cards', 'register', 'success', 'login', 'talentLeagueIntro', 'task', 'result'
   const [loginCode, setLoginCode] = useState("");
@@ -79,77 +79,215 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
         setLoginCode(""); // Clear input for next user
         onClose();
 
-        const { status, taskUrl, createdAt } = response.data.candidate;
-        const registrationDate = new Date(createdAt);
-        const expirationDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000));
-        const isExpired = new Date() > expirationDate;
+
+        const { status } = response.data.candidate;
 
         if (status === "Pass") {
+          onClose();
           navigate("/competition/result");
         } else if (status === "Fail") {
+          onClose();
           navigate("/competition/failed");
-        } else if (taskUrl || isExpired) {
-          navigate("/competition/completed");
         } else if (isRegistrationLogin) {
           setIsRegistrationLogin(false);
+          onClose();
           navigate("/competition/intro");
         } else {
+          onClose();
           navigate("/competition/task");
         }
       }
     } catch (error) {
       const msg = error.response?.data?.message || "Invalid Enrollment Code. Please check and try again.";
       setLoginError(msg);
-      toast.error(msg); 
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Timer State (Hardcoded for demonstration as per Image 1)
+  // Timer State
   const [timeLeft, setTimeLeft] = useState({
-    days: "02",
-    hours: "02",
-    minutes: "02",
-    seconds: "02"
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00"
   });
 
   const [isTimeUp, setIsTimeUp] = useState(false);
+  const [timerPhase, setTimerPhase] = useState("wait"); // "wait" or "active"
+  const [compDates, setCompDates] = useState({ start: "", end: "" });
   const [loginError, setLoginError] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [liveCompetition, setLiveCompetition] = useState(null);
+  const [futureCompetition, setFutureCompetition] = useState(null);
+  const [registeringComp, setRegisteringComp] = useState(null); // Track competition for success timer
 
-  // Individual 48-Hour Timer (Starts from Registration)
+  // Fetch Competitions for Cards View
   useEffect(() => {
-    if (view !== "task" && view !== "talentLeagueIntro") return;
+    const fetchCompetitions = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/all-public`);
+        if (response.data.success) {
+          const allComps = response.data.competitions;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const currentMonth = today.getMonth();
+          const currentYear = today.getFullYear();
+
+          // 1. Sort all competitions by start date
+          const sortedComps = allComps.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+          // 2. Filter for competitions that haven't ended yet
+          const activeComps = sortedComps.filter(c => new Date(c.endDate) >= today);
+
+          // 3. Categorize matching the Admin logic
+          // Live (Upcoming): Starts in current month and hasn't ended
+          const livePool = activeComps.filter(c => {
+            const start = new Date(c.startDate);
+            return start.getMonth() === currentMonth && start.getFullYear() === currentYear;
+          });
+
+          // Future: Starts after current month
+          const futurePool = activeComps.filter(c => {
+            const start = new Date(c.startDate);
+            return (start.getFullYear() > currentYear) || (start.getFullYear() === currentYear && start.getMonth() > currentMonth);
+          });
+
+          // Helper to find by department or fallback
+          const findBest = (pool) => {
+            if (pool.length === 0) return null;
+            let found = pool.find(c => c.department.toLowerCase().includes(department.toLowerCase()));
+            if (!found) found = pool[0]; // Take the earliest one in the pool
+            return found;
+          };
+
+          setLiveCompetition(findBest(livePool));
+          setFutureCompetition(findBest(futurePool));
+        }
+      } catch (error) {
+        console.error("Error fetching competitions for cards:", error);
+      }
+    };
+    fetchCompetitions();
+  }, []);
+
+  const getOrdinalSuffix = (day) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1: return "st";
+      case 2: return "nd";
+      case 3: return "rd";
+      default: return "th";
+    }
+  };
+
+  const formatCompDate = (dateString) => {
+    if (!dateString) return { month: "---", day: "--", suffix: "", year: "----" };
+    const date = new Date(dateString);
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const day = date.getDate();
+    return {
+      month: months[date.getMonth()],
+      day: day,
+      suffix: getOrdinalSuffix(day),
+      year: date.getFullYear()
+    };
+  };
+
+  // Dual-Phase Timer (Wait for Start -> Compete until End)
+  useEffect(() => {
+    if (view !== "task" && view !== "talentLeagueIntro" && view !== "success") return;
 
     const fetchCandidateTimer = async () => {
       try {
         const enrollmentId = localStorage.getItem("enrollmentId");
-        let targetDate;
+        let start;
+        let end;
 
         if (enrollmentId) {
           const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
+
           if (res.data.success && res.data.candidate) {
-            const registrationDate = new Date(res.data.candidate.createdAt);
-            targetDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000));
+            const candidateDept = res.data.candidate.department;
+            const compRes = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/all-public`);
+
+            if (compRes.data.success) {
+              const comps = compRes.data.competitions;
+              const candidateCompId = res.data.candidate.competitionId;
+
+              let myComp;
+              if (candidateCompId) {
+                myComp = comps.find(c => c._id === candidateCompId);
+              }
+
+              if (!myComp) {
+                myComp = comps
+                  .filter(c => c.department.toLowerCase().includes(candidateDept.toLowerCase()))
+                  .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                  .find(c => new Date(c.endDate) > new Date());
+              }
+
+              if (!myComp && view === "success" && registeringComp) {
+                myComp = registeringComp;
+              }
+
+              if (myComp) {
+                start = new Date(myComp.startDate.split('T')[0] + 'T00:00:00');
+                end = new Date(myComp.endDate.split('T')[0] + 'T00:00:00');
+
+                const formatOptions = { month: 'long', day: 'numeric' };
+                setCompDates({
+                  start: start.toLocaleDateString(undefined, formatOptions),
+                  end: end.toLocaleDateString(undefined, { ...formatOptions, year: 'numeric' })
+                });
+              } else if (view === "success" && registeringComp) {
+                start = new Date(registeringComp.startDate.split('T')[0] + 'T00:00:00');
+                end = new Date(registeringComp.endDate.split('T')[0] + 'T00:00:00');
+
+                const formatOptions = { month: 'long', day: 'numeric' };
+                setCompDates({
+                  start: start.toLocaleDateString(undefined, formatOptions),
+                  end: end.toLocaleDateString(undefined, { ...formatOptions, year: 'numeric' })
+                });
+              }
+            }
           }
         }
 
-        if (!targetDate) {
-          // Standard fallback if no candidate info is available
-          targetDate = new Date();
-          targetDate.setHours(targetDate.getHours() + 48);
+        if (!start || !end) return;
+
+        const now = new Date();
+        const initialPhase = now < start ? "wait" : "active";
+        setTimerPhase(initialPhase);
+        const targetDate = initialPhase === "wait" ? start : end;
+
+        if (now > end) {
+          // Time is up
+          setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+          setIsTimeUp(true);
+          return;
         }
 
         const interval = setInterval(() => {
-          const now = new Date();
-          const diff = targetDate.getTime() - now.getTime();
+          const currentTime = new Date();
+          const currentPhase = currentTime < start ? "wait" : "active";
+          const currentTarget = currentPhase === "wait" ? start : end;
+
+          setTimerPhase(currentPhase);
+
+          const diff = currentTarget.getTime() - currentTime.getTime();
 
           if (diff <= 0) {
             clearInterval(interval);
-            setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
-            setIsTimeUp(true);
+            if (currentPhase === "wait") {
+              fetchCandidateTimer(); // Refresh to start active phase
+            } else {
+              setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+              setIsTimeUp(true);
+            }
             return;
           }
 
@@ -261,7 +399,8 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
         phone: formData.phone,
         location: formData.location,
         department: formData.department,
-        role: formData.department // Sync role with selected department for consistency
+        role: formData.department, // Sync role with selected department for consistency
+        competitionId: registeringComp?._id
       });
 
       if (response.data.success) {
@@ -363,12 +502,12 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
 
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-center gap-2" style={{ fontFamily: 'Sitka, serif' }}>
-                      <span className="text-white text-[22px]">May</span>
+                      <span className="text-white text-[22px]">{formatCompDate(liveCompetition?.startDate).month}</span>
                       <div className="flex items-start">
-                        <span className="text-white text-[30px]">1</span>
-                        <span className="text-white text-[14px] mt-2">st</span>
+                        <span className="text-white text-[30px]">{formatCompDate(liveCompetition?.startDate).day}</span>
+                        <span className="text-white text-[14px] mt-2">{formatCompDate(liveCompetition?.startDate).suffix}</span>
                       </div>
-                      <span className="text-white text-[22px]">2026</span>
+                      <span className="text-white text-[22px]">{formatCompDate(liveCompetition?.startDate).year}</span>
                     </div>
 
                     <div className="flex flex-col items-center">
@@ -385,12 +524,12 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                         Submission deadline
                       </p>
                       <div className="flex items-center justify-center gap-2 mt-0" style={{ fontFamily: 'Sitka, serif' }}>
-                        <span className="text-white text-[18px]">May</span>
+                        <span className="text-white text-[18px]">{formatCompDate(liveCompetition?.endDate).month}</span>
                         <div className="flex items-start">
-                          <span className="text-white text-[25px]">10</span>
-                          <span className="text-white text-[11px] mt-1">th</span>
+                          <span className="text-white text-[25px]">{formatCompDate(liveCompetition?.endDate).day}</span>
+                          <span className="text-white text-[11px] mt-1">{formatCompDate(liveCompetition?.endDate).suffix}</span>
                         </div>
-                        <span className="text-white text-[18px]">2026</span>
+                        <span className="text-white text-[18px]">{formatCompDate(liveCompetition?.endDate).year}</span>
                       </div>
                     </div>
                   </div>
@@ -398,6 +537,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                   <button
                     onClick={() => {
                       setSelectedRole("UI/UX Designer");
+                      setRegisteringComp(liveCompetition);
                       setIdCode("");
                       setLoginCode("");
                       setLoginError("");
@@ -423,12 +563,12 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
 
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-center gap-2" style={{ fontFamily: 'Sitka, serif' }}>
-                      <span className="text-white text-[22px]">August</span>
+                      <span className="text-white text-[22px]">{formatCompDate(futureCompetition?.startDate).month}</span>
                       <div className="flex items-start">
-                        <span className="text-white text-[30px]">1</span>
-                        <span className="text-white text-[14px] mt-2">st</span>
+                        <span className="text-white text-[30px]">{formatCompDate(futureCompetition?.startDate).day}</span>
+                        <span className="text-white text-[14px] mt-2">{formatCompDate(futureCompetition?.startDate).suffix}</span>
                       </div>
-                      <span className="text-white text-[22px]">2026</span>
+                      <span className="text-white text-[22px]">{formatCompDate(futureCompetition?.startDate).year}</span>
                     </div>
 
                     <div className="flex flex-col items-center">
@@ -445,12 +585,12 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                         Submission deadline
                       </p>
                       <div className="flex items-center justify-center gap-2 mt-0" style={{ fontFamily: 'Sitka, serif' }}>
-                        <span className="text-white text-[18px]">August</span>
+                        <span className="text-white text-[18px]">{formatCompDate(futureCompetition?.endDate).month}</span>
                         <div className="flex items-start">
-                          <span className="text-white text-[25px]">10</span>
-                          <span className="text-white text-[11px] mt-1">th</span>
+                          <span className="text-white text-[25px]">{formatCompDate(futureCompetition?.endDate).day}</span>
+                          <span className="text-white text-[11px] mt-1">{formatCompDate(futureCompetition?.endDate).suffix}</span>
                         </div>
-                        <span className="text-white text-[18px]">2026</span>
+                        <span className="text-white text-[18px]">{formatCompDate(futureCompetition?.endDate).year}</span>
                       </div>
                     </div>
                   </div>
@@ -458,6 +598,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                   <button
                     onClick={() => {
                       setSelectedRole("Future UI/UX Designer");
+                      setRegisteringComp(futureCompetition);
                       setIdCode("");
                       setLoginCode("");
                       setLoginError("");
@@ -517,7 +658,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
 
               {/* Enrollment Code Box - Exact Figma Specs */}
               <div
-                className="mt-6 flex items-center justify-between px-8 relative bg-black/40"
+                className="mt-4 flex items-center justify-between px-8 relative bg-black/40"
                 style={{
                   width: '100%',
                   height: '60px',
@@ -542,7 +683,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                 className="mt-6 text-center"
                 style={{
                   width: '494px',
-                  height: '72px',
+                  height: 'auto',
                   fontFamily: "'Lato', sans-serif",
                   fontSize: '20px',
                   fontWeight: '400',
@@ -561,7 +702,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                 <img
                   src={winnerOnPeak}
                   alt="Success"
-                  className="w-[283px] h-[283px] object-contain"
+                  className="w-[260px] h-[260px] object-contain"
                   style={{
                     mixBlendMode: 'screen'
                   }}
@@ -574,7 +715,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                   setIsRegistrationLogin(true);
                   setView("login");
                 }}
-                className="mt-[-5px] bg-[#FFB300] hover:bg-[#FFC732] text-white shadow-[0_10px_25px_rgba(255,179,0,0.3)] transition-all active:scale-[0.98] flex items-center justify-center"
+                className="mt-4 bg-[#FFB300] hover:bg-[#FFC732] text-white shadow-[0_15px_30px_rgba(255,179,0,0.4)] transition-all active:scale-[0.98] flex items-center justify-center hover:scale-[1.02]"
                 style={{
                   width: '414.22px',
                   height: '45.84px',
@@ -1003,26 +1144,36 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                       textTransform: 'none'
                     }}
                   >
-                    Start Your Talent League
+                    Submit Your Task
                   </h2>
 
                   {/* Countdown Timer Row */}
-                  <div className="flex gap-8 mb-6">
-                    {[
-                      { label: 'DAYS', val: timeLeft.days },
-                      { label: 'HOURS', val: timeLeft.hours },
-                      { label: 'MINUTES', val: timeLeft.minutes },
-                      { label: 'SECONDS', val: timeLeft.seconds }
-                    ].map((item) => (
-                      <div key={item.label} className="flex flex-col items-center gap-2">
-                        <div
-                          className="w-[90px] h-[90px] bg-gradient-to-b from-[#FFB300] to-[#FFC732] rounded-[12px] flex items-center justify-center shadow-[0_8px_16px_rgba(255,179,0,0.25)] border border-white/40"
-                        >
-                          <span className="text-black font-russo text-[42px] leading-none">{item.val}</span>
+                  <div className="flex flex-col items-center gap-4 mb-6">
+                    {compDates.start && (
+                      <p className="font-russo text-black/60 text-[18px] mb-2 text-center">
+                        {compDates.start} — {compDates.end}
+                      </p>
+                    )}
+                    <span className="font-russo text-[#FFB300] text-[18px] uppercase tracking-widest">
+                      {timerPhase === "active" ? "Ends in:" : "Starts in:"}
+                    </span>
+                    <div className="flex gap-8">
+                      {[
+                        { label: 'DAYS', val: timeLeft.days },
+                        { label: 'HOURS', val: timeLeft.hours },
+                        { label: 'MINUTES', val: timeLeft.minutes },
+                        { label: 'SECONDS', val: timeLeft.seconds }
+                      ].map((item) => (
+                        <div key={item.label} className="flex flex-col items-center gap-2">
+                          <div
+                            className="w-[90px] h-[90px] bg-gradient-to-b from-[#FFB300] to-[#FFC732] rounded-[12px] flex items-center justify-center shadow-[0_8px_16px_rgba(255,179,0,0.25)] border border-white/40"
+                          >
+                            <span className="text-black font-russo text-[42px] leading-none">{item.val}</span>
+                          </div>
+                          <span className="text-black text-[11px] font-bold tracking-[0.15em] uppercase">{item.label}</span>
                         </div>
-                        <span className="text-black text-[11px] font-bold tracking-[0.15em] uppercase">{item.label}</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
                   {/* View Your Task Section */}
@@ -1048,24 +1199,19 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                         {selectedFile ? `Selected: ${selectedFile.name}` : "Submit your design in figma link or adobe XD link or PDF ."}
                       </p>
                       <div className="flex flex-col items-center gap-2">
-                        <label 
-                          className={`flex items-center gap-2 px-6 h-[34px] rounded-[8px] font-bold text-[14px] transition-all shadow-sm ${!isTimeUp ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white border-[1.2px] border-[#FFB300] text-[#FFB300] hover:bg-[#FFB300]/5 active:scale-[0.98] cursor-pointer'}`}
+                        <label
+                          className={`flex items-center gap-2 px-6 h-[34px] rounded-[8px] font-bold text-[14px] transition-all shadow-sm ${(timerPhase !== 'active' || isTimeUp) ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white border-[1.2px] border-[#FFB300] text-[#FFB300] hover:bg-[#FFB300]/5 active:scale-[0.98] cursor-pointer'}`}
                         >
-                          {isTimeUp ? (selectedFile ? "Change file" : "Upload file") : "Locked"}
-                          <Upload size={16} className={isTimeUp ? "text-[#FFB300]" : "text-gray-400"} />
+                          {(timerPhase !== 'active' || isTimeUp) ? "Locked" : (selectedFile ? "Change file" : "Upload file")}
+                          <Upload size={16} className={(timerPhase !== 'active' || isTimeUp) ? "text-gray-400" : "text-[#FFB300]"} />
                           <input
                             type="file"
                             className="hidden"
                             onChange={handleFileUpload}
                             accept=".pdf"
-                            disabled={!isTimeUp}
+                            disabled={timerPhase !== 'active' || isTimeUp}
                           />
                         </label>
-                        {!isTimeUp && (
-                          <p className="text-[#FF4D4D] text-[11px] font-medium mt-1">
-                            * Only after the time ends you should upload the task
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1111,7 +1257,7 @@ const ChallengeModal = ({ isOpen, onClose, initialView = "cards" }) => {
                         setLoading(false);
                       }
                     }}
-                    disabled={loading || !isTimeUp}
+                    disabled={loading || timerPhase !== 'active' || isTimeUp}
                     className="w-[182px] h-[52px] bg-[#FFB300] text-white font-bold text-[20px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all mb-2 disabled:opacity-50 flex items-center justify-center mt-2"
                   >
                     {loading ? (

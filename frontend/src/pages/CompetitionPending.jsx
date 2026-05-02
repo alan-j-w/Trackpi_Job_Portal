@@ -80,7 +80,7 @@ const CompetitionPending = () => {
             Logout
           </button>
 
-          <button 
+          <button
             onClick={toggleMusic}
             className="text-black hover:scale-110 transition-transform flex items-center justify-center"
           >
@@ -91,7 +91,7 @@ const CompetitionPending = () => {
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center -mt-40 px-4">
-        <h2 
+        <h2
           className="text-center"
           style={{
             fontFamily: "'Raleway', sans-serif",
@@ -119,12 +119,12 @@ const CompetitionPending = () => {
           <div className="bg-white rounded-[32px] w-full max-w-[500px] p-10 flex flex-col items-center animate-pop-in text-center relative shadow-2xl overflow-hidden border border-gray-100">
             {/* Illustration Placeholder - Using a generic high-quality one if specific not found */}
             <div className="mb-6 h-[180px] overflow-hidden flex items-start justify-center w-full">
-               <img 
-                 src={logoutImg} 
-                 alt="Logout Illustration" 
-                 className="w-[280px] h-[350px] object-contain"
-                 style={{ objectPosition: 'top' }}
-               />
+              <img
+                src={logoutImg}
+                alt="Logout Illustration"
+                className="w-[280px] h-[350px] object-contain"
+                style={{ objectPosition: 'top' }}
+              />
             </div>
 
             <h2 className="text-black font-bold text-3xl mb-2 font-inter">
@@ -139,7 +139,7 @@ const CompetitionPending = () => {
                 onClick={() => setShowLogoutModal(false)}
                 className="flex-1 h-[58px] rounded-[12px] font-bold text-xl text-black transition-all active:scale-95 shadow-md flex items-center justify-center"
                 style={{
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #FFB300 100%)",
+                  background: "linear-gradient(180deg, #FFFFFF 0%, #FFB300 100%)",
                 }}
               >
                 Cancel
@@ -147,6 +147,10 @@ const CompetitionPending = () => {
               <button
                 onClick={() => {
                   localStorage.removeItem("enrollmentId");
+                  localStorage.removeItem("candidateName");
+                  localStorage.removeItem("candidateEmail");
+                  localStorage.removeItem("idCode");
+                  localStorage.removeItem("loginCode");
                   setShowLogoutModal(false);
                   navigate("/talent-league");
                 }}

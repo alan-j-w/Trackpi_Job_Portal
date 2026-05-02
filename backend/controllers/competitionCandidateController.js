@@ -5,7 +5,7 @@ import CompetitionWinner from "../models/CompetitionWinner.js";
 // @route   POST /api/competitions/register
 export const registerForCompetition = async (req, res) => {
     try {
-        const { name, email, phone, portfolio, role, location, department } = req.body;
+        const { name, email, phone, portfolio, role, location, department, competitionId } = req.body;
 
         // Generate enrollment ID: ENDG + 6 random digits (Ensures higher uniqueness)
         const randomDigits = Math.floor(100000 + Math.random() * 900000);
@@ -20,7 +20,8 @@ export const registerForCompetition = async (req, res) => {
             location,
             enrollmentId,
             status: "Pending",
-            isLive: true
+            isLive: true,
+            competitionId
         });
 
         res.status(201).json({ success: true, candidate });

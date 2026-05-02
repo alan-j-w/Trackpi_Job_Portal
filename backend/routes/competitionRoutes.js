@@ -19,6 +19,9 @@ const router = express.Router();
 // GET active competition for public countdown
 router.get("/active", getActiveCompetition);
 
+// GET all competitions (Public for landing page)
+router.get("/all-public", getCompetitions);
+
 // GET all competitions
 router.get("/", 
     protect, 

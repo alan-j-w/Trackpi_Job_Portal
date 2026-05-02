@@ -16,7 +16,8 @@ const competitionCandidateSchema = new mongoose.Schema(
             enum: ["Pending", "Pass", "Fail"],
             default: "Pending"
         },
-        isLive: { type: Boolean, default: true }
+        isLive: { type: Boolean, default: true },
+        competitionId: { type: mongoose.Schema.Types.ObjectId, ref: "Competition" }
     },
     { timestamps: true }
 );

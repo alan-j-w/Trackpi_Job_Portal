@@ -37,13 +37,13 @@ const CompetitionCompleted = () => {
       try {
         const response = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
         if (response.data.success) {
-           const { status, taskUrl } = response.data.candidate;
-           if (status === "Pass") navigate("/competition/result");
-           else if (status === "Fail") navigate("/competition/failed");
-           else if (!taskUrl) navigate("/competition/intro");
-           else setStatus(status);
+          const { status, taskUrl } = response.data.candidate;
+          if (status === "Pass") navigate("/competition/result");
+          else if (status === "Fail") navigate("/competition/failed");
+          else if (!taskUrl) navigate("/competition/intro");
+          else setStatus(status);
         } else {
-           navigate("/");
+          navigate("/");
         }
       } catch (err) {
         console.error("Error fetching status:", err);
@@ -123,7 +123,7 @@ const CompetitionCompleted = () => {
             Logout
           </button>
 
-          <button 
+          <button
             onClick={toggleMusic}
             className="text-black hover:scale-110 transition-transform flex items-center justify-center"
           >
@@ -135,19 +135,19 @@ const CompetitionCompleted = () => {
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-start pt-0 px-4">
         <div className="w-full max-w-[700px] flex flex-col items-center text-center relative">
-          
-          <h1 
+
+          <h1
             style={{ fontFamily: "'Russo One', sans-serif" }}
             className="text-[#FFB300] font-bold text-[42px] mb-2 leading-none"
           >
             Thank you!
           </h1>
-          
+
           <h2 className="text-black font-bold text-[24px] mb-1 leading-tight">
             Your work is in the evaluation phase
           </h2>
-          
-          <p 
+
+          <p
             style={{ fontFamily: "'Raleway', sans-serif" }}
             className="text-[#000000] text-[20px] mb-4 font-normal"
           >
@@ -167,15 +167,15 @@ const CompetitionCompleted = () => {
           </p>
 
           <div className="mb-4">
-            <img 
-              src={evaluationIllustration} 
-              alt="Evaluation Phase" 
+            <img
+              src={evaluationIllustration}
+              alt="Evaluation Phase"
               className="w-[220px] h-auto object-contain"
             />
           </div>
 
           <button
-            onClick={() => navigate("/talent-league")}
+            onClick={() => navigate("/competition/finished")}
             style={{
               background: "linear-gradient(180deg, #FFEAB2 0%, #FFD666 100%)",
             }}
@@ -217,10 +217,10 @@ const CompetitionCompleted = () => {
                 Cancel
               </button>
               <button
-                  onClick={() => {
-                    localStorage.removeItem("enrollmentId");
-                    navigate("/talent-league");
-                  }}
+                onClick={() => {
+                  localStorage.removeItem("enrollmentId");
+                  navigate("/talent-league");
+                }}
                 className="flex-1 h-[58px] rounded-[12px] border-2 border-black font-bold text-xl text-black bg-white hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center"
               >
                 Log out

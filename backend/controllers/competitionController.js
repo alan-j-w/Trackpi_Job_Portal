@@ -78,7 +78,11 @@ export const updateCompetition = async (req, res) => {
 export const getActiveCompetition = async (req, res) => {
     try {
         const { department } = req.query;
-        let query = { status: "live" };
+        const now = new Date();
+        let query = { 
+            status: "live",
+            endDate: { $gte: now } 
+        };
         
         if (department) {
             // Find competition matching the candidate's department

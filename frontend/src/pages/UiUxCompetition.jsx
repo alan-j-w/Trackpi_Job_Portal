@@ -600,6 +600,7 @@ const UiUxCompetition = () => {
             <ChallengeModal
                 isOpen={showChallengeModal}
                 onClose={() => setShowChallengeModal(false)}
+                department="UI/UX Designer"
             />
 
             <Footer />

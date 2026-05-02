@@ -12,14 +12,15 @@ const CompetitionIntro = () => {
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  
-  // Timer State
+
   const [timeLeft, setTimeLeft] = useState({
-    days: "02",
-    hours: "02",
-    minutes: "01",
-    seconds: "51"
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00"
   });
+  const [timerPhase, setTimerPhase] = useState("wait"); // 'wait' or 'active'
+  const [compDates, setCompDates] = useState({ start: "", end: "" });
 
   useEffect(() => {
     const unsubscribe = challengeAudio.subscribe(setIsPlaying);
@@ -39,41 +40,81 @@ const CompetitionIntro = () => {
         if (!enrollmentId) return;
 
         const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
-        
+
         if (res.data.success && res.data.candidate) {
-          const registrationDate = new Date(res.data.candidate.createdAt);
-          const targetDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000)); // Exactly 48 hours from registration
+          const candidateDept = res.data.candidate.department;
+          const compRes = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/all-public`);
 
-          if (new Date() > targetDate) {
-            navigate("/competition/completed");
-            return;
-          }
+          if (compRes.data.success) {
+            const comps = compRes.data.competitions;
+            const candidateCompId = res.data.candidate.competitionId;
 
-          const interval = setInterval(() => {
-            const now = new Date();
-            const diff = targetDate.getTime() - now.getTime();
-
-            if (diff <= 0) {
-              clearInterval(interval);
-              setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
-              navigate("/competition/completed");
-              return;
+            let myComp;
+            if (candidateCompId) {
+              myComp = comps.find(c => c._id === candidateCompId);
             }
 
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            if (!myComp) {
+              myComp = comps
+                .filter(c => c.department.toLowerCase().includes(candidateDept.toLowerCase()))
+                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                .find(c => new Date(c.endDate) > new Date());
+            }
 
-            setTimeLeft({
-              days: d < 10 ? `0${d}` : `${d}`,
-              hours: h < 10 ? `0${h}` : `${h}`,
-              minutes: m < 10 ? `0${m}` : `${m}`,
-              seconds: s < 10 ? `0${s}` : `${s}`
-            });
-          }, 1000);
+            if (!myComp) {
+              // Fallback: Pick any upcoming/live competition
+              myComp = comps
+                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                .find(c => new Date(c.endDate) > new Date());
+            }
 
-          return () => clearInterval(interval);
+            if (myComp) {
+              // Interpret start date as Local Midnight to avoid UTC offset issues
+              const start = new Date(myComp.startDate.split('T')[0] + 'T00:00:00');
+              const end = new Date(myComp.endDate.split('T')[0] + 'T23:59:59');
+
+              const formatOptions = { month: 'long', day: 'numeric' };
+              setCompDates({
+                start: start.toLocaleDateString(undefined, formatOptions),
+                end: end.toLocaleDateString(undefined, { ...formatOptions, year: 'numeric' })
+              });
+
+              if (new Date() >= start) {
+                setTimerPhase("active");
+                setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+                return;
+              }
+
+              setTimerPhase("wait");
+              const targetDate = start;
+
+              const interval = setInterval(() => {
+                const now = new Date();
+                const diff = targetDate.getTime() - now.getTime();
+
+                if (diff <= 0) {
+                  clearInterval(interval);
+                  setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+                  setTimerPhase("active");
+                  return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                setTimeLeft({
+                  days: d.toString().padStart(2, "0"),
+                  hours: h.toString().padStart(2, "0"),
+                  minutes: m.toString().padStart(2, "0"),
+                  seconds: s.toString().padStart(2, "0")
+                });
+              }, 1000);
+
+              return () => clearInterval(interval);
+            }
+          }
         }
       } catch (err) {
         console.error("Error setting individual timer:", err);
@@ -93,16 +134,16 @@ const CompetitionIntro = () => {
       try {
         const response = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
         if (response.data.success) {
-           const { status, taskUrl } = response.data.candidate;
-           if (status === "Pass") navigate("/competition/result");
-           else if (status === "Fail") navigate("/competition/failed");
-           else if (taskUrl) navigate("/competition/pending");
-           else setLoading(false);
+          const { status, taskUrl } = response.data.candidate;
+          if (status === "Pass") navigate("/competition/result");
+          else if (status === "Fail") navigate("/competition/failed");
+          else if (taskUrl) navigate("/competition/pending");
+          else setLoading(false);
         } else {
-           navigate("/");
+          navigate("/");
         }
       } catch (err) {
-         navigate("/");
+        navigate("/");
       }
     };
     checkAuth();
@@ -135,7 +176,7 @@ const CompetitionIntro = () => {
 
         <div className="flex items-center gap-10">
           <Link to="/competition/ui-ux" className="text-[#FFB300] font-russo text-[18px]">
-            Compatetion
+            Competition
           </Link>
           <Link to="/competition/pending" className="text-black font-russo text-[18px] hover:text-[#FFB300] transition">
             Result
@@ -154,24 +195,35 @@ const CompetitionIntro = () => {
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center -mt-10 px-4">
-        <h1 className="font-russo text-[#FFB300] text-[56px] mb-12 text-center">
+        <h1 className="font-russo text-[#FFB300] text-[56px] mb-2 text-center">
           Start Your Talent League
         </h1>
 
-        <div className="flex gap-8 mb-12">
-          {[
-            { label: 'DAYS', val: timeLeft.days },
-            { label: 'HOURS', val: timeLeft.hours },
-            { label: 'MINUTES', val: timeLeft.minutes },
-            { label: 'SECONDS', val: timeLeft.seconds }
-          ].map((item) => (
-            <div key={item.label} className="flex flex-col items-center gap-3">
-              <div className="w-[110px] h-[110px] bg-[#FFB300] rounded-[15px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] flex items-center justify-center border-t border-white/20">
-                <span className="font-russo text-black text-[48px]">{item.val}</span>
+        {compDates.start && (
+          <p className="font-russo text-black/60 text-[20px] mb-10 text-center">
+            {compDates.start} — {compDates.end}
+          </p>
+        )}
+
+        <div className="flex flex-col items-center gap-6 mb-12">
+          <span className="font-russo text-[#FFB300] text-[24px] uppercase tracking-widest">
+            {timerPhase === "active" ? "Competition Live:" : "Starts in:"}
+          </span>
+          <div className="flex gap-8">
+            {[
+              { label: 'DAYS', val: timeLeft.days },
+              { label: 'HOURS', val: timeLeft.hours },
+              { label: 'MINUTES', val: timeLeft.minutes },
+              { label: 'SECONDS', val: timeLeft.seconds }
+            ].map((item) => (
+              <div key={item.label} className="flex flex-col items-center gap-3">
+                <div className="w-[110px] h-[110px] bg-[#FFB300] rounded-[15px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] flex items-center justify-center border-t border-white/20">
+                  <span className="font-russo text-black text-[48px]">{item.val}</span>
+                </div>
+                <span className="text-black text-[13px] font-bold tracking-[0.2em]">{item.label}</span>
               </div>
-              <span className="text-black text-[13px] font-bold tracking-[0.2em]">{item.label}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <p className="text-[#FFB300] text-center mb-16 max-w-[800px] text-[22px] font-medium leading-relaxed" style={{ fontFamily: "'Raleway', sans-serif" }}>
@@ -180,7 +232,7 @@ const CompetitionIntro = () => {
 
         <button
           onClick={() => navigate("/talent-league")}
-          className="w-[190px] h-[48px] border-[1.5px] border-[#1A1A1A] bg-white rounded-[10px] text-[#1A1A1A] font-bold text-[20px] hover:bg-gray-50 transition-all shadow-sm"
+          className="w-[190px] h-[48px] border-[1.5px] border-[#1A1A1A] bg-white rounded-[10px] text-[#1A1A1A] font-bold text-[20px] hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
         >
           Done
         </button>
@@ -220,10 +272,10 @@ const CompetitionIntro = () => {
                 Cancel
               </button>
               <button
-                  onClick={() => {
-                    localStorage.removeItem("enrollmentId");
-                    navigate("/talent-league");
-                  }}
+                onClick={() => {
+                  localStorage.removeItem("enrollmentId");
+                  navigate("/talent-league");
+                }}
                 className="flex-1 h-[58px] rounded-[12px] border-2 border-black font-bold text-xl text-black bg-white hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center"
               >
                 Log out

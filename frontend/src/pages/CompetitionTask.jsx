@@ -17,14 +17,16 @@ const CompetitionTask = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isTimeUp, setIsTimeUp] = useState(false);
+  const [taskUrl, setTaskUrl] = useState("");
   
-  // Timer State
   const [timeLeft, setTimeLeft] = useState({
-    days: "02",
-    hours: "02",
-    minutes: "01",
-    seconds: "51"
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00"
   });
+  const [timerPhase, setTimerPhase] = useState("wait"); // 'wait' or 'active'
+  const [compDates, setCompDates] = useState({ start: "", end: "" });
 
   useEffect(() => {
     const unsubscribe = challengeAudio.subscribe(setIsPlaying);
@@ -46,40 +48,90 @@ const CompetitionTask = () => {
         const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/login`, { enrollmentId });
         
         if (res.data.success && res.data.candidate) {
-          const registrationDate = new Date(res.data.candidate.createdAt);
-          const targetDate = new Date(registrationDate.getTime() + (48 * 60 * 60 * 1000)); // Exactly 48 hours from registration
+          const candidateDept = res.data.candidate.department;
+          const compRes = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/competitions/all-public`);
 
-          if (new Date() > targetDate) {
-            navigate("/competition/completed");
-            return;
-          }
-
-          const interval = setInterval(() => {
-            const now = new Date();
-            const diff = targetDate.getTime() - now.getTime();
-
-            if (diff <= 0) {
-              clearInterval(interval);
-              setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
-              setIsTimeUp(true);
-              navigate("/competition/completed");
-              return;
+          if (compRes.data.success) {
+            const comps = compRes.data.competitions;
+            const candidateCompId = res.data.candidate.competitionId;
+            
+            let myComp;
+            if (candidateCompId) {
+              myComp = comps.find(c => c._id === candidateCompId);
             }
 
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            if (!myComp) {
+              myComp = comps
+                .filter(c => c.department.toLowerCase().includes(candidateDept.toLowerCase()))
+                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                .find(c => new Date(c.endDate) > new Date());
+            }
 
-            setTimeLeft({
-              days: d < 10 ? `0${d}` : `${d}`,
-              hours: h < 10 ? `0${h}` : `${h}`,
-              minutes: m < 10 ? `0${m}` : `${m}`,
-              seconds: s < 10 ? `0${s}` : `${s}`
-            });
-          }, 1000);
+            if (!myComp) {
+              // Fallback: Pick any upcoming/live competition
+              myComp = comps
+                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                .find(c => new Date(c.endDate) > new Date());
+            }
 
-          return () => clearInterval(interval);
+            if (myComp) {
+              // Interpret start date as Local Midnight to avoid UTC offset issues
+              const start = new Date(myComp.startDate.split('T')[0] + 'T00:00:00');
+              const end = new Date(myComp.endDate.split('T')[0] + 'T23:59:59');
+              
+              const now = new Date();
+              const initialPhase = now < start ? "wait" : "active";
+              setTimerPhase(initialPhase);
+              const targetDate = initialPhase === "wait" ? start : end;
+
+              const formatOptions = { month: 'long', day: 'numeric' };
+              setCompDates({
+                start: start.toLocaleDateString(undefined, formatOptions),
+                end: end.toLocaleDateString(undefined, { ...formatOptions, year: 'numeric' })
+              });
+
+              if (now > end) {
+                navigate("/competition/finished");
+                return;
+              }
+
+              const interval = setInterval(() => {
+                const currentTime = new Date();
+                const currentPhase = currentTime < start ? "wait" : "active";
+                const currentTarget = currentPhase === "wait" ? start : end;
+                
+                setTimerPhase(currentPhase);
+
+                const diff = currentTarget.getTime() - currentTime.getTime();
+
+                if (diff <= 0) {
+                  clearInterval(interval);
+                  if (currentPhase === "wait") {
+                    fetchCandidateTimer(); // Refresh to start active phase
+                  } else {
+                    setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+                    setIsTimeUp(true);
+                    navigate("/competition/finished");
+                  }
+                  return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                setTimeLeft({
+                  days: d.toString().padStart(2, "0"),
+                  hours: h.toString().padStart(2, "0"),
+                  minutes: m.toString().padStart(2, "0"),
+                  seconds: s.toString().padStart(2, "0")
+                });
+              }, 1000);
+
+              return () => clearInterval(interval);
+            }
+          }
         }
       } catch (err) {
         console.error("Error setting individual timer:", err);
@@ -102,8 +154,10 @@ const CompetitionTask = () => {
            const { status, taskUrl } = response.data.candidate;
            if (status === "Pass") navigate("/competition/result");
            else if (status === "Fail") navigate("/competition/failed");
-           else if (taskUrl) navigate("/competition/pending");
-           else setAuthLoading(false);
+           else {
+             setTaskUrl(taskUrl || "");
+             setAuthLoading(false);
+           }
         } else {
            navigate("/");
         }
@@ -164,7 +218,6 @@ const CompetitionTask = () => {
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden bg-white text-black font-sans flex flex-col pb-20">
-      {/* Background Confetti */}
       <img
         src={goldConfetti}
         alt=""
@@ -176,7 +229,6 @@ const CompetitionTask = () => {
         }}
       />
 
-      {/* Navbar */}
       <nav className="relative z-10 w-full px-12 py-6 flex justify-between items-center bg-transparent mt-4">
         <div className="flex items-center">
             <Link to="/">
@@ -203,76 +255,99 @@ const CompetitionTask = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="relative z-20 flex-1 flex flex-col items-center mt-4 px-4 overflow-y-auto">
-        <h1 className="font-russo text-[#FFB300] text-[48px] mb-8 text-center">
-          Start Your Talent League
+        <h1 className="font-russo text-[#FFB300] text-[44px] mb-1 text-center">
+          Submit Your Task
         </h1>
 
+        {compDates.start && (
+          <p className="font-russo text-black/60 text-[16px] mb-3 text-center">
+            {compDates.start} — {compDates.end}
+          </p>
+        )}
+
         {/* Countdown Timer Row */}
-        <div className="flex gap-8 mb-8">
-            {[
-                { label: 'DAYS', val: timeLeft.days },
-                { label: 'HOURS', val: timeLeft.hours },
-                { label: 'MINUTES', val: timeLeft.minutes },
-                { label: 'SECONDS', val: timeLeft.seconds }
-            ].map((item) => (
-                <div key={item.label} className="flex flex-col items-center gap-2">
-                    <div className="w-[90px] h-[90px] bg-[#FFB300] rounded-[12px] flex items-center justify-center shadow-[0_8px_16px_rgba(255,179,0,0.25)] border-t border-white/20">
-                        <span className="text-black font-russo text-[42px]">{item.val}</span>
+        <div className="flex flex-col items-center gap-3 mb-4">
+            <span className="font-russo text-[#FFB300] text-[20px] uppercase tracking-widest">
+              {timerPhase === "active" ? "Ends in:" : "Starts in:"}
+            </span>
+            <div className="flex gap-6">
+                {[
+                    { label: 'DAYS', val: timeLeft.days },
+                    { label: 'HOURS', val: timeLeft.hours },
+                    { label: 'MINUTES', val: timeLeft.minutes },
+                    { label: 'SECONDS', val: timeLeft.seconds }
+                ].map((item) => (
+                    <div key={item.label} className="flex flex-col items-center gap-1">
+                        <div className="w-[80px] h-[80px] bg-[#FFB300] rounded-[12px] flex items-center justify-center shadow-[0_6px_12px_rgba(255,179,0,0.2)] border-t border-white/20">
+                            <span className="text-black font-russo text-[36px]">{item.val}</span>
+                        </div>
+                        <span className="text-black text-[10px] font-bold tracking-[0.12em] uppercase">{item.label}</span>
                     </div>
-                    <span className="text-black text-[11px] font-bold tracking-[0.15em] uppercase">{item.label}</span>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
 
         {/* View Your Task Section */}
-        <div className="w-full max-w-[815px] mb-8 text-center flex flex-col items-center">
-          <h3 className="text-[#FFB300] font-russo text-[20px] mb-2 uppercase tracking-wide">View Your Task</h3>
-          <a
-            href={taskPDF}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-[330px] h-[65px] bg-white border-[1.2px] border-[#A1A1AA] rounded-[12px] flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm group"
-          >
-            <div className="bg-[#EF4444]/10 p-2 rounded-lg group-hover:bg-[#EF4444]/20 transition-colors">
-              <FileText className="text-[#EF4444]" size={36} />
+        <div className="w-full max-w-[815px] mb-4 text-center flex flex-col items-center">
+          <h3 className="text-[#FFB300] font-russo text-[18px] mb-1 uppercase tracking-wide">View Your Task</h3>
+          {timerPhase === 'active' && !isTimeUp ? (
+            <a
+              href={taskPDF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-[300px] h-[55px] bg-white border-[1.2px] border-[#A1A1AA] rounded-[12px] flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm group"
+            >
+              <div className="bg-[#EF4444]/10 p-1.5 rounded-lg group-hover:bg-[#EF4444]/20 transition-colors">
+                <FileText className="text-[#EF4444]" size={28} />
+              </div>
+            </a>
+          ) : (
+            <div className="w-[300px] h-[55px] bg-gray-100 border-[1.2px] border-gray-300 rounded-[12px] flex items-center justify-center shadow-sm opacity-60 cursor-not-allowed">
+               <div className="bg-gray-300/30 p-1.5 rounded-lg">
+                 <FileText className="text-gray-400" size={28} />
+               </div>
             </div>
-          </a>
+          )}
         </div>
 
         {/* Submit Your Task Section */}
-        <div className="w-full max-w-[900px] mb-10 text-center flex flex-col items-center">
-          <h3 className="text-[#FFB300] font-russo text-[20px] mb-2 uppercase tracking-wide">Submit Your Task</h3>
-          <div className="w-full min-h-[120px] bg-white border-[1.2px] border-[#A1A1AA] rounded-[12px] p-6 flex flex-col items-center justify-center gap-4 shadow-sm relative">
-            <p className="text-[#686868] text-[18px] font-medium font-sans">
-              {selectedFile ? `Selected: ${selectedFile.name}` : "Submit your design in figma link or adobe XD link or PDF ."}
+        <div className="w-full max-w-[815px] mb-8 text-center flex flex-col items-center">
+          <h3 className="text-[#FFB300] font-russo text-[18px] mb-2 uppercase tracking-wide">Submit Your Task</h3>
+          <div className="w-full h-[120px] bg-white border-[1.2px] border-[#A1A1AA] rounded-[16px] p-4 px-10 flex flex-col items-center justify-center gap-3 shadow-sm">
+            <p className="text-[#1A1A1A] text-[18px] font-medium font-inter">
+              {taskUrl ? "You have successfully submitted your task." : (selectedFile ? `Selected: ${selectedFile.name}` : "Submit your design in figma link or adobe XD link or PDF .")}
             </p>
             <div className="flex flex-col items-center gap-2">
-              <label 
-                className={`flex items-center justify-center gap-2 w-[160px] h-[40px] rounded-[10px] font-bold text-[16px] transition-all cursor-pointer shadow-sm ${!isTimeUp ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white border-[1.2px] border-[#FFB300] text-[#FFB300] hover:bg-[#FFB300]/5'}`}
+              <label
+                className={`flex items-center gap-2 px-8 h-[42px] rounded-[10px] font-bold text-[16px] transition-all shadow-sm ${ (taskUrl || timerPhase !== 'active' || isTimeUp) ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white border-[1.5px] border-[#FFB300] text-[#FFB300] hover:bg-[#FFB300]/5 active:scale-[0.98] cursor-pointer'}`}
               >
-                  {isTimeUp ? "Upload file" : "Locked"}
-                  <Upload size={20} className="ml-1" />
-                  <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf" disabled={!isTimeUp} />
+                {taskUrl ? "Submitted" : ( (timerPhase !== 'active' || isTimeUp) ? "Locked" : (selectedFile ? "Change file" : "Upload file") )}
+                <Upload size={18} className={(taskUrl || timerPhase !== 'active' || isTimeUp) ? "text-gray-400" : "text-[#FFB300]"} />
+                {!taskUrl && (
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    accept=".pdf"
+                    disabled={timerPhase !== 'active' || isTimeUp}
+                  />
+                )}
               </label>
-              {!isTimeUp && (
-                <p className="text-[#FF4D4D] text-[13px] font-medium mt-1">
-                  * Only after the time ends you should upload the task
-                </p>
-              )}
             </div>
           </div>
         </div>
 
         {/* Final Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading || !isTimeUp}
-          className="w-[240px] h-[52px] bg-[#FFB300] text-white font-bold text-[22px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
-        >
-          {loading ? <Loader2 className="animate-spin" size={28} /> : "Submit"}
-        </button>
+        {!taskUrl && (
+          <button
+            onClick={handleSubmit}
+            disabled={loading || timerPhase !== 'active' || isTimeUp}
+            className="w-[240px] h-[52px] bg-[#FFB300] text-white font-bold text-[22px] rounded-[10px] shadow-[0_12px_24px_rgba(255,179,0,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
+          >
+            {loading ? <Loader2 className="animate-spin" size={28} /> : "Submit"}
+          </button>
+        )}
       </main>
 
       {/* Bottom Glow */}

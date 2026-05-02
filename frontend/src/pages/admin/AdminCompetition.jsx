@@ -545,14 +545,20 @@ const AdminCompetition = () => {
         const start = new Date(c.startDate);
         const end = new Date(c.endDate);
         if (end < today) return false;
-        return start.getMonth() === currentMonth && start.getFullYear() === currentYear;
+        // Include if started this month OR started earlier but still running
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth();
+        return (startYear < currentYear) || (startYear === currentYear && startMonth <= currentMonth);
     });
 
     const futureCompetitions = sortedCompetitions.filter(c => {
         const start = new Date(c.startDate);
         const end = new Date(c.endDate);
         if (end < today) return false;
-        return (start.getFullYear() > currentYear) || (start.getFullYear() === currentYear && start.getMonth() > currentMonth);
+        // Include if starting after the current month
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth();
+        return (startYear > currentYear) || (startYear === currentYear && startMonth > currentMonth);
     });
 
     const CompTable = ({ title, data, showActions = true, onAdd, onFileAdd }) => (
