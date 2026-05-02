@@ -4,7 +4,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import trackpiLogo from "../assets/logo.png";
 import goldConfetti from "../assets/Talent league/ui ux/realistic-golden-confetti-background.png";
-import challengeMusic from "../assets/Talent league/ui ux/challenge music.mp3.mp3";
+import logoutImg from "../assets/Talent league/ui ux/logout.png";
+import { challengeAudio } from "../utils/audioManager";
 import { Volume2, VolumeX } from "lucide-react";
 
 const CompetitionPending = () => {
@@ -12,34 +13,15 @@ const CompetitionPending = () => {
   const [loading, setLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = React.useRef(new Audio(challengeMusic));
 
   useEffect(() => {
-    const audio = audioRef.current;
-    audio.loop = true;
-    
-    return () => {
-      audio.pause();
-    };
+    const unsubscribe = challengeAudio.subscribe(setIsPlaying);
+    challengeAudio.play();
+    return unsubscribe;
   }, []);
 
   const toggleMusic = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      audio.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(err => {
-          console.error("Playback failed:", err);
-          toast.error("Click anywhere on the page first to allow music!");
-        });
-    }
+    challengeAudio.toggle();
   };
 
   useEffect(() => {
@@ -98,7 +80,7 @@ const CompetitionPending = () => {
             Logout
           </button>
 
-          <button 
+          <button
             onClick={toggleMusic}
             className="text-black hover:scale-110 transition-transform flex items-center justify-center"
           >
@@ -109,7 +91,7 @@ const CompetitionPending = () => {
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center -mt-40 px-4">
-        <h2 
+        <h2
           className="text-center"
           style={{
             fontFamily: "'Raleway', sans-serif",
@@ -134,19 +116,21 @@ const CompetitionPending = () => {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-[32px] w-full max-w-[500px] p-10 flex flex-col items-center animate-pop-in text-center relative shadow-2xl overflow-hidden">
-            <div className="mb-6">
-               <img 
-                 src="https://img.freepik.com/free-vector/home-moving-concept-illustration_114360-4663.jpg" 
-                 alt="Logout Illustration" 
-                 className="w-[280px] h-[200px] object-contain"
-               />
+          <div className="bg-white rounded-[32px] w-full max-w-[500px] p-10 flex flex-col items-center animate-pop-in text-center relative shadow-2xl overflow-hidden border border-gray-100">
+            {/* Illustration Placeholder - Using a generic high-quality one if specific not found */}
+            <div className="mb-6 h-[180px] overflow-hidden flex items-start justify-center w-full">
+              <img
+                src={logoutImg}
+                alt="Logout Illustration"
+                className="w-[280px] h-[350px] object-contain"
+                style={{ objectPosition: 'top' }}
+              />
             </div>
 
             <h2 className="text-black font-bold text-3xl mb-2 font-inter">
               Are you logging out?
             </h2>
-            <p className="text-gray-600 text-lg mb-10 font-medium">
+            <p className="text-gray-600 text-lg mb-10 font-medium font-inter">
               You can always back at any time.
             </p>
 
@@ -155,15 +139,20 @@ const CompetitionPending = () => {
                 onClick={() => setShowLogoutModal(false)}
                 className="flex-1 h-[58px] rounded-[12px] font-bold text-xl text-black transition-all active:scale-95 shadow-md flex items-center justify-center"
                 style={{
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #FFB300 100%)",
+                  background: "linear-gradient(180deg, #FFFFFF 0%, #FFB300 100%)",
                 }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
-                   localStorage.removeItem("enrollmentId");
-                   navigate("/");
+                  localStorage.removeItem("enrollmentId");
+                  localStorage.removeItem("candidateName");
+                  localStorage.removeItem("candidateEmail");
+                  localStorage.removeItem("idCode");
+                  localStorage.removeItem("loginCode");
+                  setShowLogoutModal(false);
+                  navigate("/talent-league");
                 }}
                 className="flex-1 h-[58px] rounded-[12px] border-2 border-black font-bold text-xl text-black bg-white hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center"
               >
@@ -175,6 +164,8 @@ const CompetitionPending = () => {
       )}
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Russo+One&family=Raleway:wght@400;500;600;700&family=Inter:wght@400;700&display=swap');
+        .font-inter { font-family: 'Inter', sans-serif; }
         @keyframes popIn {
           from { opacity: 0; transform: scale(0.9) translateY(20px); }
           to { opacity: 1; transform: scale(1) translateY(0); }

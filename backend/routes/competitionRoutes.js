@@ -1,5 +1,5 @@
 import express from "express";
-import { createCompetition, getCompetitions, updateCompetition, deleteCompetition } from "../controllers/competitionController.js";
+import { createCompetition, getCompetitions, updateCompetition, deleteCompetition, getActiveCompetition } from "../controllers/competitionController.js";
 import { 
     registerForCompetition, 
     getAdminCandidates, 
@@ -15,6 +15,12 @@ import PERMISSIONS from "../config/permissions.js";
 import { competitionUpload, competitionTaskUpload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
+
+// GET active competition for public countdown
+router.get("/active", getActiveCompetition);
+
+// GET all competitions (Public for landing page)
+router.get("/all-public", getCompetitions);
 
 // GET all competitions
 router.get("/", 

@@ -170,14 +170,6 @@ const AdminPreviousWinners = () => {
           />
         </div>
 
-        {hasPermission(PERMISSIONS.WINNERS_ADD) && (
-          <button
-            onClick={handleOpenAddModal}
-            className="bg-[#FFB300] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e5a100] transition-all shadow-lg shadow-yellow-200/50 hover:scale-[1.02] transform flex items-center gap-2"
-          >
-            Create Competition winners <Plus size={20} />
-          </button>
-        )}
       </div>
 
       <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-8">Previous winner</h2>

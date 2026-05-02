@@ -21,31 +21,21 @@ import excellenceRightWinners from "../assets/Talent league/ui ux/excellence_rig
 import excellenceRightInternship from "../assets/Talent league/ui ux/excellence_right_internship.png";
 import excellenceRightPortfolio from "../assets/Talent league/ui ux/excellence_right_portfolio.png";
 import excellenceTrophyWireframe from "../assets/Talent league/ui ux/trophy.png";
-import songAudio from "../assets/Talent league/ui ux/song.mp3.mp3";
+import { challengeAudio } from "../utils/audioManager";
 import ChallengeModal from "../components/competitions/ChallengeModal";
 
 const UiUxCompetition = () => {
     const [showChallengeModal, setShowChallengeModal] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef(null);
 
     useEffect(() => {
-        audioRef.current = new Audio(songAudio);
-        audioRef.current.loop = true;
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-            }
-        };
+        const unsubscribe = challengeAudio.subscribe(setIsPlaying);
+        challengeAudio.play();
+        return unsubscribe;
     }, []);
 
     const togglePlay = () => {
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-        }
-        setIsPlaying(!isPlaying);
+        challengeAudio.toggle();
     };
 
 
@@ -111,9 +101,6 @@ const UiUxCompetition = () => {
                             </span>
                         </button>
                     </div>
-                    <button className="flex items-center gap-2 text-white/80 font-medium hover:text-white transition group">
-                        Watch now
-                    </button>
                 </div>
             </section>
 
@@ -613,6 +600,7 @@ const UiUxCompetition = () => {
             <ChallengeModal
                 isOpen={showChallengeModal}
                 onClose={() => setShowChallengeModal(false)}
+                department="UI/UX Designer"
             />
 
             <Footer />

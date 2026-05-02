@@ -10,7 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Volume2,
+  VolumeX
 } from "lucide-react";
 import Footer from "../components/Footer";
 
@@ -24,6 +26,7 @@ import awardBadge from "../assets/Talent league/ui ux/futuristic-glowing-polygon
 import internshipLogo from "../assets/Talent league/ui ux/internship_experience_logo.png";
 import growthLogo from "../assets/Talent league/ui ux/growth_logo.png";
 import excellenceWinners from "../assets/Talent league/ui ux/excellence_winners.png";
+import { challengeAudio } from "../utils/audioManager";
 import ChallengeModal from "../components/competitions/ChallengeModal";
 
 const VideoModal = ({ isOpen, onClose, videoSrc }) => {
@@ -124,6 +127,26 @@ const JourneyCard = ({ icon, title, description }) => {
 const CompetitionTestimonials = () => {
   const [activeVideo, setActiveVideo] = useState(null);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = challengeAudio.subscribe(setIsPlaying);
+    challengeAudio.play();
+    return unsubscribe;
+  }, []);
+
+  const toggleMusic = () => {
+    challengeAudio.toggle();
+  };
+
+  useEffect(() => {
+    if (activeVideo) {
+      challengeAudio.forcePause();
+    } else {
+      challengeAudio.forceResume();
+    }
+  }, [activeVideo]);
+
   const testimonials = [
     {
       name: "John Doe",
@@ -207,6 +230,16 @@ const CompetitionTestimonials = () => {
           >
             <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
           </Link>
+        </div>
+
+        {/* Music Toggle */}
+        <div className="absolute top-10 right-6 md:right-20 z-50">
+          <button
+            onClick={toggleMusic}
+            className="flex items-center justify-center w-12 h-12 rounded-full border border-yellow-500/20 bg-black/40 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/40 transition-all group shadow-[0_0_20px_rgba(234,179,8,0.1)]"
+          >
+            {isPlaying ? <Volume2 size={24} /> : <VolumeX size={24} />}
+          </button>
         </div>
 
         {/* Background elements */}

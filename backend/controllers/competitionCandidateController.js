@@ -1,10 +1,11 @@
 import CompetitionCandidate from "../models/CompetitionCandidate.js";
+import CompetitionWinner from "../models/CompetitionWinner.js";
 
 // @desc    Register for a competition
 // @route   POST /api/competitions/register
 export const registerForCompetition = async (req, res) => {
     try {
-        const { name, email, phone, portfolio, role, location, department } = req.body;
+        const { name, email, phone, portfolio, role, location, department, competitionId } = req.body;
 
         // Generate enrollment ID: ENDG + 6 random digits (Ensures higher uniqueness)
         const randomDigits = Math.floor(100000 + Math.random() * 900000);
@@ -19,7 +20,8 @@ export const registerForCompetition = async (req, res) => {
             location,
             enrollmentId,
             status: "Pending",
-            isLive: true
+            isLive: true,
+            competitionId
         });
 
         res.status(201).json({ success: true, candidate });
@@ -47,10 +49,31 @@ export const updateCandidateStatus = async (req, res) => {
         const { status } = req.body;
         const candidate = await CompetitionCandidate.findByIdAndUpdate(
             req.params.id,
-            { status },
+            {
+                status,
+                isLive: status === "Pending" ? true : false
+            },
             { new: true }
         );
         if (!candidate) return res.status(404).json({ success: false, message: "Candidate not found" });
+
+        // AUTOMATION: Synchronize with Previous Winners
+        if (status === "Pass") {
+            // Add to winners if not already there
+            const existingWinner = await CompetitionWinner.findOne({ name: candidate.name, department: candidate.department });
+            if (!existingWinner) {
+                await CompetitionWinner.create({
+                    name: candidate.name,
+                    department: candidate.department,
+                    about: `Successfully completed the competition. Their dedication and hard work have truly paid off.`,
+                    isActive: true
+                });
+            }
+        } else {
+            // Remove from winners if status is changed back to Pending or Fail
+            await CompetitionWinner.deleteOne({ name: candidate.name, department: candidate.department });
+        }
+
         res.status(200).json({ success: true, candidate });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
@@ -88,7 +111,8 @@ export const toggleLiveStatus = async (req, res) => {
 // @route   POST /api/competitions/submit-task
 export const submitTask = async (req, res) => {
     try {
-        const { enrollmentId } = req.body;
+        let { enrollmentId } = req.body;
+        if (enrollmentId) enrollmentId = enrollmentId.trim().toUpperCase();
 
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Please upload a PDF file" });
@@ -114,14 +138,15 @@ export const submitTask = async (req, res) => {
 // @route   POST /api/competitions/login
 export const loginCandidate = async (req, res) => {
     try {
-        const { enrollmentId } = req.body;
+        let { enrollmentId } = req.body;
+        if (enrollmentId) enrollmentId = enrollmentId.trim().toUpperCase();
         const candidate = await CompetitionCandidate.findOne({ enrollmentId });
 
         if (!candidate) {
             return res.status(404).json({ success: false, message: "Invalid Enrollment ID. Please check and try again." });
         }
 
-        if (!candidate.isLive) {
+        if (!candidate.isLive && candidate.status === "Pending") {
             return res.status(403).json({ success: false, message: "This enrollment code has expired and is no longer valid for the current process." });
         }
 

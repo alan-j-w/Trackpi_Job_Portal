@@ -2,29 +2,21 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import logo from "../../assets/logo.png";
-import songAudio from "../../assets/Talent league/ui ux/song.mp3.mp3";
+import { challengeAudio } from "../../utils/audioManager";
+import ChallengeModal from "../competitions/ChallengeModal";
 
 const NavbarTalent = () => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef(null);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     useEffect(() => {
-        audioRef.current = new Audio(songAudio);
-        audioRef.current.loop = true;
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-            }
-        };
+        const unsubscribe = challengeAudio.subscribe(setIsPlaying);
+        challengeAudio.play();
+        return unsubscribe;
     }, []);
 
     const togglePlay = () => {
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-        }
-        setIsPlaying(!isPlaying);
+        challengeAudio.toggle();
     };
 
     return (
@@ -64,17 +56,20 @@ const NavbarTalent = () => {
 
                     {/* ACTIONS */}
                     <div className="flex items-center gap-6">
-                        <Link to="/login">
-                            <button className="px-8 py-2 border border-white/60 rounded-[8px] text-[15px] font-medium text-white hover:bg-white/10 transition">
-                                Log in
-                            </button>
-                        </Link>
+                        <button onClick={() => setIsLoginModalOpen(true)} className="px-8 py-2 border border-white/60 rounded-[8px] text-[15px] font-medium text-white hover:bg-white/10 transition">
+                            Log in
+                        </button>
                         <button onClick={togglePlay} className="px-3 py-1 border border-white/60 rounded-[8px] text-white hover:scale-105 transition-transform opacity-100 flex items-center justify-center">
                             <i className={isPlaying ? "ri-volume-up-fill text-xl" : "ri-volume-mute-fill text-xl"}></i>
                         </button>
                     </div>
                 </div>
             </nav>
+            <ChallengeModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                initialView="login"
+            />
         </header>
     );
 };
